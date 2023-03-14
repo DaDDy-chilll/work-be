@@ -71,7 +71,7 @@ const userSchema = new Schema({
   },
   approvalAmount: {
     type: Number,
-    required: true,
+    default: 0,
   },
 });
 

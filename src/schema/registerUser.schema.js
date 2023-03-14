@@ -19,5 +19,5 @@ module.exports = z.object({
       delete: z.boolean().default(false).optional(),
     }),
   }),
-  approvalAmount: z.number().positive(),
+  approvalAmount: z.number().positive().default(0).optional(),
 });
