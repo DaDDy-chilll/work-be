@@ -7,18 +7,19 @@ const { default: helmet } = require('helmet');
 const errorHandler = require('./middlewares/errorHandler');
 const sendSuccessResponse = require('./helpers/sendSuccessResponse');
 
+const authRouter = require('./routes/auth.route');
+
 const app = express();
 
 app.use(cors());
 app.use(helmet());
+app.use(express.json());
 
 if (NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
-app.get('/', (req, res) => {
-  res.send('Hello world');
-});
+app.use('/api/auth', authRouter);
 
 app.all('*', (req, res) => {
   sendSuccessResponse({ res, message: 'Invalid endpoint.', code: 404 });

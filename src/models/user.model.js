@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const { userRoles } = require('../constants');
 const Count = require('./count.model');
@@ -74,7 +75,29 @@ const userSchema = new Schema({
   },
 });
 
-userSchema.pre('save', setCustomId({ prefix: 'U', modelName: 'user' }));
+userSchema.pre('validate', async function (next) {
+  if (!this.isNew) return next();
+  const countDoc = await Count.findOneAndUpdate(
+    { model: 'user' },
+    {
+      model: 'user',
+      $inc: {
+        count: 1,
+      },
+    },
+    { new: true, upsert: true },
+  );
+
+  this.customId = 'U-' + countDoc.count.toString().padStart(3, '0');
+  next();
+});
+
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+
+  this.password = await bcrypt.hash(this.password, 12);
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 

@@ -14,8 +14,7 @@ function setCustomId({ prefix, modelName }) {
       );
 
       this.customId = prefix + countDoc.count.toString().padStart(3, '0');
-      next();
-      return;
+      console.log(this.customId);
     }
     next();
   };

@@ -3,3 +3,5 @@ function catchAsync(callback) {
     callback(req, res, next).catch(next);
   };
 }
+
+module.exports = catchAsync;

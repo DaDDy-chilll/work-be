@@ -3,6 +3,7 @@ module.exports = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   MONGODB_URI: process.env.MONGODB_URI,
   DB_NAME: process.env.DATABASE_NAME,
+  JWT_TOKEN_SECRET: process.env.JWT_TOKEN_SECRET,
   userRoles: Object.freeze({
     superadmin: 'Superadmin',
     executive: 'Executive',

@@ -8,12 +8,14 @@ const ApiError = require('../helpers/apiError');
  * @param {any} data - Data to be validated
  * @returns {RequestHandler}
  */
-function validate(schema, data) {
+function validate(schema) {
   return (req, res, next) => {
-    const result = schema.safeParse(data);
+    const result = schema.safeParse(req.body);
 
     if (!result.success) {
-      return next(ApiError.badRequest('Validation Failed.', result.error));
+      return next(
+        ApiError.badRequest('Validation Failed.', result.error.format()),
+      );
     }
 
     next();
