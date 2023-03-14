@@ -5,7 +5,7 @@ const ApiError = require('../helpers/apiError');
 /**
  *
  * @param {ZodSchema} schema - Must be a zod schema
- * @param {any} data - Data to be validate
+ * @param {any} data - Data to be validated
  * @returns {RequestHandler}
  */
 function validate(schema, data) {
