@@ -35,3 +35,5 @@ router.patch('/:id/approve', (req, res) => {
 router.patch('/:id/reject', (req, res) => {
   res.send('Reject a document');
 });
+
+module.exports = router;
