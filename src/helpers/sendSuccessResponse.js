@@ -5,3 +5,5 @@ function sendSuccessResponse({ res, data = null, message = 'OK', code = 200 }) {
     message,
   });
 }
+
+module.exports = sendSuccessResponse;
