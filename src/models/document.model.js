@@ -46,6 +46,10 @@ const documentSchema = new Schema({
     default: documentStatus.pending,
     enum: Object.values(documentStatus),
   },
+  requestedBy: {
+    type: mongoose.Types.ObjectId,
+    ref: 'User',
+  },
   verifiedBy: {
     type: mongoose.Types.ObjectId,
     ref: 'User',
