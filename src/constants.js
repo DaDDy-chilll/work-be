@@ -16,11 +16,19 @@ module.exports = {
     advanced: 'Advanced',
   }),
   documentStatus: Object.freeze({
+    drafted: 'Drafted',
     pending: 'Pending',
     approved: 'Approved',
     rejected: 'Rejected',
     verified: 'Verified',
-    drafted: 'Drafted',
+    acknowledge: 'Acknowledged',
+  }),
+  documentRemarkActions: Object.freeze({
+    approve: 'Approve',
+    reject: 'Reject',
+    verify: 'Verify',
+    reject: 'Reject',
+    acknowledge: 'Acknowledge',
   }),
   requestFormPermissions: Object.freeze([
     'submit',
@@ -30,5 +38,6 @@ module.exports = {
     'verify',
     'update',
     'delete',
+    'acknowledge',
   ]),
 };

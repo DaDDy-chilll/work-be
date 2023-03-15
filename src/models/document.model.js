@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
 const Count = require('./count.model');
-const { paymentType, documentStatus } = require('../constants');
+const {
+  paymentType,
+  documentStatus,
+  documentRemarkActions,
+} = require('../constants');
 
 const Schema = mongoose.Schema;
 
@@ -43,6 +47,7 @@ const documentSchema = new Schema({
       action: {
         type: String,
         required: true,
+        enum: Object.values(documentRemarkActions),
       },
     },
   ],
