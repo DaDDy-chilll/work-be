@@ -22,4 +22,13 @@ module.exports = {
     verified: 'Verified',
     drafted: 'Drafted',
   }),
+  requestFormPermissions: Object.freeze([
+    'submit',
+    'approve',
+    'read',
+    'reject',
+    'verify',
+    'update',
+    'delete',
+  ]),
 };

@@ -4,6 +4,7 @@ const documentController = require('../controllers/document.controller');
 const validate = require('../middlewares/validate');
 const authenticate = require('../middlewares/authenticate');
 const createDocumentSchema = require('../schema/createDocument.schema');
+const checkFormPermissions = require('../middlewares/checkFormPermissions');
 
 router.get('/', (req, res) => {
   res.send('Get all documents');
@@ -12,6 +13,7 @@ router.get('/', (req, res) => {
 router.post(
   '/',
   authenticate,
+  checkFormPermissions('submit'),
   validate(createDocumentSchema),
   documentController.createDocument,
 );
