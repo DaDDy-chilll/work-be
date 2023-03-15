@@ -40,6 +40,10 @@ const documentSchema = new Schema({
         type: mongoose.Types.ObjectId,
         ref: 'User',
       },
+      action: {
+        type: String,
+        required: true,
+      },
     },
   ],
   status: {
@@ -52,12 +56,11 @@ const documentSchema = new Schema({
     ref: 'User',
     required: true,
   },
-  verifiedBy: [
-    {
-      type: mongoose.Types.ObjectId,
-      ref: 'User',
-    },
-  ],
+  verifiedBy: {
+    type: mongoose.Types.ObjectId,
+    ref: 'User',
+  },
+
   approvedBy: {
     type: mongoose.Types.ObjectId,
     ref: 'User',
