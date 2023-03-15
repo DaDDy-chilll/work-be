@@ -31,9 +31,24 @@ const createDocumentController = () => {
     });
   });
 
+  const approveDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.approveForm({
+      id: req.params.id,
+      userId: req.user.id,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Document approved.',
+    });
+  });
+
   return {
     createDocument,
     verifyDocument,
+    approveDocument,
   };
 };
 

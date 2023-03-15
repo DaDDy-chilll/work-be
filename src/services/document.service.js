@@ -1,4 +1,5 @@
 const { documentRemarkActions, documentStatus } = require('../constants');
+const ApiError = require('../helpers/apiError');
 const Document = require('../models/document.model');
 
 const createDocumentService = () => {
@@ -10,33 +11,76 @@ const createDocumentService = () => {
 
   // TODO: Do not verify a doucment that's already been verified
   // or rejected or approved.
-  const verifyForm = async ({ id, userId, remark = undefined }) => {
-    const document = await Document.findByIdAndUpdate(
+  const verifyForm = async ({ id, userId, remark }) => {
+    if (!remark || typeof remark !== 'string') {
+      throw ApiError.badRequest('Remark is required.');
+    }
+
+    const document = await Document.findById(id);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    if (document.status !== 'Pending') {
+      throw ApiError.badRequest('Cannot verify this document.');
+    }
+
+    const newDocument = await Document.findByIdAndUpdate(
       id,
       {
-        verifiedBy: userId,
         status: documentStatus.verified,
-        ...(typeof remark === 'string' && remark !== ''
-          ? {
-              $push: {
-                remarks: {
-                  remarker: userId,
-                  content: remark,
-                  action: documentRemarkActions.verify,
-                },
-              },
-            }
-          : undefined),
+        $push: {
+          remarks: {
+            remarker: userId,
+            content: remark,
+            action: documentRemarkActions.verify,
+          },
+        },
       },
       { new: true },
     );
 
-    return document;
+    return newDocument;
+  };
+
+  const approveForm = async ({ id, userId, remark }) => {
+    if (!remark || typeof remark !== 'string') {
+      throw ApiError.badRequest('Remark is required.');
+    }
+
+    const document = await Document.findById(id);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    if (document.status !== 'Verified') {
+      throw ApiError.badRequest('Cannot approve this document.');
+    }
+
+    const newDocument = await Document.findByIdAndUpdate(
+      id,
+      {
+        status: documentStatus.approved,
+        $push: {
+          remarks: {
+            remarker: userId,
+            content: remark,
+            action: documentRemarkActions.approve,
+          },
+        },
+      },
+      { new: true },
+    );
+
+    return newDocument;
   };
 
   return {
     createRequisitionForm,
     verifyForm,
+    approveForm,
   };
 };
 

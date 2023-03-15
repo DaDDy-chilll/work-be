@@ -61,15 +61,6 @@ const documentSchema = new Schema({
     ref: 'User',
     required: true,
   },
-  verifiedBy: {
-    type: mongoose.Types.ObjectId,
-    ref: 'User',
-  },
-
-  approvedBy: {
-    type: mongoose.Types.ObjectId,
-    ref: 'User',
-  },
 });
 
 documentSchema.pre('validate', async function (next) {

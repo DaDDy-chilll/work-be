@@ -41,9 +41,12 @@ router.patch(
   documentController.verifyDocument,
 );
 
-router.patch('/:id/approve', (req, res) => {
-  res.send('Approve a document.');
-});
+router.patch(
+  '/:id/approve',
+  authenticate,
+  checkFormPermissions('approve'),
+  documentController.approveDocument,
+);
 
 router.patch('/:id/reject', (req, res) => {
   res.send('Reject a document');
