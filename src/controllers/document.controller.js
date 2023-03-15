@@ -34,7 +34,7 @@ const createDocumentController = () => {
   const approveDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.approveDocument({
       id: req.params.id,
-      userId: req.user.id,
+      user: req.user,
       remark: req.body.remark,
     });
 

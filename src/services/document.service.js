@@ -51,9 +51,11 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Document does not exist.');
     }
 
-    if (document.status !== 'Verified') {
+    if (!(document.status === 'Verified' || document.status === 'Pending')) {
       throw ApiError.badRequest('Cannot approve this document.');
     }
+
+    console.log(user);
 
     if (document.amount > user.approvalAmount) {
       throw ApiError.badRequest('Amount too high to approve.');
