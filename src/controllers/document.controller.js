@@ -45,10 +45,25 @@ const createDocumentController = () => {
     });
   });
 
+  const rejectDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.rejectForm({
+      id: req.params.id,
+      userId: req.user.id,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Document rejected.',
+    });
+  });
+
   return {
     createDocument,
     verifyDocument,
     approveDocument,
+    rejectDocument,
   };
 };
 

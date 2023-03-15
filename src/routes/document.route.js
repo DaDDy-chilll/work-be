@@ -3,8 +3,10 @@ const router = require('express').Router();
 const documentController = require('../controllers/document.controller');
 const validate = require('../middlewares/validate');
 const authenticate = require('../middlewares/authenticate');
-const createDocumentSchema = require('../schema/createDocument.schema');
 const checkFormPermissions = require('../middlewares/checkFormPermissions');
+
+const createDocumentSchema = require('../schema/createDocument.schema');
+const formRemarkSchema = require('../schema/formRemark.schema');
 
 router.get('/', (req, res) => {
   res.send('Get all documents');
@@ -38,6 +40,7 @@ router.patch(
   '/:id/verify',
   authenticate,
   checkFormPermissions('verify'),
+  validate(formRemarkSchema),
   documentController.verifyDocument,
 );
 
@@ -45,11 +48,16 @@ router.patch(
   '/:id/approve',
   authenticate,
   checkFormPermissions('approve'),
+  validate(formRemarkSchema),
   documentController.approveDocument,
 );
 
-router.patch('/:id/reject', (req, res) => {
-  res.send('Reject a document');
-});
+router.patch(
+  '/:id/reject',
+  authenticate,
+  checkFormPermissions('reject'),
+  validate(formRemarkSchema),
+  documentController.rejectDocument,
+);
 
 module.exports = router;
