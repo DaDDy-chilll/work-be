@@ -1,7 +1,4 @@
-const jwt = require('jsonwebtoken');
-
 const catchAsync = require('../helpers/catchAsync');
-const { JWT_TOKEN_SECRET, userRoles } = require('../constants');
 const authService = require('../services/auth.service');
 const ApiError = require('../helpers/apiError');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
@@ -19,10 +16,6 @@ const createAuthController = () => {
       });
     }),
     register: catchAsync(async (req, res, next) => {
-      if (req.user.role !== userRoles.superadmin) {
-        return next(ApiError.notAuthorized());
-      }
-
       const user = await authService.getUserByEmail(req.body.email);
       if (user) {
         return next(ApiError.badRequest('Email already exists.'));
