@@ -50,6 +50,7 @@ const documentSchema = new Schema({
   requestedBy: {
     type: mongoose.Types.ObjectId,
     ref: 'User',
+    required: true,
   },
   verifiedBy: [
     {

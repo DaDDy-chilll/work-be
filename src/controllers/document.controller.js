@@ -4,7 +4,10 @@ const documentService = require('../services/document.service');
 
 const createDocumentController = () => {
   const createDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.createRequisitionForm(req.body);
+    const document = await documentService.createRequisitionForm({
+      ...req.body,
+      requestedBy: req.user.id,
+    });
 
     sendSuccessResponse({
       res,

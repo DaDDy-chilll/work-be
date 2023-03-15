@@ -2,6 +2,7 @@ const router = require('express').Router();
 
 const documentController = require('../controllers/document.controller');
 const validate = require('../middlewares/validate');
+const authenticate = require('../middlewares/authenticate');
 const createDocumentSchema = require('../schema/createDocument.schema');
 
 router.get('/', (req, res) => {
@@ -10,6 +11,7 @@ router.get('/', (req, res) => {
 
 router.post(
   '/',
+  authenticate,
   validate(createDocumentSchema),
   documentController.createDocument,
 );
