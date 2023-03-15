@@ -9,7 +9,14 @@ const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const createAuthController = () => {
   return {
     login: catchAsync(async (req, res, next) => {
-      return res.send('Login');
+      const data = await authService.login(req.body);
+
+      sendSuccessResponse({
+        res,
+        data,
+        code: 200,
+        message: 'User successfully logged in.',
+      });
     }),
     register: catchAsync(async (req, res, next) => {
       const user = await authService.getUserByEmail(req.body.email);

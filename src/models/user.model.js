@@ -41,6 +41,11 @@ const permissions = {
 };
 
 const userSchema = new Schema({
+  email: {
+    type: String,
+    requried: true,
+    unique: true,
+  },
   customId: {
     type: String,
     required: true,
