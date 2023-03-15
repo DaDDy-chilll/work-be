@@ -32,7 +32,8 @@ const createAuthService = () => {
   };
 
   const register = async (data) => {
-    const { password, ...user } = await User.create(data);
+    const user = await User.create(data);
+    user.password = undefined;
 
     return user;
   };

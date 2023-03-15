@@ -1,3 +1,4 @@
+const { documentRemarkActions, documentStatus } = require('../constants');
 const Document = require('../models/document.model');
 
 const createDocumentService = () => {
@@ -7,8 +8,35 @@ const createDocumentService = () => {
     return document;
   };
 
+  // TODO: Do not verify a doucment that's already been verified
+  // or rejected or approved.
+  const verifyForm = async ({ id, userId, remark = undefined }) => {
+    const document = await Document.findByIdAndUpdate(
+      id,
+      {
+        verifiedBy: userId,
+        status: documentStatus.verified,
+        ...(typeof remark === 'string' && remark !== ''
+          ? {
+              $push: {
+                remarks: {
+                  remarker: userId,
+                  content: remark,
+                  action: documentRemarkActions.verify,
+                },
+              },
+            }
+          : undefined),
+      },
+      { new: true },
+    );
+
+    return document;
+  };
+
   return {
     createRequisitionForm,
+    verifyForm,
   };
 };
 

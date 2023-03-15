@@ -34,9 +34,12 @@ router.get('/requested', (req, res) => {
   res.send('get all requested documents(pending, approved, rejected)');
 });
 
-router.patch('/:id/verify', (req, res) => {
-  res.send('Verify a document');
-});
+router.patch(
+  '/:id/verify',
+  authenticate,
+  checkFormPermissions('verify'),
+  documentController.verifyDocument,
+);
 
 router.patch('/:id/approve', (req, res) => {
   res.send('Approve a document.');

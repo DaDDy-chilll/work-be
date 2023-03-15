@@ -17,8 +17,23 @@ const createDocumentController = () => {
     });
   });
 
+  const verifyDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.verifyForm({
+      id: req.params.id,
+      userId: req.user.id,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Document verified.',
+    });
+  });
+
   return {
     createDocument,
+    verifyDocument,
   };
 };
 
