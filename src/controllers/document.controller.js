@@ -84,6 +84,18 @@ const createDocumentController = () => {
     });
   });
 
+  const getMyDocuments = catchAsync(async (req, res, next) => {
+    const documents = await documentService.getMyDocuments({
+      userId: req.user.id,
+      query: req.query,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+    });
+  });
+
   return {
     createDocument,
     verifyDocument,
@@ -91,6 +103,7 @@ const createDocumentController = () => {
     rejectDocument,
     acknowledgeDocument,
     getRequestedDocuments,
+    getMyDocuments,
   };
 };
 

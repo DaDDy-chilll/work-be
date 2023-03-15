@@ -28,9 +28,7 @@ router.delete('/:id', (req, res) => {
   res.send('delete a document.');
 });
 
-router.get('/me', (req, res) => {
-  res.send('Get my documents');
-});
+router.get('/me', authenticate, documentController.getMyDocuments);
 
 router.get('/requested', documentController.getRequestedDocuments);
 

@@ -3,14 +3,18 @@ const ApiError = require('../helpers/apiError');
 const Document = require('../models/document.model');
 
 const createDocumentService = () => {
+  const LIMIT = 10;
+
+  const _getDocsSkip = (page = 1) => {
+    return (parseInt(page, 10) - 1) * LIMIT;
+  };
+
   const createRequisitionDocument = async (data) => {
     const document = await Document.create(data);
 
     return document;
   };
 
-  // TODO: Do not verify a doucment that's already been verified
-  // or rejected or approved.
   const verifyDocument = async ({ id, userId, remark }) => {
     const document = await Document.findById(id);
 
@@ -134,8 +138,7 @@ const createDocumentService = () => {
   };
 
   const getRequestedDocuments = async ({ query }) => {
-    const page = query.page ? parseInt(query.page, 10) : 1;
-    const skip = (page - 1) * 10;
+    const skip = _getDocsSkip(query.page);
 
     const documents = await Document.find({
       $or: [
@@ -151,6 +154,19 @@ const createDocumentService = () => {
     return documents;
   };
 
+  const getMyDocuments = async ({ userId, query }) => {
+    const skip = _getDocsSkip(query.page);
+
+    const documents = await Document.find({
+      requestedBy: userId,
+      ...(query.status ? { status: query.status } : undefined),
+    })
+      .skip(skip)
+      .limit(10);
+
+    return documents;
+  };
+
   return {
     createRequisitionDocument,
     verifyDocument,
@@ -158,6 +174,7 @@ const createDocumentService = () => {
     rejectDocument,
     acknowledgeDocument,
     getRequestedDocuments,
+    getMyDocuments,
   };
 };
 
