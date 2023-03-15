@@ -32,9 +32,7 @@ router.get('/me', (req, res) => {
   res.send('Get my documents');
 });
 
-router.get('/requested', (req, res) => {
-  res.send('get all requested documents(pending, approved, rejected)');
-});
+router.get('/requested', documentController.getRequestedDocuments);
 
 router.patch(
   '/:id/verify',

@@ -3,7 +3,7 @@ const ApiError = require('../helpers/apiError');
 const Document = require('../models/document.model');
 
 const createDocumentService = () => {
-  const createRequisitionForm = async (data) => {
+  const createRequisitionDocument = async (data) => {
     const document = await Document.create(data);
 
     return document;
@@ -11,7 +11,7 @@ const createDocumentService = () => {
 
   // TODO: Do not verify a doucment that's already been verified
   // or rejected or approved.
-  const verifyForm = async ({ id, userId, remark }) => {
+  const verifyDocument = async ({ id, userId, remark }) => {
     const document = await Document.findById(id);
 
     if (!document) {
@@ -40,7 +40,7 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const approveForm = async ({ id, user, remark }) => {
+  const approveDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
     if (!document) {
@@ -73,7 +73,7 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const rejectForm = async ({ id, userId, remark }) => {
+  const rejectDocument = async ({ id, userId, remark }) => {
     const document = await Document.findById(id);
 
     if (!document) {
@@ -102,7 +102,7 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const acknowledgeForm = async ({ id, userId, remark }) => {
+  const acknowledgeDocument = async ({ id, userId, remark }) => {
     const document = await Document.findById(id);
 
     if (!document) {
@@ -133,12 +133,31 @@ const createDocumentService = () => {
     return newDocument;
   };
 
+  const getRequestedDocuments = async ({ query }) => {
+    const page = query.page ? parseInt(query.page, 10) : 1;
+    const skip = (page - 1) * 10;
+
+    const documents = await Document.find({
+      $or: [
+        {
+          status: 'Pending',
+        },
+        { status: 'Verified' },
+      ],
+    })
+      .skip(skip)
+      .limit(10);
+
+    return documents;
+  };
+
   return {
-    createRequisitionForm,
-    verifyForm,
-    approveForm,
-    rejectForm,
-    acknowledgeForm,
+    createRequisitionDocument,
+    verifyDocument,
+    approveDocument,
+    rejectDocument,
+    acknowledgeDocument,
+    getRequestedDocuments,
   };
 };
 

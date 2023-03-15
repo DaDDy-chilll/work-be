@@ -4,7 +4,7 @@ const documentService = require('../services/document.service');
 
 const createDocumentController = () => {
   const createDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.createRequisitionForm({
+    const document = await documentService.createRequisitionDocument({
       ...req.body,
       requestedBy: req.user.id,
     });
@@ -18,7 +18,7 @@ const createDocumentController = () => {
   });
 
   const verifyDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.verifyForm({
+    const document = await documentService.verifyDocument({
       id: req.params.id,
       userId: req.user.id,
       remark: req.body.remark,
@@ -32,7 +32,7 @@ const createDocumentController = () => {
   });
 
   const approveDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.approveForm({
+    const document = await documentService.approveDocument({
       id: req.params.id,
       userId: req.user.id,
       remark: req.body.remark,
@@ -46,7 +46,7 @@ const createDocumentController = () => {
   });
 
   const rejectDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.rejectForm({
+    const document = await documentService.rejectDocument({
       id: req.params.id,
       userId: req.user.id,
       remark: req.body.remark,
@@ -60,7 +60,7 @@ const createDocumentController = () => {
   });
 
   const acknowledgeDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.acknowledgeForm({
+    const document = await documentService.acknowledgeDocument({
       id: req.params.id,
       userId: req.user.id,
       remark: req.body.remark,
@@ -73,12 +73,24 @@ const createDocumentController = () => {
     });
   });
 
+  const getRequestedDocuments = catchAsync(async (req, res, next) => {
+    const documents = await documentService.getRequestedDocuments({
+      query: req.query,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+    });
+  });
+
   return {
     createDocument,
     verifyDocument,
     approveDocument,
     rejectDocument,
     acknowledgeDocument,
+    getRequestedDocuments,
   };
 };
 
