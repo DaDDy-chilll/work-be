@@ -1,12 +1,18 @@
 const router = require('express').Router();
 
+const documentController = require('../controllers/document.controller');
+const validate = require('../middlewares/validate');
+const createDocumentSchema = require('../schema/createDocument.schema');
+
 router.get('/', (req, res) => {
   res.send('Get all documents');
 });
 
-router.post('/', (req, res) => {
-  res.send('submit a new document.');
-});
+router.post(
+  '/',
+  validate(createDocumentSchema),
+  documentController.createDocument,
+);
 
 router.patch('/:id', (req, res) => {
   res.send('update a document');

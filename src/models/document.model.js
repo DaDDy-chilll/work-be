@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
+
+const Count = require('./count.model');
 const { paymentType, documentStatus } = require('../constants');
-const setCustomId = require('../helpers/setCustomId');
 
 const Schema = mongoose.Schema;
 
@@ -50,17 +51,34 @@ const documentSchema = new Schema({
     type: mongoose.Types.ObjectId,
     ref: 'User',
   },
-  verifiedBy: {
-    type: mongoose.Types.ObjectId,
-    ref: 'User',
-  },
+  verifiedBy: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+    },
+  ],
   approvedBy: {
     type: mongoose.Types.ObjectId,
     ref: 'User',
   },
 });
 
-documentSchema.pre('save', setCustomId({ prefix: 'D', modelName: 'document' }));
+documentSchema.pre('validate', async function (next) {
+  if (!this.isNew) return next();
+  const countDoc = await Count.findOneAndUpdate(
+    { model: 'document' },
+    {
+      model: 'document',
+      $inc: {
+        count: 1,
+      },
+    },
+    { new: true, upsert: true },
+  );
+
+  this.customId = 'D-' + countDoc.count.toString().padStart(3, '0');
+  next();
+});
 
 const Document = mongoose.model('Document', documentSchema);
 

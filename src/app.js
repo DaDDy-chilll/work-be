@@ -8,6 +8,7 @@ const errorHandler = require('./middlewares/errorHandler');
 const sendSuccessResponse = require('./helpers/sendSuccessResponse');
 
 const authRouter = require('./routes/auth.route');
+const documentRouter = require('./routes/document.route');
 
 const app = express();
 
@@ -20,6 +21,7 @@ if (NODE_ENV !== 'production') {
 }
 
 app.use('/api/auth', authRouter);
+app.use('/api/documents', documentRouter);
 
 app.all('*', (req, res) => {
   sendSuccessResponse({ res, message: 'Invalid endpoint.', code: 404 });
