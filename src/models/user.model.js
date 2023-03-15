@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 
 const { userRoles } = require('../constants');
 const Count = require('./count.model');
-const setCustomId = require('../helpers/setCustomId');
 
 const Schema = mongoose.Schema;
 
@@ -89,7 +88,7 @@ userSchema.pre('validate', async function (next) {
         count: 1,
       },
     },
-    { new: true, upsert: true },
+    { new: true, upsert: true }
   );
 
   this.customId = 'U-' + countDoc.count.toString().padStart(3, '0');

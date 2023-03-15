@@ -17,7 +17,7 @@ router.post(
   authenticate,
   checkFormPermissions('submit'),
   validate(createDocumentSchema),
-  documentController.createDocument,
+  documentController.createDocument
 );
 
 router.patch('/:id', (req, res) => {
@@ -37,7 +37,7 @@ router.patch(
   authenticate,
   checkFormPermissions('verify'),
   validate(formRemarkSchema),
-  documentController.verifyDocument,
+  documentController.verifyDocument
 );
 
 router.patch(
@@ -45,7 +45,7 @@ router.patch(
   authenticate,
   checkFormPermissions('approve'),
   validate(formRemarkSchema),
-  documentController.approveDocument,
+  documentController.approveDocument
 );
 
 router.patch(
@@ -53,7 +53,7 @@ router.patch(
   authenticate,
   checkFormPermissions('reject'),
   validate(formRemarkSchema),
-  documentController.rejectDocument,
+  documentController.rejectDocument
 );
 
 router.patch(
@@ -61,7 +61,7 @@ router.patch(
   authenticate,
   checkFormPermissions('acknowledge'),
   validate(formRemarkSchema),
-  documentController.acknowledgeDocument,
+  documentController.acknowledgeDocument
 );
 
 module.exports = router;

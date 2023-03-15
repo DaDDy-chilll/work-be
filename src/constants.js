@@ -27,7 +27,6 @@ module.exports = {
     approve: 'Approve',
     reject: 'Reject',
     verify: 'Verify',
-    reject: 'Reject',
     acknowledge: 'Acknowledge',
   }),
   requestFormPermissions: Object.freeze([

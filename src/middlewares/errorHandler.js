@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const { NODE_ENV } = require('../constants');
 const ApiError = require('../helpers/apiError');
 const sendFailedResponse = require('../helpers/sendFailedResponse');

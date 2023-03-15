@@ -14,7 +14,7 @@ function validate(schema) {
 
     if (!result.success) {
       return next(
-        ApiError.badRequest('Validation Failed.', result.error.format()),
+        ApiError.badRequest('Validation Failed.', result.error.format())
       );
     }
 

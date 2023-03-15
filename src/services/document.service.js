@@ -38,7 +38,7 @@ const createDocumentService = () => {
           },
         },
       },
-      { new: true },
+      { new: true }
     );
 
     return newDocument;
@@ -71,7 +71,7 @@ const createDocumentService = () => {
           },
         },
       },
-      { new: true },
+      { new: true }
     );
 
     return newDocument;
@@ -100,7 +100,7 @@ const createDocumentService = () => {
           },
         },
       },
-      { new: true },
+      { new: true }
     );
 
     return newDocument;
@@ -112,8 +112,6 @@ const createDocumentService = () => {
     if (!document) {
       throw ApiError.badRequest('Document does not exist.');
     }
-
-    console.log(document.status);
 
     if (document.status !== 'Approved') {
       throw ApiError.badRequest('Cannot acknowledge the form.');
@@ -131,7 +129,7 @@ const createDocumentService = () => {
           },
         },
       },
-      { new: true },
+      { new: true }
     );
 
     return newDocument;

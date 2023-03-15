@@ -15,7 +15,7 @@ const authenticate = catchAsync(async (req, res, next) => {
     return next(noTokenError);
   }
 
-  const [_, token] = bearerToken.split(' ');
+  const [, token] = bearerToken.split(' ');
 
   if (!token) {
     return next(noTokenError);
