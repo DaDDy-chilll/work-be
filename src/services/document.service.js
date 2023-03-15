@@ -40,7 +40,7 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const approveForm = async ({ id, userId, remark }) => {
+  const approveForm = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
     if (!document) {
@@ -51,13 +51,17 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Cannot approve this document.');
     }
 
+    if (document.amount > user.approvalAmount) {
+      throw ApiError.badRequest('Amount too high to approve.');
+    }
+
     const newDocument = await Document.findByIdAndUpdate(
       id,
       {
         status: documentStatus.approved,
         $push: {
           remarks: {
-            remarker: userId,
+            remarker: user.id,
             content: remark,
             action: documentRemarkActions.approve,
           },
