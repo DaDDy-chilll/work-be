@@ -59,11 +59,26 @@ const createDocumentController = () => {
     });
   });
 
+  const acknowledgeDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.acknowledgeForm({
+      id: req.params.id,
+      userId: req.user.id,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Document acknowledged',
+    });
+  });
+
   return {
     createDocument,
     verifyDocument,
     approveDocument,
     rejectDocument,
+    acknowledgeDocument,
   };
 };
 

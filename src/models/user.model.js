@@ -37,6 +37,10 @@ const permissions = {
       type: Boolean,
       default: false,
     },
+    acknowledge: {
+      type: Boolean,
+      default: false,
+    },
   },
 };
 

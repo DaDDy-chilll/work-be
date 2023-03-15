@@ -39,7 +39,10 @@ const documentSchema = new Schema({
   },
   remarks: [
     {
-      content: String,
+      content: {
+        type: String,
+        default: 'No remark.',
+      },
       remarker: {
         type: mongoose.Types.ObjectId,
         ref: 'User',

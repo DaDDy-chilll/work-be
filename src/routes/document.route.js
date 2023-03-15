@@ -60,4 +60,12 @@ router.patch(
   documentController.rejectDocument,
 );
 
+router.patch(
+  '/:id/acknowledge',
+  authenticate,
+  checkFormPermissions('acknowledge'),
+  validate(formRemarkSchema),
+  documentController.acknowledgeDocument,
+);
+
 module.exports = router;

@@ -21,7 +21,7 @@ module.exports = {
     approved: 'Approved',
     rejected: 'Rejected',
     verified: 'Verified',
-    acknowledge: 'Acknowledged',
+    acknowledged: 'Acknowledged',
   }),
   documentRemarkActions: Object.freeze({
     approve: 'Approve',

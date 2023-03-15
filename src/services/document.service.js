@@ -102,11 +102,43 @@ const createDocumentService = () => {
     return newDocument;
   };
 
+  const acknowledgeForm = async ({ id, userId, remark }) => {
+    const document = await Document.findById(id);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    console.log(document.status);
+
+    if (document.status !== 'Approved') {
+      throw ApiError.badRequest('Cannot acknowledge the form.');
+    }
+
+    const newDocument = await Document.findByIdAndUpdate(
+      id,
+      {
+        status: documentStatus.acknowledged,
+        $push: {
+          remarks: {
+            remarker: userId,
+            content: remark,
+            action: documentRemarkActions.acknowledge,
+          },
+        },
+      },
+      { new: true },
+    );
+
+    return newDocument;
+  };
+
   return {
     createRequisitionForm,
     verifyForm,
     approveForm,
     rejectForm,
+    acknowledgeForm,
   };
 };
 
