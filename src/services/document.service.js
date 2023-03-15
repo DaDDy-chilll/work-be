@@ -55,8 +55,6 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Cannot approve this document.');
     }
 
-    console.log(user);
-
     if (document.amount > user.approvalAmount) {
       throw ApiError.badRequest('Amount too high to approve.');
     }
