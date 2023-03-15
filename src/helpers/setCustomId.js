@@ -10,11 +10,10 @@ function setCustomId({ prefix, modelName }) {
             count: 1,
           },
         },
-        { new: true },
+        { new: true }
       );
 
       this.customId = prefix + countDoc.count.toString().padStart(3, '0');
-      console.log(this.customId);
     }
     next();
   };

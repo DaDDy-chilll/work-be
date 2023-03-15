@@ -20,7 +20,7 @@ const createAuthService = () => {
           if (error) reject(error);
 
           resolve(token);
-        },
+        }
       );
     });
   };

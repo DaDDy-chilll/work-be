@@ -12,7 +12,7 @@ router.post(
   authenticate,
   checkSuperadmin,
   validate(registerUserSchema),
-  authController.register,
+  authController.register
 );
 
 router.post('/login', validate(loginUserSchema), authController.login);

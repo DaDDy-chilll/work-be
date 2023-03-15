@@ -76,7 +76,7 @@ documentSchema.pre('validate', async function (next) {
         count: 1,
       },
     },
-    { new: true, upsert: true },
+    { new: true, upsert: true }
   );
 
   this.customId = 'D-' + countDoc.count.toString().padStart(3, '0');
