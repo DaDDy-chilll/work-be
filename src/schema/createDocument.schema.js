@@ -3,15 +3,26 @@ const { paymentType, documentStatus } = require('../constants');
 
 const createDocumentSchema = z.object({
   body: z.object({
-    name: z.string().min(2).max(50),
+    name: z
+      .string()
+      .min(2, 'Name must have at least 2 characters.')
+      .max(50, 'Name must have at most 50 characters.'),
     type: z
-      .enum(Object.values(paymentType))
+      .enum(Object.values(paymentType), {
+        invalid_type_error: 'Wrong document type.',
+      })
       .default(paymentType.normal)
       .optional(),
-    amount: z.number().positive(),
+    amount: z.number().positive('Invalid amount'),
     description: z.string().optional(),
     status: z
-      .enum(Object.values(documentStatus))
+      .enum(Object.values(documentStatus), {
+        errorMap: (_issue, _ctx) => {
+          return {
+            message: 'Invalid document status.',
+          };
+        },
+      })
       .default(documentStatus.pending)
       .optional(),
   }),

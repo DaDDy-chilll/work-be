@@ -6,7 +6,7 @@ const formRemarkSchema = z.object({
     remark: z.string().default('No remark').optional(),
   }),
   params: z.object({
-    id: z.string().refine(isObjectIdOrHexString),
+    id: z.string().refine(isObjectIdOrHexString, 'Invalid document.'),
   }),
 });
 

@@ -3,7 +3,7 @@ const { isObjectIdOrHexString } = require('mongoose');
 
 const submitDraftSchema = z.object({
   params: z.object({
-    id: z.string().refine(isObjectIdOrHexString),
+    id: z.string().refine(isObjectIdOrHexString, 'Invalid document.'),
   }),
 });
 
