@@ -11,14 +11,14 @@ module.exports = z.object({
   jobLabel: z.string(),
   permissions: z.object({
     requestForm: z.object({
-      read: z.boolean().default(true).optional(),
-      approve: z.boolean().default(false).optional(),
-      reject: z.boolean().default(false).optional(),
-      verify: z.boolean().default(false).optional(),
-      submit: z.boolean().default(false).optional(),
-      update: z.boolean().default(false).optional(),
-      delete: z.boolean().default(false).optional(),
+      read: z.boolean().default(true),
+      approve: z.boolean().default(false),
+      reject: z.boolean().default(false),
+      verify: z.boolean().default(false),
+      submit: z.boolean().default(false),
+      update: z.boolean().default(false),
+      delete: z.boolean().default(false),
     }),
   }),
-  approvalAmount: z.number().positive().default(0).optional(),
+  approvalAmount: z.number().nonnegative().default(0).optional(),
 });
