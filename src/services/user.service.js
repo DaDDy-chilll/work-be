@@ -5,14 +5,29 @@ const User = require('../models/user.model');
 const createUserService = () => {
   const _getFilterForGetAllUsers = ({ queryFilter }) => {
     const filter = {};
+
+    if (queryFilter.name) {
+      filter.name = {
+        $regex: queryFilter.name,
+        $options: 'i',
+      };
+    }
+
+    if (queryFilter.role) {
+      filter.role = queryFilter.role;
+    }
+
+    return filter;
   };
 
   const getAllUsers = async ({ query }) => {
     const { skip, limit, sort, queryFilter } = getQuery(query);
 
-    const total = await User.count();
+    const filter = _getFilterForGetAllUsers({ queryFilter });
 
-    const users = await User.find().sort(sort).skip(skip).limit(limit);
+    const total = await User.count(filter);
+
+    const users = await User.find(filter).sort(sort).skip(skip).limit(limit);
 
     return { users, total };
   };
