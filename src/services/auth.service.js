@@ -57,7 +57,7 @@ const createAuthService = () => {
 
     user.password = undefined;
 
-    const token = await _signToken({ payload: { userId: user.id } });
+    const token = await _signToken({ payload: { userId: user._id } });
 
     return { user, accessToken: token };
   };

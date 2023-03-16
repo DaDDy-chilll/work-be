@@ -11,6 +11,10 @@ const submitDraftSchema = require('../schema/submitDraft.schema');
 
 router.get('/', authenticate, documentController.getAllDocuments);
 
+router.get('/me', authenticate, documentController.getMyDocuments);
+
+router.get('/:id', authenticate, documentController.getDocumentById);
+
 router.post(
   '/',
   authenticate,
@@ -34,8 +38,6 @@ router.patch('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   res.send('delete a document.');
 });
-
-router.get('/me', authenticate, documentController.getMyDocuments);
 
 router.get('/requested', documentController.getRequestedDocuments);
 

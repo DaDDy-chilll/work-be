@@ -168,6 +168,16 @@ const createDocumentService = () => {
     return newDocument;
   };
 
+  const getDocumentById = async ({ id }) => {
+    const document = await Document.findById(id);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    return document;
+  };
+
   const getAllDocuments = async ({ query }) => {
     const { skip, sort, limit, queryFilter } = getQuery(query);
 
@@ -180,7 +190,8 @@ const createDocumentService = () => {
     const documents = await Document.find(filter)
       .sort(sort)
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .populate('requestedBy');
 
     return { total, documents };
   };
@@ -213,6 +224,7 @@ const createDocumentService = () => {
     approveDocument,
     rejectDocument,
     acknowledgeDocument,
+    getDocumentById,
     getAllDocuments,
     submitDraft,
   };
