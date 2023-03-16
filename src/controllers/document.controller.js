@@ -1,3 +1,4 @@
+const { documentStatus } = require('../constants');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const documentService = require('../services/document.service');
@@ -75,8 +76,10 @@ const createDocumentController = () => {
 
   const getRequestedDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      query: req.query,
-      onlyRequested: true,
+      query: {
+        ...req.query,
+        status: [documentStatus.pending, documentStatus.verified],
+      },
     });
 
     sendSuccessResponse({
@@ -88,8 +91,7 @@ const createDocumentController = () => {
 
   const getMyDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      userId: req.user.id,
-      query: req.query,
+      query: { ...req.query, requestedBy: req.user.id },
     });
 
     sendSuccessResponse({

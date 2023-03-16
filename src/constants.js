@@ -39,4 +39,5 @@ module.exports = {
     'delete',
     'acknowledge',
   ]),
+  RESERVED_QUERY_WORDS: Object.freeze(['page', 'sort']),
 };

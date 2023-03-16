@@ -1,9 +1,42 @@
 const { documentRemarkActions, documentStatus } = require('../constants');
 const ApiError = require('../helpers/apiError');
-const getPaginationInfo = require('../helpers/getPaginationInfo');
+const getQuery = require('../helpers/getQuery');
 const Document = require('../models/document.model');
 
 const createDocumentService = () => {
+  const _getFilterForGetAllDocs = ({ queryFilter }) => {
+    const filter = {};
+
+    if (queryFilter.status) {
+      if (Array.isArray(queryFilter.status)) {
+        filter.$or = queryFilter.status.map((value) => ({ status: value }));
+      } else {
+        filter.status = queryFilter.status;
+      }
+    }
+
+    if (queryFilter.amount) {
+      filter.amount = parseInt(queryFilter.amount, 10);
+    }
+
+    if (queryFilter.amountMin || queryFilter.amountMax) {
+      filter.amount = {
+        ...(queryFilter.amountMin && {
+          $gte: parseInt(queryFilter.amountMin, 10),
+        }),
+        ...(queryFilter.amountMax && {
+          $lte: parseInt(queryFilter.amountMax, 10),
+        }),
+      };
+    }
+
+    if (queryFilter.requestedBy) {
+      filter.requestedBy = queryFilter.requestedBy;
+    }
+
+    return filter;
+  };
+
   const createRequisitionDocument = async (data) => {
     const document = await Document.create(data);
 
@@ -135,84 +168,12 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const getRequestedDocuments = async ({ query }) => {
-    const { skip, sort, limit } = getPaginationInfo(query);
+  const getAllDocuments = async ({ query }) => {
+    const { skip, sort, limit, queryFilter } = getQuery(query);
 
-    const filter = {
-      $or: [
-        {
-          status: documentStatus.pending,
-        },
-        { status: documentStatus.verified },
-      ],
-    };
-
-    const total = await Document.count(filter);
-
-    const documents = await Document.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
-
-    return { total, documents };
-  };
-
-  const getMyDocuments = async ({ userId, query }) => {
-    const { skip, status, sort, limit } = getPaginationInfo(query);
-
-    const filter = {
-      requestedBy: userId,
-      ...(status ? { status } : undefined),
-    };
-
-    const total = await Document.count(filter);
-
-    const documents = await Document.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
-
-    return { documents, total };
-  };
-
-  const getAllDocuments = async ({
-    query,
-    userId = undefined,
-    onlyRequested = false,
-  }) => {
-    const { skip, sort, limit } = getPaginationInfo(query);
-
-    const filter = {};
-
-    if (query.status && !onlyRequested) {
-      filter.status = query.status;
-    }
-
-    if (onlyRequested) {
-      filter.$or = [
-        {
-          status: documentStatus.pending,
-        },
-        {
-          status: documentStatus.verified,
-        },
-      ];
-    }
-
-    if (query.amount) {
-      filter.amount = parseInt(query.amount, 10);
-    }
-
-    if (query.amountMin || query.amountMax) {
-      filter.amount = {
-        ...(query.amountMin && { $gte: parseInt(query.amountMin, 10) }),
-        ...(query.amountMax && { $lte: parseInt(query.amountMax, 10) }),
-      };
-    }
-
-    if (userId) {
-      filter.requestedBy = userId;
-    }
+    const filter = _getFilterForGetAllDocs({
+      queryFilter,
+    });
 
     const total = await Document.count(filter);
 
@@ -252,8 +213,6 @@ const createDocumentService = () => {
     approveDocument,
     rejectDocument,
     acknowledgeDocument,
-    getRequestedDocuments,
-    getMyDocuments,
     getAllDocuments,
     submitDraft,
   };
