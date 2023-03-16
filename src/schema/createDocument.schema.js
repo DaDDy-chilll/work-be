@@ -9,7 +9,9 @@ const createDocumentSchema = z.object({
       .max(50, 'Name must have at most 50 characters.'),
     type: z
       .enum(Object.values(paymentType), {
-        invalid_type_error: 'Wrong document type.',
+        errorMap: (_issue, _ctx) => {
+          return { message: 'Invalid document type.' };
+        },
       })
       .default(paymentType.normal)
       .optional(),
