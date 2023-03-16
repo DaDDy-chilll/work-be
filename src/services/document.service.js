@@ -4,12 +4,6 @@ const transformQuery = require('../helpers/transformQuery');
 const Document = require('../models/document.model');
 
 const createDocumentService = () => {
-  const LIMIT = 10;
-
-  const _getDocsSkip = (page = 1) => {
-    return (parseInt(page, 10) - 1) * LIMIT;
-  };
-
   const createRequisitionDocument = async (data) => {
     const document = await Document.create(data);
 
@@ -142,7 +136,7 @@ const createDocumentService = () => {
   };
 
   const getRequestedDocuments = async ({ query }) => {
-    const { skip, sort } = transformQuery(query);
+    const { skip, sort, limit } = transformQuery(query);
 
     const filter = {
       $or: [
@@ -157,14 +151,14 @@ const createDocumentService = () => {
 
     const documents = await Document.find(filter)
       .skip(skip)
-      .limit(LIMIT)
+      .limit(limit)
       .sort(sort);
 
     return { total, documents };
   };
 
   const getMyDocuments = async ({ userId, query }) => {
-    const { skip, status, sort } = transformQuery(query);
+    const { skip, status, sort, limit } = transformQuery(query);
 
     const filter = {
       requestedBy: userId,
@@ -175,18 +169,18 @@ const createDocumentService = () => {
 
     const documents = await Document.find(filter)
       .skip(skip)
-      .limit(LIMIT)
+      .limit(limit)
       .sort(sort);
 
     return { documents, total };
   };
 
   const getAllDocuments = async ({ query }) => {
-    const { skip, sort } = transformQuery(query);
+    const { skip, sort, limit } = transformQuery(query);
 
     const total = await Document.count();
 
-    const documents = await Document.find().skip(skip).limit(LIMIT).sort(sort);
+    const documents = await Document.find().skip(skip).limit(limit).sort(sort);
 
     return { total, documents };
   };

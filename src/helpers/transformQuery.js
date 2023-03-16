@@ -5,6 +5,7 @@ function transformQuery(query) {
   newQuery.page = query.page ? parseInt(query.page, 10) : 1;
   newQuery.skip = (newQuery.page - 1) * DOCS_LIMIT;
   newQuery.sort = query.sort || '-createdAt';
+  newQuery.limit = DOCS_LIMIT;
 
   return newQuery;
 }
