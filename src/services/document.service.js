@@ -147,7 +147,8 @@ const createDocumentService = () => {
       ],
     })
       .skip(skip)
-      .limit(10);
+      .limit(10)
+      .sort({ createdAt: -1 });
 
     return documents;
   };
@@ -160,7 +161,8 @@ const createDocumentService = () => {
       ...(query.status ? { status: query.status } : undefined),
     })
       .skip(skip)
-      .limit(10);
+      .limit(10)
+      .sort({ createdAt: -1 });
 
     return documents;
   };
