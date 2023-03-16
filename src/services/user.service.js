@@ -3,6 +3,8 @@ const getQuery = require('../helpers/getQuery');
 const User = require('../models/user.model');
 
 const createUserService = () => {
+  const _noUserError = ApiError.badRequest('User does not exist.');
+
   const _getFilterForGetAllUsers = ({ queryFilter }) => {
     const filter = {};
 
@@ -36,15 +38,32 @@ const createUserService = () => {
     const user = await User.findById(id);
 
     if (!user) {
-      throw ApiError.badRequest('User does not exist.');
+      throw _noUserError;
     }
 
     return user;
   };
 
+  const deleteUserById = async ({ id }) => {
+    const user = await User.findById(id);
+
+    if (!user) {
+      throw _noUserError;
+    }
+
+    if (user.role === 'Superadmin') {
+      throw ApiError.badRequest('Cannot delete the user.');
+    }
+
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    return deletedUser;
+  };
+
   return {
     getAllUsers,
     getUserById,
+    deleteUserById,
   };
 };
 

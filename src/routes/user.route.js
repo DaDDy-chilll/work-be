@@ -10,4 +10,11 @@ router.get('/me', authenticate, userController.getMe);
 
 router.get('/:id', authenticate, checkSuperadmin, userController.getUserById);
 
+router.delete(
+  '/:id',
+  authenticate,
+  checkSuperadmin,
+  userController.deleteUserById
+);
+
 module.exports = router;

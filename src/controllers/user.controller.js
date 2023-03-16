@@ -31,10 +31,20 @@ const createUserController = () => {
     });
   };
 
+  const deleteUserById = catchAsync(async (req, res, next) => {
+    const deletedUser = await userService.deleteUserById({ id: req.params.id });
+
+    sendSuccessResponse({
+      res,
+      data: deletedUser,
+    });
+  });
+
   return {
     getAllUsers,
     getUserById,
     getMe,
+    deleteUserById,
   };
 };
 
