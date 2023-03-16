@@ -5,7 +5,9 @@ module.exports = z.object({
   email: z.string().email(),
   name: z.string().min(2).max(50),
   password: z.string().min(8).max(16),
-  role: z.enum(Object.values(userRoles)),
+  role: z.enum(
+    Object.values(userRoles).filter((value) => value !== 'Superadmin')
+  ),
   jobLabel: z.string(),
   permissions: z.object({
     requestForm: z.object({
