@@ -9,62 +9,67 @@ const {
 
 const Schema = mongoose.Schema;
 
-const documentSchema = new Schema({
-  customId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  type: {
-    type: String,
-    required: true,
-    enum: Object.values(paymentType),
-  },
-  amount: {
-    type: Number,
-    required: true,
-  },
-  attachments: [
-    {
+const documentSchema = new Schema(
+  {
+    customId: {
       type: String,
+      required: true,
+      unique: true,
     },
-  ],
-  description: {
-    type: String,
-    required: true,
-  },
-  remarks: [
-    {
-      content: {
-        type: String,
-        default: 'No remark.',
-      },
-      remarker: {
-        type: mongoose.Types.ObjectId,
-        ref: 'User',
-      },
-      action: {
-        type: String,
-        required: true,
-        enum: Object.values(documentRemarkActions),
-      },
+    name: {
+      type: String,
+      required: true,
     },
-  ],
-  status: {
-    type: String,
-    default: documentStatus.pending,
-    enum: Object.values(documentStatus),
+    type: {
+      type: String,
+      required: true,
+      enum: Object.values(paymentType),
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    attachments: [
+      {
+        type: String,
+      },
+    ],
+    description: {
+      type: String,
+      required: true,
+    },
+    remarks: [
+      {
+        content: {
+          type: String,
+          default: 'No remark.',
+        },
+        remarker: {
+          type: mongoose.Types.ObjectId,
+          ref: 'User',
+        },
+        action: {
+          type: String,
+          required: true,
+          enum: Object.values(documentRemarkActions),
+        },
+      },
+    ],
+    status: {
+      type: String,
+      default: documentStatus.pending,
+      enum: Object.values(documentStatus),
+    },
+    requestedBy: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
   },
-  requestedBy: {
-    type: mongoose.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 documentSchema.pre('validate', async function (next) {
   if (!this.isNew) return next();

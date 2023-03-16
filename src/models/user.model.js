@@ -43,40 +43,45 @@ const permissions = {
   },
 };
 
-const userSchema = new Schema({
-  email: {
-    type: String,
-    requried: true,
-    unique: true,
+const userSchema = new Schema(
+  {
+    email: {
+      type: String,
+      requried: true,
+      unique: true,
+    },
+    customId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    name: {
+      required: true,
+      type: String,
+    },
+    password: {
+      required: true,
+      type: String,
+      select: false,
+    },
+    role: {
+      type: String,
+      enum: Object.values(userRoles),
+    },
+    permissions,
+    jobLabel: {
+      type: String,
+      required: true,
+    },
+    approvalAmount: {
+      type: Number,
+      default: 0,
+    },
   },
-  customId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  name: {
-    required: true,
-    type: String,
-  },
-  password: {
-    required: true,
-    type: String,
-    select: false,
-  },
-  role: {
-    type: String,
-    enum: Object.values(userRoles),
-  },
-  permissions,
-  jobLabel: {
-    type: String,
-    required: true,
-  },
-  approvalAmount: {
-    type: Number,
-    default: 0,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 userSchema.pre('validate', async function (next) {
   if (!this.isNew) return next();
