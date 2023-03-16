@@ -1,6 +1,6 @@
 const { documentRemarkActions, documentStatus } = require('../constants');
 const ApiError = require('../helpers/apiError');
-const transformQuery = require('../helpers/transformQuery');
+const getPaginationInfo = require('../helpers/getPaginationInfo');
 const Document = require('../models/document.model');
 
 const createDocumentService = () => {
@@ -136,7 +136,7 @@ const createDocumentService = () => {
   };
 
   const getRequestedDocuments = async ({ query }) => {
-    const { skip, sort, limit } = transformQuery(query);
+    const { skip, sort, limit } = getPaginationInfo(query);
 
     const filter = {
       $or: [
@@ -158,7 +158,7 @@ const createDocumentService = () => {
   };
 
   const getMyDocuments = async ({ userId, query }) => {
-    const { skip, status, sort, limit } = transformQuery(query);
+    const { skip, status, sort, limit } = getPaginationInfo(query);
 
     const filter = {
       requestedBy: userId,
@@ -175,12 +175,51 @@ const createDocumentService = () => {
     return { documents, total };
   };
 
-  const getAllDocuments = async ({ query }) => {
-    const { skip, sort, limit } = transformQuery(query);
+  const getAllDocuments = async ({
+    query,
+    userId = undefined,
+    onlyRequested = false,
+  }) => {
+    const { skip, sort, limit } = getPaginationInfo(query);
 
-    const total = await Document.count();
+    const filter = {};
 
-    const documents = await Document.find().sort(sort).skip(skip).limit(limit);
+    if (query.status && !onlyRequested) {
+      filter.status = query.status;
+    }
+
+    if (onlyRequested) {
+      filter.$or = [
+        {
+          status: documentStatus.pending,
+        },
+        {
+          status: documentStatus.verified,
+        },
+      ];
+    }
+
+    if (query.amount) {
+      filter.amount = parseInt(query.amount, 10);
+    }
+
+    if (query.amountMin || query.amountMax) {
+      filter.amount = {
+        ...(query.amountMin && { $gte: parseInt(query.amountMin, 10) }),
+        ...(query.amountMax && { $lte: parseInt(query.amountMax, 10) }),
+      };
+    }
+
+    if (userId) {
+      filter.requestedBy = userId;
+    }
+
+    const total = await Document.count(filter);
+
+    const documents = await Document.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
 
     return { total, documents };
   };

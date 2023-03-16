@@ -1,5 +1,5 @@
 const ApiError = require('../helpers/apiError');
-const transformQuery = require('../helpers/transformQuery');
+const transformQuery = require('../helpers/getPaginationInfo');
 const User = require('../models/user.model');
 
 const createUserService = () => {

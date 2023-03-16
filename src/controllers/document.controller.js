@@ -74,8 +74,9 @@ const createDocumentController = () => {
   });
 
   const getRequestedDocuments = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getRequestedDocuments({
+    const { documents, total } = await documentService.getAllDocuments({
       query: req.query,
+      onlyRequested: true,
     });
 
     sendSuccessResponse({
@@ -86,7 +87,7 @@ const createDocumentController = () => {
   });
 
   const getMyDocuments = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getMyDocuments({
+    const { documents, total } = await documentService.getAllDocuments({
       userId: req.user.id,
       query: req.query,
     });
