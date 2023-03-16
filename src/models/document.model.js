@@ -88,6 +88,10 @@ documentSchema.pre('validate', async function (next) {
   next();
 });
 
+documentSchema.virtual('id').get(function () {
+  return this.customId;
+});
+
 const Document = mongoose.model('Document', documentSchema);
 
 module.exports = Document;
