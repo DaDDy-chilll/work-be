@@ -238,7 +238,7 @@ const createDocumentService = () => {
     }
 
     if (
-      document.requestedBy !== user._id ||
+      !document.requestedBy.equals(user._id) &&
       user.role !== userRoles.superadmin
     ) {
       throw ApiError.notAuthorized();
