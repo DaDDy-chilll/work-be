@@ -7,6 +7,7 @@ const checkFormPermissions = require('../middlewares/checkFormPermissions');
 
 const createDocumentSchema = require('../schema/createDocument.schema');
 const formRemarkSchema = require('../schema/formRemark.schema');
+const submitDraftSchema = require('../schema/submitDraft.schema');
 
 router.get('/', authenticate, documentController.getAllDocuments);
 
@@ -16,6 +17,14 @@ router.post(
   checkFormPermissions('submit'),
   validate(createDocumentSchema),
   documentController.createDocument
+);
+
+router.patch(
+  '/:id/submit',
+  authenticate,
+  checkFormPermissions('submit'),
+  validate(submitDraftSchema),
+  documentController.submitDraft
 );
 
 router.patch('/:id', (req, res) => {

@@ -22,7 +22,7 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Document does not exist.');
     }
 
-    if (document.status !== 'Pending') {
+    if (document.status !== documentStatus.pending) {
       throw ApiError.badRequest('Cannot verify this document.');
     }
 
@@ -51,7 +51,12 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Document does not exist.');
     }
 
-    if (!(document.status === 'Verified' || document.status === 'Pending')) {
+    if (
+      !(
+        document.status === documentStatus.verified ||
+        document.status === documentStatus.pending
+      )
+    ) {
       throw ApiError.badRequest('Cannot approve this document.');
     }
 
@@ -84,7 +89,7 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Document does not exist.');
     }
 
-    if (document.status !== 'Pending') {
+    if (document.status !== documentStatus.pending) {
       throw ApiError.badRequest('Cannot reject the form.');
     }
 
@@ -113,7 +118,7 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Document does not exist.');
     }
 
-    if (document.status !== 'Approved') {
+    if (document.status !== documentStatus.approved) {
       throw ApiError.badRequest('Cannot acknowledge the form.');
     }
 
@@ -141,9 +146,9 @@ const createDocumentService = () => {
     const filter = {
       $or: [
         {
-          status: 'Pending',
+          status: documentStatus.pending,
         },
-        { status: 'Verified' },
+        { status: documentStatus.verified },
       ],
     };
 
@@ -187,6 +192,28 @@ const createDocumentService = () => {
     return { total, documents };
   };
 
+  const submitDraft = async ({ id }) => {
+    const document = await Document.findById(id);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    if (document.status !== documentStatus.drafted) {
+      throw ApiError.badRequest('Document is not drafted.');
+    }
+
+    const newDocument = await Document.findByIdAndUpdate(
+      id,
+      {
+        status: documentStatus.pending,
+      },
+      { new: true }
+    );
+
+    return newDocument;
+  };
+
   return {
     createRequisitionDocument,
     verifyDocument,
@@ -196,6 +223,7 @@ const createDocumentService = () => {
     getRequestedDocuments,
     getMyDocuments,
     getAllDocuments,
+    submitDraft,
   };
 };
 

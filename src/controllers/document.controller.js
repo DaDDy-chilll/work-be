@@ -110,6 +110,16 @@ const createDocumentController = () => {
     });
   });
 
+  const submitDraft = catchAsync(async (req, res, next) => {
+    const document = await documentService.submitDraft({ id: req.params.id });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Document successfully submitted.',
+    });
+  });
+
   return {
     createDocument,
     verifyDocument,
@@ -119,6 +129,7 @@ const createDocumentController = () => {
     getRequestedDocuments,
     getMyDocuments,
     getAllDocuments,
+    submitDraft,
   };
 };
 
