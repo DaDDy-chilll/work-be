@@ -86,6 +86,7 @@ const userSchema = new Schema(
     toObject: {
       virtuals: true,
     },
+    id: false,
   }
 );
 

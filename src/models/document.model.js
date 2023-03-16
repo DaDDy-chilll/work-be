@@ -74,6 +74,7 @@ const documentSchema = new Schema(
     toObject: {
       virtuals: true,
     },
+    id: false,
   }
 );
 
