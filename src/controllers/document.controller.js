@@ -74,18 +74,19 @@ const createDocumentController = () => {
   });
 
   const getRequestedDocuments = catchAsync(async (req, res, next) => {
-    const documents = await documentService.getRequestedDocuments({
+    const { documents, total } = await documentService.getRequestedDocuments({
       query: req.query,
     });
 
     sendSuccessResponse({
       res,
       data: documents,
+      total,
     });
   });
 
   const getMyDocuments = catchAsync(async (req, res, next) => {
-    const documents = await documentService.getMyDocuments({
+    const { documents, total } = await documentService.getMyDocuments({
       userId: req.user.id,
       query: req.query,
     });
@@ -93,6 +94,19 @@ const createDocumentController = () => {
     sendSuccessResponse({
       res,
       data: documents,
+      total,
+    });
+  });
+
+  const getAllDocuments = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      query: req.query,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
     });
   });
 
@@ -104,6 +118,7 @@ const createDocumentController = () => {
     acknowledgeDocument,
     getRequestedDocuments,
     getMyDocuments,
+    getAllDocuments,
   };
 };
 

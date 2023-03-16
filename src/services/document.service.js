@@ -138,33 +138,53 @@ const createDocumentService = () => {
   const getRequestedDocuments = async ({ query }) => {
     const skip = _getDocsSkip(query.page);
 
-    const documents = await Document.find({
+    const filter = {
       $or: [
         {
           status: 'Pending',
         },
         { status: 'Verified' },
       ],
-    })
+    };
+
+    const total = await Document.count(filter);
+
+    const documents = await Document.find(filter)
       .skip(skip)
-      .limit(10)
+      .limit(LIMIT)
       .sort({ createdAt: -1 });
 
-    return documents;
+    return { total, documents };
   };
 
   const getMyDocuments = async ({ userId, query }) => {
     const skip = _getDocsSkip(query.page);
 
-    const documents = await Document.find({
+    const filter = {
       requestedBy: userId,
       ...(query.status ? { status: query.status } : undefined),
-    })
+    };
+
+    const total = await Document.count(filter);
+
+    const documents = await Document.find(filter)
       .skip(skip)
-      .limit(10)
+      .limit(LIMIT)
       .sort({ createdAt: -1 });
 
-    return documents;
+    return { documents, total };
+  };
+
+  const getAllDocuments = async ({ query }) => {
+    const skip = _getDocsSkip(query.page);
+
+    const total = await Document.count();
+
+    const documents = await Document.find().skip(skip).limit(LIMIT).sort({
+      createdAt: -1,
+    });
+
+    return { total, documents };
   };
 
   return {
@@ -175,6 +195,7 @@ const createDocumentService = () => {
     acknowledgeDocument,
     getRequestedDocuments,
     getMyDocuments,
+    getAllDocuments,
   };
 };
 

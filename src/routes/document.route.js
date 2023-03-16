@@ -8,9 +8,7 @@ const checkFormPermissions = require('../middlewares/checkFormPermissions');
 const createDocumentSchema = require('../schema/createDocument.schema');
 const formRemarkSchema = require('../schema/formRemark.schema');
 
-router.get('/', (req, res) => {
-  res.send('Get all documents');
-});
+router.get('/', authenticate, documentController.getAllDocuments);
 
 router.post(
   '/',
