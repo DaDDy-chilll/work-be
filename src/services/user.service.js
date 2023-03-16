@@ -1,10 +1,14 @@
 const ApiError = require('../helpers/apiError');
-const transformQuery = require('../helpers/getQuery');
+const getQuery = require('../helpers/getQuery');
 const User = require('../models/user.model');
 
 const createUserService = () => {
+  const _getFilterForGetAllUsers = ({ queryFilter }) => {
+    const filter = {};
+  };
+
   const getAllUsers = async ({ query }) => {
-    const { skip, limit, sort } = transformQuery(query);
+    const { skip, limit, sort, queryFilter } = getQuery(query);
 
     const total = await User.count();
 

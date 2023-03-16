@@ -107,6 +107,10 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+userSchema.virtual('id').get(function () {
+  return this.customId;
+});
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
