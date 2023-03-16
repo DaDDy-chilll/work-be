@@ -150,9 +150,9 @@ const createDocumentService = () => {
     const total = await Document.count(filter);
 
     const documents = await Document.find(filter)
+      .sort(sort)
       .skip(skip)
-      .limit(limit)
-      .sort(sort);
+      .limit(limit);
 
     return { total, documents };
   };
@@ -168,9 +168,9 @@ const createDocumentService = () => {
     const total = await Document.count(filter);
 
     const documents = await Document.find(filter)
+      .sort(sort)
       .skip(skip)
-      .limit(limit)
-      .sort(sort);
+      .limit(limit);
 
     return { documents, total };
   };
@@ -180,7 +180,7 @@ const createDocumentService = () => {
 
     const total = await Document.count();
 
-    const documents = await Document.find().skip(skip).limit(limit).sort(sort);
+    const documents = await Document.find().sort(sort).skip(skip).limit(limit);
 
     return { total, documents };
   };

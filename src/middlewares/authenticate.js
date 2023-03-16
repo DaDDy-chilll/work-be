@@ -6,8 +6,8 @@ const { JWT_TOKEN_SECRET } = require('../constants');
 const User = require('../models/user.model');
 
 const authenticate = catchAsync(async (req, res, next) => {
-  const noTokenError = ApiError.notAuthenticated('No token.');
-  const badTokenError = ApiError.notAuthenticated('Bad token.');
+  const noTokenError = ApiError.notAuthenticated('Not logged in.');
+  const badTokenError = ApiError.notAuthenticated('Session expired.');
 
   const bearerToken = req.headers.authorization;
 
