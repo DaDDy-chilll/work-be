@@ -7,7 +7,7 @@ function sendSuccessResponse({
 }) {
   res.status(code).json({
     code,
-    data,
+    payload: data,
     message,
     total,
   });

@@ -4,7 +4,7 @@ function sendFailedResponse({ res, error }) {
   res.status(error.statusCode).json({
     code: error.statusCode,
     message: error.message,
-    data: error.data,
+    payload: error.data,
     ...(NODE_ENV !== 'production' ? { stack: error.stack } : undefined),
   });
 }

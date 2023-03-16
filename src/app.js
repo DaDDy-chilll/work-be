@@ -5,10 +5,10 @@ const cors = require('cors');
 const { NODE_ENV } = require('./constants');
 const { default: helmet } = require('helmet');
 const errorHandler = require('./middlewares/errorHandler');
-const sendSuccessResponse = require('./helpers/sendSuccessResponse');
 
 const authRouter = require('./routes/auth.route');
 const documentRouter = require('./routes/document.route');
+const ApiError = require('./helpers/apiError');
 
 const app = express();
 
@@ -23,8 +23,8 @@ if (NODE_ENV !== 'production') {
 app.use('/api/auth', authRouter);
 app.use('/api/documents', documentRouter);
 
-app.all('*', (req, res) => {
-  sendSuccessResponse({ res, message: 'Invalid endpoint.', code: 404 });
+app.all('*', (req, res, next) => {
+  next(ApiError.notFound());
 });
 
 app.use(errorHandler);
