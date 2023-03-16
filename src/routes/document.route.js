@@ -8,6 +8,7 @@ const checkFormPermissions = require('../middlewares/checkFormPermissions');
 const createDocumentSchema = require('../schema/createDocument.schema');
 const formRemarkSchema = require('../schema/formRemark.schema');
 const submitDraftSchema = require('../schema/submitDraft.schema');
+const updateDocumentSchema = require('../schema/updateDocument.schema');
 
 router.get('/', authenticate, documentController.getAllDocuments);
 
@@ -31,9 +32,13 @@ router.patch(
   documentController.submitDraft
 );
 
-router.patch('/:id', (req, res) => {
-  res.send('update a document');
-});
+router.patch(
+  '/:id',
+  authenticate,
+  checkFormPermissions('update'),
+  validate(updateDocumentSchema),
+  documentController.updateDocument
+);
 
 router.delete('/:id', (req, res) => {
   res.send('delete a document.');

@@ -134,6 +134,21 @@ const createDocumentController = () => {
     });
   });
 
+  const updateDocument = catchAsync(async (req, res, next) => {
+    const updatedDocument = await documentService.updateDocument({
+      id: req.params.id,
+      data: req.body,
+      user: req.user,
+    });
+
+    sendSuccessResponse({
+      res,
+      code: 201,
+      data: updatedDocument,
+      message: 'Document successfully updated.',
+    });
+  });
+
   return {
     createDocument,
     verifyDocument,
@@ -145,6 +160,7 @@ const createDocumentController = () => {
     getAllDocuments,
     getDocumentById,
     submitDraft,
+    updateDocument,
   };
 };
 

@@ -1,9 +1,15 @@
-const { documentRemarkActions, documentStatus } = require('../constants');
+const {
+  documentRemarkActions,
+  documentStatus,
+  userRoles,
+} = require('../constants');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const Document = require('../models/document.model');
 
 const createDocumentService = () => {
+  const _noDocumentError = ApiError.badRequest('Document does not exist.');
+
   const _getFilterForGetAllDocs = ({ queryFilter }) => {
     const filter = {};
 
@@ -47,7 +53,7 @@ const createDocumentService = () => {
     const document = await Document.findById(id);
 
     if (!document) {
-      throw ApiError.badRequest('Document does not exist.');
+      throw _noDocumentError;
     }
 
     if (document.status !== documentStatus.pending) {
@@ -76,7 +82,7 @@ const createDocumentService = () => {
     const document = await Document.findById(id);
 
     if (!document) {
-      throw ApiError.badRequest('Document does not exist.');
+      throw _noDocumentError;
     }
 
     if (
@@ -114,7 +120,7 @@ const createDocumentService = () => {
     const document = await Document.findById(id);
 
     if (!document) {
-      throw ApiError.badRequest('Document does not exist.');
+      throw _noDocumentError;
     }
 
     if (document.status !== documentStatus.pending) {
@@ -143,7 +149,7 @@ const createDocumentService = () => {
     const document = await Document.findById(id);
 
     if (!document) {
-      throw ApiError.badRequest('Document does not exist.');
+      throw _noDocumentError;
     }
 
     if (document.status !== documentStatus.approved) {
@@ -172,7 +178,7 @@ const createDocumentService = () => {
     const document = await Document.findById(id);
 
     if (!document) {
-      throw ApiError.badRequest('Document does not exist.');
+      throw _noDocumentError;
     }
 
     return document;
@@ -200,7 +206,7 @@ const createDocumentService = () => {
     const document = await Document.findById(id);
 
     if (!document) {
-      throw ApiError.badRequest('Document does not exist.');
+      throw _noDocumentError;
     }
 
     if (document.status !== documentStatus.drafted) {
@@ -218,6 +224,31 @@ const createDocumentService = () => {
     return newDocument;
   };
 
+  const updateDocument = async ({ id, data, user }) => {
+    const isEmptyData = Object.keys(data).length === 0;
+
+    if (isEmptyData) {
+      throw ApiError.badRequest('No data provided.');
+    }
+
+    const document = await Document.findById(id);
+
+    if (!document) {
+      throw _noDocumentError;
+    }
+
+    if (
+      document.requestedBy !== user._id ||
+      user.role !== userRoles.superadmin
+    ) {
+      throw ApiError.notAuthorized();
+    }
+
+    const updatedDocument = await Document.findByIdAndUpdate(id, data);
+
+    return updatedDocument;
+  };
+
   return {
     createRequisitionDocument,
     verifyDocument,
@@ -227,6 +258,7 @@ const createDocumentService = () => {
     getDocumentById,
     getAllDocuments,
     submitDraft,
+    updateDocument,
   };
 };
 
