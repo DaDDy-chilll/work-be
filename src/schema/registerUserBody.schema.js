@@ -22,14 +22,16 @@ const registerUserBodySchema = z.object({
   ),
   jobLabel: z.string({ required_error: 'Job label is required.' }),
   permissions: z.object({
-    requestForm: z.object({
-      read: z.boolean().default(true),
+    adminSection: z.object({
       approve: z.boolean().default(false),
       reject: z.boolean().default(false),
       verify: z.boolean().default(false),
-      submit: z.boolean().default(false),
-      update: z.boolean().default(false),
-      delete: z.boolean().default(false),
+    }),
+    fadSection: z.object({
+      approve: z.boolean().default(false),
+      reject: z.boolean().default(false),
+      verify: z.boolean().default(false),
+      acknowledge: z.boolean().default(false),
     }),
   }),
   approvalAmount: z
