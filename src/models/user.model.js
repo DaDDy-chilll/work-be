@@ -39,6 +39,10 @@ const permissions = {
       default: false,
     },
   },
+  canSubmit: {
+    type: Boolean,
+    default: true,
+  },
 };
 
 const userSchema = new Schema(

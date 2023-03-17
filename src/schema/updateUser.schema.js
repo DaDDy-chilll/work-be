@@ -1,7 +1,7 @@
 const { isObjectIdOrHexString } = require('mongoose');
 const { z } = require('zod');
-const registerUserSchema = require('./registerUser.schema');
 const registerUserBodySchema = require('./registerUserBody.schema');
+const userSchemaRefine = require('../helpers/userSchemaRefine');
 
 const updateUserSchema = z.object({
   params: z.object({
@@ -26,7 +26,8 @@ const updateUserSchema = z.object({
       })
     )
     .strict()
-    .partial(),
+    .partial()
+    .superRefine(userSchemaRefine),
 });
 
 module.exports = updateUserSchema;

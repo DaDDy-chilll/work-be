@@ -17,70 +17,70 @@ router.get('/me', authenticate, documentController.getMyDocuments);
 
 router.get('/:id', authenticate, documentController.getDocumentById);
 
-router.post(
-  '/',
-  authenticate,
-  checkFormPermissions('submit'),
-  validate(createDocumentSchema),
-  documentController.createDocument
-);
-
-router.patch(
-  '/:id/submit',
-  authenticate,
-  checkFormPermissions('submit'),
-  validate(submitDraftSchema),
-  documentController.submitDraft
-);
-
-router.patch(
-  '/:id',
-  authenticate,
-  checkFormPermissions('update'),
-  validate(updateDocumentSchema),
-  documentController.updateDocument
-);
-
-router.delete(
-  '/:id',
-  authenticate,
-  checkFormPermissions('delete'),
-  validate(deleteDocumentSchema),
-  documentController.deleteDocument
-);
-
 router.get('/requested', documentController.getRequestedDocuments);
 
-router.patch(
-  '/:id/verify',
-  authenticate,
-  checkFormPermissions('verify'),
-  validate(formRemarkSchema),
-  documentController.verifyDocument
-);
+// router.post(
+//   '/',
+//   authenticate,
+//   checkFormPermissions('submit'),
+//   validate(createDocumentSchema),
+//   documentController.createDocument
+// );
 
-router.patch(
-  '/:id/approve',
-  authenticate,
-  checkFormPermissions('approve'),
-  validate(formRemarkSchema),
-  documentController.approveDocument
-);
+// router.patch(
+//   '/:id/submit',
+//   authenticate,
+//   checkFormPermissions('submit'),
+//   validate(submitDraftSchema),
+//   documentController.submitDraft
+// );
 
-router.patch(
-  '/:id/reject',
-  authenticate,
-  checkFormPermissions('reject'),
-  validate(formRemarkSchema),
-  documentController.rejectDocument
-);
+// router.patch(
+//   '/:id',
+//   authenticate,
+//   checkFormPermissions('update'),
+//   validate(updateDocumentSchema),
+//   documentController.updateDocument
+// );
 
-router.patch(
-  '/:id/acknowledge',
-  authenticate,
-  checkFormPermissions('acknowledge'),
-  validate(formRemarkSchema),
-  documentController.acknowledgeDocument
-);
+// router.delete(
+//   '/:id',
+//   authenticate,
+//   checkFormPermissions('delete'),
+//   validate(deleteDocumentSchema),
+//   documentController.deleteDocument
+// );
+
+// router.patch(
+//   '/:id/verify',
+//   authenticate,
+//   checkFormPermissions('verify'),
+//   validate(formRemarkSchema),
+//   documentController.verifyDocument
+// );
+
+// router.patch(
+//   '/:id/approve',
+//   authenticate,
+//   checkFormPermissions('approve'),
+//   validate(formRemarkSchema),
+//   documentController.approveDocument
+// );
+
+// router.patch(
+//   '/:id/reject',
+//   authenticate,
+//   checkFormPermissions('reject'),
+//   validate(formRemarkSchema),
+//   documentController.rejectDocument
+// );
+
+// router.patch(
+//   '/:id/acknowledge',
+//   authenticate,
+//   checkFormPermissions('acknowledge'),
+//   validate(formRemarkSchema),
+//   documentController.acknowledgeDocument
+// );
 
 module.exports = router;

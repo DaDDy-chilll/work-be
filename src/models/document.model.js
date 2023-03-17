@@ -65,9 +65,7 @@ const documentSchema = new Schema(
       },
       section: {
         type: String,
-        required: true,
         enum: Object.values(documentSections),
-        default: documentSections.admin,
       },
     },
     requestedBy: {

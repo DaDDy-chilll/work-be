@@ -26,9 +26,11 @@ const createDocumentSchema = z.object({
           errorMap: (_issue, _ctx) => ({ message: 'Invalid document status.' }),
         })
         .default(documentStatus.pending),
-      section: z.enum(Object.values(documentSections), {
-        errorMap: (_issue, _ctx) => ({ message: 'Invalid section.' }),
-      }),
+      section: z
+        .enum(Object.values(documentSections), {
+          errorMap: (_issue, _ctx) => ({ message: 'Invalid section.' }),
+        })
+        .optional(),
     }),
   }),
 });
