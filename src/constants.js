@@ -9,7 +9,7 @@ module.exports = {
     executive: 'Executive',
     admin: 'Admin',
     fad: 'FAD',
-    dept: 'Dept',
+    normal: 'Normal',
   }),
   paymentType: Object.freeze({
     normal: 'Normal',
@@ -25,19 +25,17 @@ module.exports = {
   }),
   documentRemarkActions: Object.freeze({
     approve: 'Approve',
-    reject: 'Reject',
     verify: 'Verify',
+    reject: 'Reject',
     acknowledge: 'Acknowledge',
   }),
-  requestFormPermissions: Object.freeze([
-    'submit',
-    'approve',
-    'read',
-    'reject',
-    'verify',
-    'update',
-    'delete',
-    'acknowledge',
-  ]),
+  documentSections: {
+    admin: 'Admin',
+    fad: 'FAD',
+  },
+  permissions: Object.freeze({
+    adminSection: ['approve', 'verify', 'reject'],
+    fadSection: ['approve', 'reject', 'verify', 'acknowledge'],
+  }),
   RESERVED_QUERY_WORDS: Object.freeze(['page', 'sort']),
 };

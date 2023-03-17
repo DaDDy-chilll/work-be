@@ -5,6 +5,7 @@ const {
   paymentType,
   documentStatus,
   documentRemarkActions,
+  documentSections,
 } = require('../constants');
 
 const Schema = mongoose.Schema;
@@ -20,7 +21,7 @@ const documentSchema = new Schema(
       type: String,
       required: true,
     },
-    type: {
+    paymentType: {
       type: String,
       required: true,
       enum: Object.values(paymentType),
@@ -55,10 +56,19 @@ const documentSchema = new Schema(
         },
       },
     ],
-    status: {
-      type: String,
-      default: documentStatus.pending,
-      enum: Object.values(documentStatus),
+    state: {
+      status: {
+        type: String,
+        required: true,
+        enum: Object.values(documentStatus),
+        default: documentStatus.pending,
+      },
+      section: {
+        type: String,
+        required: true,
+        enum: Object.values(documentSections),
+        default: documentSections.admin,
+      },
     },
     requestedBy: {
       type: mongoose.Types.ObjectId,

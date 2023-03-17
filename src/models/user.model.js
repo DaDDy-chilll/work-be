@@ -7,11 +7,7 @@ const Count = require('./count.model');
 const Schema = mongoose.Schema;
 
 const permissions = {
-  requestForm: {
-    read: {
-      type: Boolean,
-      default: false,
-    },
+  adminSection: {
     approve: {
       type: Boolean,
       default: false,
@@ -24,15 +20,17 @@ const permissions = {
       type: Boolean,
       default: false,
     },
-    submit: {
+  },
+  fadSection: {
+    approve: {
       type: Boolean,
       default: false,
     },
-    update: {
+    reject: {
       type: Boolean,
       default: false,
     },
-    delete: {
+    verify: {
       type: Boolean,
       default: false,
     },
@@ -47,7 +45,7 @@ const userSchema = new Schema(
   {
     email: {
       type: String,
-      requried: true,
+      required: true,
       unique: true,
     },
     customId: {
