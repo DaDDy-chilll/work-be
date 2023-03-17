@@ -3,7 +3,7 @@ const { z } = require('zod');
 
 const formRemarkSchema = z.object({
   body: z.object({
-    remark: z.string().default('No remark').optional(),
+    remark: z.string().default('No remark'),
   }),
   params: z.object({
     id: z.string().refine(isObjectIdOrHexString, 'Invalid document.'),

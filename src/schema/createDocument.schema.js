@@ -13,8 +13,7 @@ const createDocumentSchema = z.object({
           return { message: 'Invalid document type.' };
         },
       })
-      .default(paymentType.normal)
-      .optional(),
+      .default(paymentType.normal),
     amount: z.number().positive('Invalid amount'),
     description: z.string().optional(),
     status: z
@@ -25,8 +24,7 @@ const createDocumentSchema = z.object({
           };
         },
       })
-      .default(documentStatus.pending)
-      .optional(),
+      .default(documentStatus.pending),
   }),
 });
 

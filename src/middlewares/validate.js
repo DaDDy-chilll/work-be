@@ -25,6 +25,8 @@ function validate(schema) {
       );
     }
 
+    req.body = { ...result.data.body };
+
     next();
   };
 }
