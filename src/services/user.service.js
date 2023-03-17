@@ -1,3 +1,4 @@
+const { userRoles } = require('../constants');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const User = require('../models/user.model');
@@ -60,10 +61,29 @@ const createUserService = () => {
     return deletedUser;
   };
 
+  const updateUserById = async ({ id, data }) => {
+    const isEmptyData = Object.keys(data).length === 0;
+
+    if (isEmptyData) {
+      throw ApiError.badRequest('No data provided.');
+    }
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      throw _noUserError;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+
+    return updatedUser;
+  };
+
   return {
     getAllUsers,
     getUserById,
     deleteUserById,
+    updateUserById,
   };
 };
 

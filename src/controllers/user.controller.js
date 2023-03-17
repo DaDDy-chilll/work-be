@@ -40,11 +40,25 @@ const createUserController = () => {
     });
   });
 
+  const updateUserById = catchAsync(async (req, res, next) => {
+    const updatedUser = await userService.updateUserById({
+      id: req.params.id,
+      data: req.body,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: updatedUser,
+      code: 201,
+    });
+  });
+
   return {
     getAllUsers,
     getUserById,
     getMe,
     deleteUserById,
+    updateUserById,
   };
 };
 
