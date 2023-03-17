@@ -10,6 +10,13 @@ const Document = require('../models/document.model');
 const createDocumentService = () => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
+  const _canUserUpdateOrDelete = ({ document, user }) => {
+    return (
+      document.requestedBy.equals(user._id) ||
+      user.role === userRoles.superadmin
+    );
+  };
+
   const _getFilterForGetAllDocs = ({ queryFilter }) => {
     const filter = {};
 
@@ -175,7 +182,7 @@ const createDocumentService = () => {
   };
 
   const getDocumentById = async ({ id }) => {
-    const document = await Document.findById(id);
+    const document = await Document.findById(id).populate('requestedBy');
 
     if (!document) {
       throw _noDocumentError;
@@ -237,16 +244,29 @@ const createDocumentService = () => {
       throw _noDocumentError;
     }
 
-    if (
-      !document.requestedBy.equals(user._id) &&
-      user.role !== userRoles.superadmin
-    ) {
+    if (!_canUserUpdateOrDelete({ document, user })) {
       throw ApiError.notAuthorized();
     }
 
     const updatedDocument = await Document.findByIdAndUpdate(id, data);
 
     return updatedDocument;
+  };
+
+  const deleteDocument = async ({ id, user }) => {
+    const document = await Document.findById(id);
+
+    if (!document) {
+      throw _noDocumentError;
+    }
+
+    if (!_canUserUpdateOrDelete({ document, user })) {
+      throw ApiError.notAuthorized();
+    }
+
+    const deletedDocument = await Document.findByIdAndDelete(id);
+
+    return deletedDocument;
   };
 
   return {
@@ -259,6 +279,7 @@ const createDocumentService = () => {
     getAllDocuments,
     submitDraft,
     updateDocument,
+    deleteDocument,
   };
 };
 

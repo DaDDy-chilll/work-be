@@ -9,6 +9,7 @@ const createDocumentSchema = require('../schema/createDocument.schema');
 const formRemarkSchema = require('../schema/formRemark.schema');
 const submitDraftSchema = require('../schema/submitDraft.schema');
 const updateDocumentSchema = require('../schema/updateDocument.schema');
+const deleteDocumentSchema = require('../schema/deleteDocument.schema');
 
 router.get('/', authenticate, documentController.getAllDocuments);
 
@@ -40,9 +41,13 @@ router.patch(
   documentController.updateDocument
 );
 
-router.delete('/:id', (req, res) => {
-  res.send('delete a document.');
-});
+router.delete(
+  '/:id',
+  authenticate,
+  checkFormPermissions('delete'),
+  validate(deleteDocumentSchema),
+  documentController.deleteDocument
+);
 
 router.get('/requested', documentController.getRequestedDocuments);
 

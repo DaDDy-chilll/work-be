@@ -149,6 +149,18 @@ const createDocumentController = () => {
     });
   });
 
+  const deleteDocument = catchAsync(async (req, res, next) => {
+    const deletedDocument = await documentService.deleteDocument({
+      id: req.params.id,
+      user: req.user,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: deletedDocument,
+    });
+  });
+
   return {
     createDocument,
     verifyDocument,
@@ -161,6 +173,7 @@ const createDocumentController = () => {
     getDocumentById,
     submitDraft,
     updateDocument,
+    deleteDocument,
   };
 };
 
