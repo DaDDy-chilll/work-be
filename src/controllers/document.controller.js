@@ -21,7 +21,7 @@ const createDocumentController = () => {
   const verifyDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.verifyDocument({
       id: req.params.id,
-      userId: req.user._id,
+      user: req.user,
       remark: req.body.remark,
     });
 
@@ -49,7 +49,7 @@ const createDocumentController = () => {
   const rejectDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.rejectDocument({
       id: req.params.id,
-      userId: req.user._id,
+      user: req.user,
       remark: req.body.remark,
     });
 

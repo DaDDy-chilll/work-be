@@ -21,19 +21,25 @@ const registerUserBodySchema = z.object({
     }
   ),
   jobLabel: z.string({ required_error: 'Job label is required.' }),
-  permissions: z.object({
-    adminSection: z.object({
-      approve: z.boolean().default(false),
-      reject: z.boolean().default(false),
-      verify: z.boolean().default(false),
-    }),
-    fadSection: z.object({
-      approve: z.boolean().default(false),
-      reject: z.boolean().default(false),
-      verify: z.boolean().default(false),
-      acknowledge: z.boolean().default(false),
-    }),
-  }),
+  permissions: z
+    .object({
+      adminSection: z
+        .object({
+          approve: z.boolean().default(false),
+          reject: z.boolean().default(false),
+          verify: z.boolean().default(false),
+        })
+        .optional(),
+      fadSection: z
+        .object({
+          approve: z.boolean().default(false),
+          reject: z.boolean().default(false),
+          verify: z.boolean().default(false),
+          acknowledge: z.boolean().default(false),
+        })
+        .optional(),
+    })
+    .optional(),
   approvalAmount: z
     .number()
     .nonnegative('Amount must be greater than zero')

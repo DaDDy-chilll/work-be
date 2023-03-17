@@ -10,6 +10,8 @@ const formRemarkSchema = require('../schema/formRemark.schema');
 const submitDraftSchema = require('../schema/submitDraft.schema');
 const updateDocumentSchema = require('../schema/updateDocument.schema');
 const deleteDocumentSchema = require('../schema/deleteDocument.schema');
+const authorize = require('../middlewares/authorize');
+const { userRoles } = require('../constants');
 
 router.get('/', authenticate, documentController.getAllDocuments);
 
@@ -50,36 +52,51 @@ router.post(
 //   documentController.deleteDocument
 // );
 
-// router.patch(
-//   '/:id/verify',
-//   authenticate,
-//   checkFormPermissions('verify'),
-//   validate(formRemarkSchema),
-//   documentController.verifyDocument
-// );
+router.patch(
+  '/:id/verify',
+  authenticate,
+  authorize([
+    userRoles.executive,
+    userRoles.superadmin,
+    userRoles.fad,
+    userRoles.admin,
+  ]),
+  validate(formRemarkSchema),
+  documentController.verifyDocument
+);
 
-// router.patch(
-//   '/:id/approve',
-//   authenticate,
-//   checkFormPermissions('approve'),
-//   validate(formRemarkSchema),
-//   documentController.approveDocument
-// );
+router.patch(
+  '/:id/approve',
+  authenticate,
+  authorize([
+    userRoles.executive,
+    userRoles.superadmin,
+    userRoles.fad,
+    userRoles.admin,
+  ]),
+  validate(formRemarkSchema),
+  documentController.approveDocument
+);
 
-// router.patch(
-//   '/:id/reject',
-//   authenticate,
-//   checkFormPermissions('reject'),
-//   validate(formRemarkSchema),
-//   documentController.rejectDocument
-// );
+router.patch(
+  '/:id/reject',
+  authenticate,
+  authorize([
+    userRoles.executive,
+    userRoles.superadmin,
+    userRoles.fad,
+    userRoles.admin,
+  ]),
+  validate(formRemarkSchema),
+  documentController.rejectDocument
+);
 
-// router.patch(
-//   '/:id/acknowledge',
-//   authenticate,
-//   checkFormPermissions('acknowledge'),
-//   validate(formRemarkSchema),
-//   documentController.acknowledgeDocument
-// );
+router.patch(
+  '/:id/acknowledge',
+  authenticate,
+  authorize([userRoles.executive, userRoles.superadmin, userRoles.fad]),
+  validate(formRemarkSchema),
+  documentController.acknowledgeDocument
+);
 
 module.exports = router;

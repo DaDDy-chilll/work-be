@@ -7,10 +7,17 @@ module.exports = (schema, ctx) => {
     return true;
   }
 
+  const hasAdminPermissions =
+    schema.permissions.adminSection &&
+    Object.values(schema.permissions.adminSection).some((action) => action);
+
+  const hasFADPermissions =
+    schema.permissions.fadSection &&
+    Object.values(schema.permissions.fadSection).some((action) => action);
+
   if (
     schema.role === userRoles.normal &&
-    Object.values(schema.permissions.adminSection).some((action) => action) &&
-    Object.values(schema.permissions.fadSection).some((action) => action)
+    (hasAdminPermissions || hasFADPermissions)
   ) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
