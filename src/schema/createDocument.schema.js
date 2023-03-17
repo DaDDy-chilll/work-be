@@ -20,18 +20,22 @@ const createDocumentSchema = z.object({
       .default(paymentType.normal),
     amount: z.number().positive('Invalid amount'),
     description: z.string().optional(),
-    state: z.object({
-      status: z
-        .enum(Object.values(documentStatus), {
-          errorMap: (_issue, _ctx) => ({ message: 'Invalid document status.' }),
-        })
-        .default(documentStatus.pending),
-      section: z
-        .enum(Object.values(documentSections), {
-          errorMap: (_issue, _ctx) => ({ message: 'Invalid section.' }),
-        })
-        .optional(),
-    }),
+    state: z
+      .object({
+        status: z
+          .enum(Object.values(documentStatus), {
+            errorMap: (_issue, _ctx) => ({
+              message: 'Invalid document status.',
+            }),
+          })
+          .default(documentStatus.pending),
+        section: z
+          .enum(Object.values(documentSections), {
+            errorMap: (_issue, _ctx) => ({ message: 'Invalid section.' }),
+          })
+          .optional(),
+      })
+      .optional(),
   }),
 });
 

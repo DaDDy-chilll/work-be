@@ -19,13 +19,12 @@ router.get('/:id', authenticate, documentController.getDocumentById);
 
 router.get('/requested', documentController.getRequestedDocuments);
 
-// router.post(
-//   '/',
-//   authenticate,
-//   checkFormPermissions('submit'),
-//   validate(createDocumentSchema),
-//   documentController.createDocument
-// );
+router.post(
+  '/',
+  authenticate,
+  validate(createDocumentSchema),
+  documentController.createDocument
+);
 
 // router.patch(
 //   '/:id/submit',
