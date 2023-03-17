@@ -7,7 +7,7 @@ const createDocumentController = () => {
   const createDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.createRequisitionDocument({
       ...req.body,
-      requestedBy: req.user.id,
+      requestedBy: req.user._id,
     });
 
     sendSuccessResponse({
@@ -21,7 +21,7 @@ const createDocumentController = () => {
   const verifyDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.verifyDocument({
       id: req.params.id,
-      userId: req.user.id,
+      userId: req.user._id,
       remark: req.body.remark,
     });
 
@@ -49,7 +49,7 @@ const createDocumentController = () => {
   const rejectDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.rejectDocument({
       id: req.params.id,
-      userId: req.user.id,
+      userId: req.user._id,
       remark: req.body.remark,
     });
 
@@ -63,7 +63,7 @@ const createDocumentController = () => {
   const acknowledgeDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.acknowledgeDocument({
       id: req.params.id,
-      userId: req.user.id,
+      userId: req.user._id,
       remark: req.body.remark,
     });
 

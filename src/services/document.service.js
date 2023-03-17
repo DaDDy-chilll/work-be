@@ -111,7 +111,7 @@ const createDocumentService = () => {
         status: documentStatus.approved,
         $push: {
           remarks: {
-            remarker: user.id,
+            remarker: user._id,
             content: remark,
             action: documentRemarkActions.approve,
           },
