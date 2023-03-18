@@ -8,7 +8,7 @@ const router = require('express').Router();
 
 // router.get('/', authenticate, checkSuperadmin, userController.getAllUsers);
 
-// router.get('/me', authenticate, userController.getMe);
+router.get('/me', authenticate, userController.getMe);
 
 // router.get('/:id', authenticate, checkSuperadmin, userController.getUserById);
 
