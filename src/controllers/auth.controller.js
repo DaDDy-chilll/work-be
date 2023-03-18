@@ -30,6 +30,19 @@ const createAuthController = () => {
         message: 'User successfully registered.',
       });
     }),
+
+    updatePassword: catchAsync(async (req, res, next) => {
+      const updatedUser = await authService.updatePassword({
+        id: req.params.id,
+        newPassword: req.body.password,
+      });
+
+      sendSuccessResponse({
+        res,
+        data: updatedUser,
+        message: "User's password has been updated.",
+      });
+    }),
   };
 };
 

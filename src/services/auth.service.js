@@ -6,6 +6,8 @@ const User = require('../models/user.model');
 const { JWT_TOKEN_SECRET } = require('../constants');
 
 const createAuthService = () => {
+  const _noUserError = ApiError.badRequest('User does not exist.');
+
   const _verifyPassword = async ({ plainText, encrypted }) => {
     return await bcrypt.compare(plainText, encrypted);
   };
@@ -62,10 +64,25 @@ const createAuthService = () => {
     return { user, accessToken: token };
   };
 
+  const updatePassword = async ({ id, newPassword }) => {
+    const user = await User.findById(id).select('+password');
+
+    if (!user) {
+      throw _noUserError;
+    }
+
+    user.password = newPassword;
+
+    await user.save();
+
+    return user;
+  };
+
   return {
     getUserByEmail,
     register,
     login,
+    updatePassword,
   };
 };
 
