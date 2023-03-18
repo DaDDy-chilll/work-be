@@ -13,11 +13,11 @@ const updateDocumentSchema = z.object({
         .max(50, 'Name must have at most 50 characters.'),
       amount: z.number().positive('Invalid amount'),
       description: z.string().optional(),
-      type: z.undefined({
-        invalid_type_error: 'Forbidden key: `type`',
+      state: z.undefined({
+        invalid_type_error: 'Forbidden key: `state`',
       }),
-      status: z.undefined({
-        invalid_type_error: 'Forbidden key: `status`',
+      paymentType: z.undefined({
+        invalid_type_error: 'Forbidden key: `paymentType`',
       }),
     })
     .partial()

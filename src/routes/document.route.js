@@ -50,6 +50,7 @@ router.post(
 
 router.post('/fad/:id', authenticate, documentController.submitDocumentToFAD);
 
+// for drafting: currently the route is disabled.
 // router.patch(
 //   '/:id/submit',
 //   authenticate,
@@ -58,21 +59,19 @@ router.post('/fad/:id', authenticate, documentController.submitDocumentToFAD);
 //   documentController.submitDraft
 // );
 
-// router.patch(
-//   '/:id',
-//   authenticate,
-//   checkFormPermissions('update'),
-//   validate(updateDocumentSchema),
-//   documentController.updateDocument
-// );
+router.patch(
+  '/:id',
+  authenticate,
+  validate(updateDocumentSchema),
+  documentController.updateDocument
+);
 
-// router.delete(
-//   '/:id',
-//   authenticate,
-//   checkFormPermissions('delete'),
-//   validate(deleteDocumentSchema),
-//   documentController.deleteDocument
-// );
+router.delete(
+  '/:id',
+  authenticate,
+  validate(deleteDocumentSchema),
+  documentController.deleteDocument
+);
 
 router.patch(
   '/:id/verify',
