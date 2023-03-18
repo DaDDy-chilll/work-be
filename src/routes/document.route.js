@@ -6,80 +6,120 @@ const authenticate = require('../middlewares/authenticate');
 const checkFormPermissions = require('../middlewares/checkFormPermissions');
 
 const createDocumentSchema = require('../schema/createDocument.schema');
-const formRemarkSchema = require('../schema/formRemark.schema');
+const formActionSchema = require('../schema/formAction.schema');
 const submitDraftSchema = require('../schema/submitDraft.schema');
 const updateDocumentSchema = require('../schema/updateDocument.schema');
 const deleteDocumentSchema = require('../schema/deleteDocument.schema');
+const authorize = require('../middlewares/authorize');
+const { userRoles, documentActions } = require('../constants');
+const checkPermissions = require('../middlewares/checkFormPermissions');
 
-router.get('/', authenticate, documentController.getAllDocuments);
+router.get(
+  '/',
+  authenticate,
+  authorize([userRoles.superadmin]),
+  documentController.getAllDocuments
+);
 
 router.get('/me', authenticate, documentController.getMyDocuments);
+
+router.get('/requested', documentController.getRequestedDocuments);
+
+router.get(
+  '/fad',
+  authenticate,
+  authorize([userRoles.superadmin, userRoles.executive, userRoles.fad]),
+  documentController.getDocumentsInFADSection
+);
+
+router.get(
+  '/admin',
+  authenticate,
+  authorize([userRoles.superadmin, userRoles.executive, userRoles.admin]),
+  documentController.getDocumentsInAdminSection
+);
 
 router.get('/:id', authenticate, documentController.getDocumentById);
 
 router.post(
   '/',
   authenticate,
-  checkFormPermissions('submit'),
   validate(createDocumentSchema),
   documentController.createDocument
 );
 
-router.patch(
-  '/:id/submit',
-  authenticate,
-  checkFormPermissions('submit'),
-  validate(submitDraftSchema),
-  documentController.submitDraft
-);
+router.post('/fad/:id', authenticate, documentController.submitDocumentToFAD);
 
-router.patch(
-  '/:id',
-  authenticate,
-  checkFormPermissions('update'),
-  validate(updateDocumentSchema),
-  documentController.updateDocument
-);
+// router.patch(
+//   '/:id/submit',
+//   authenticate,
+//   checkFormPermissions('submit'),
+//   validate(submitDraftSchema),
+//   documentController.submitDraft
+// );
 
-router.delete(
-  '/:id',
-  authenticate,
-  checkFormPermissions('delete'),
-  validate(deleteDocumentSchema),
-  documentController.deleteDocument
-);
+// router.patch(
+//   '/:id',
+//   authenticate,
+//   checkFormPermissions('update'),
+//   validate(updateDocumentSchema),
+//   documentController.updateDocument
+// );
 
-router.get('/requested', documentController.getRequestedDocuments);
+// router.delete(
+//   '/:id',
+//   authenticate,
+//   checkFormPermissions('delete'),
+//   validate(deleteDocumentSchema),
+//   documentController.deleteDocument
+// );
 
 router.patch(
   '/:id/verify',
   authenticate,
-  checkFormPermissions('verify'),
-  validate(formRemarkSchema),
+  authorize([
+    userRoles.executive,
+    userRoles.superadmin,
+    userRoles.fad,
+    userRoles.admin,
+  ]),
+  validate(formActionSchema),
+  checkPermissions(documentActions.verify),
   documentController.verifyDocument
 );
 
 router.patch(
   '/:id/approve',
   authenticate,
-  checkFormPermissions('approve'),
-  validate(formRemarkSchema),
+  authorize([
+    userRoles.executive,
+    userRoles.superadmin,
+    userRoles.fad,
+    userRoles.admin,
+  ]),
+  validate(formActionSchema),
+  checkPermissions(documentActions.approve),
   documentController.approveDocument
 );
 
 router.patch(
   '/:id/reject',
   authenticate,
-  checkFormPermissions('reject'),
-  validate(formRemarkSchema),
+  authorize([
+    userRoles.executive,
+    userRoles.superadmin,
+    userRoles.fad,
+    userRoles.admin,
+  ]),
+  validate(formActionSchema),
   documentController.rejectDocument
 );
 
 router.patch(
   '/:id/acknowledge',
   authenticate,
-  checkFormPermissions('acknowledge'),
-  validate(formRemarkSchema),
+  authorize([userRoles.executive, userRoles.superadmin, userRoles.fad]),
+  validate(formActionSchema),
   documentController.acknowledgeDocument
 );
 

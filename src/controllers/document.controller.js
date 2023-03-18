@@ -1,4 +1,4 @@
-const { documentStatus } = require('../constants');
+const { documentStatus, documentSections } = require('../constants');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const documentService = require('../services/document.service');
@@ -21,7 +21,7 @@ const createDocumentController = () => {
   const verifyDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.verifyDocument({
       id: req.params.id,
-      userId: req.user._id,
+      user: req.user,
       remark: req.body.remark,
     });
 
@@ -49,7 +49,7 @@ const createDocumentController = () => {
   const rejectDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.rejectDocument({
       id: req.params.id,
-      userId: req.user._id,
+      user: req.user,
       remark: req.body.remark,
     });
 
@@ -71,6 +71,19 @@ const createDocumentController = () => {
       res,
       data: document,
       message: 'Document acknowledged',
+    });
+  });
+
+  const submitDocumentToFAD = catchAsync(async (req, res, next) => {
+    const document = await documentService.submitToFAD({
+      id: req.params.id,
+      user: req.user,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Submitted to FAD',
     });
   });
 
@@ -104,6 +117,36 @@ const createDocumentController = () => {
   const getAllDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
       query: req.query,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
+  const getDocumentsInFADSection = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      query: {
+        ...req.query,
+        section: documentSections.fad,
+      },
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
+  const getDocumentsInAdminSection = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      query: {
+        ...req.query,
+        section: documentSections.admin,
+      },
     });
 
     sendSuccessResponse({
@@ -167,6 +210,7 @@ const createDocumentController = () => {
     approveDocument,
     rejectDocument,
     acknowledgeDocument,
+    submitDocumentToFAD,
     getRequestedDocuments,
     getMyDocuments,
     getAllDocuments,
@@ -174,6 +218,8 @@ const createDocumentController = () => {
     submitDraft,
     updateDocument,
     deleteDocument,
+    getDocumentsInFADSection,
+    getDocumentsInAdminSection,
   };
 };
 

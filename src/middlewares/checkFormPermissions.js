@@ -1,23 +1,24 @@
-const { requestFormPermissions } = require('../constants');
 const ApiError = require('../helpers/apiError');
+const catchAsync = require('../helpers/catchAsync');
+const documentService = require('../services/document.service');
 
-const checkFormPermissions = (action) => {
-  return (req, res, next) => {
-    if (!requestFormPermissions.includes(action)) {
-      return next(ApiError.badRequest('Invalid Permission.'));
-    }
-    if (!req.user) {
-      return next(ApiError.notAuthenticated());
-    }
+const checkPermissions = (action) => {
+  return catchAsync(async (req, res, next) => {
+    const user = req.user;
+    const document = await documentService.getDocumentById({
+      id: req.params.id,
+    });
 
-    const requestFormPermission = req.user.permissions.requestForm;
-
-    if (!requestFormPermission[action]) {
-      return next(ApiError.notAuthorized('Not allowed.'));
+    if (!user.permissions[document.state.section][action]) {
+      return next(
+        ApiError.notAuthorized(
+          `Not allowed to '${action}' the document in '${document.state.section.toUpperCase()}' section.`
+        )
+      );
     }
 
     next();
-  };
+  });
 };
 
-module.exports = checkFormPermissions;
+module.exports = checkPermissions;

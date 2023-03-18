@@ -2,6 +2,8 @@ const {
   documentRemarkActions,
   documentStatus,
   userRoles,
+  documentSections,
+  documentActions,
 } = require('../constants');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
@@ -22,10 +24,16 @@ const createDocumentService = () => {
 
     if (queryFilter.status) {
       if (Array.isArray(queryFilter.status)) {
-        filter.$or = queryFilter.status.map((value) => ({ status: value }));
+        filter.$or = queryFilter.status.map((value) => ({
+          'state.status': value,
+        }));
       } else {
-        filter.status = queryFilter.status;
+        filter['state.status'] = queryFilter.status;
       }
+    }
+
+    if (queryFilter.section) {
+      filter['state.section'] = queryFilter.section;
     }
 
     if (queryFilter.amount) {
@@ -56,26 +64,23 @@ const createDocumentService = () => {
     return document;
   };
 
-  const verifyDocument = async ({ id, userId, remark }) => {
+  const verifyDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
-    if (!document) {
-      throw _noDocumentError;
-    }
-
-    if (document.status !== documentStatus.pending) {
+    if (document.state.status !== documentStatus.pending) {
       throw ApiError.badRequest('Cannot verify this document.');
     }
 
     const newDocument = await Document.findByIdAndUpdate(
       id,
       {
-        status: documentStatus.verified,
+        'state.status': documentStatus.verified,
         $push: {
           remarks: {
-            remarker: userId,
+            remarker: user._id,
             content: remark,
-            action: documentRemarkActions.verify,
+            action: documentActions.verify,
+            section: document.state.section,
           },
         },
       },
@@ -88,14 +93,10 @@ const createDocumentService = () => {
   const approveDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
-    if (!document) {
-      throw _noDocumentError;
-    }
-
     if (
       !(
-        document.status === documentStatus.verified ||
-        document.status === documentStatus.pending
+        document.state.status === documentStatus.verified ||
+        document.state.status === documentStatus.pending
       )
     ) {
       throw ApiError.badRequest('Cannot approve this document.');
@@ -108,12 +109,13 @@ const createDocumentService = () => {
     const newDocument = await Document.findByIdAndUpdate(
       id,
       {
-        status: documentStatus.approved,
+        'state.status': documentStatus.approved,
         $push: {
           remarks: {
             remarker: user._id,
             content: remark,
             action: documentRemarkActions.approve,
+            section: document.state.section,
           },
         },
       },
@@ -123,26 +125,23 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const rejectDocument = async ({ id, userId, remark }) => {
+  const rejectDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
-    if (!document) {
-      throw _noDocumentError;
-    }
-
-    if (document.status !== documentStatus.pending) {
+    if (document.state.status !== documentStatus.pending) {
       throw ApiError.badRequest('Cannot reject the form.');
     }
 
     const newDocument = await Document.findByIdAndUpdate(
       id,
       {
-        status: documentStatus.rejected,
+        'state.status': documentStatus.rejected,
         $push: {
           remarks: {
-            remarker: userId,
+            remarker: user._id,
             content: remark,
-            action: documentRemarkActions.reject,
+            action: documentActions.reject,
+            section: document.state.section,
           },
         },
       },
@@ -152,26 +151,30 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const acknowledgeDocument = async ({ id, userId, remark }) => {
+  const acknowledgeDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
     if (!document) {
       throw _noDocumentError;
     }
 
-    if (document.status !== documentStatus.approved) {
+    if (
+      document.state.status !== documentStatus.approved ||
+      document.state.section !== documentSections.fad
+    ) {
       throw ApiError.badRequest('Cannot acknowledge the form.');
     }
 
     const newDocument = await Document.findByIdAndUpdate(
       id,
       {
-        status: documentStatus.acknowledged,
+        'state.status': documentStatus.acknowledged,
         $push: {
           remarks: {
-            remarker: userId,
+            remarker: user,
             content: remark,
-            action: documentRemarkActions.acknowledge,
+            action: documentActions.acknowledge,
+            section: document.state.section,
           },
         },
       },
@@ -179,6 +182,40 @@ const createDocumentService = () => {
     );
 
     return newDocument;
+  };
+
+  const submitToFAD = async ({ id, user }) => {
+    const document = await Document.findById(id);
+
+    if (!document) {
+      throw _noDocumentError;
+    }
+
+    if (!document.requestedBy.equals(user._id)) {
+      throw ApiError.notAuthorized();
+    }
+
+    if (
+      !(
+        document.state.status === documentStatus.approved &&
+        document.state.section === documentSections.admin
+      )
+    ) {
+      throw ApiError.badRequest('Cannot submit to FAD yet.');
+    }
+
+    const submittedDocument = await Document.findByIdAndUpdate(
+      id,
+      {
+        state: {
+          status: documentStatus.pending,
+          section: documentSections.fad,
+        },
+      },
+      { new: true }
+    );
+
+    return submittedDocument;
   };
 
   const getDocumentById = async ({ id }) => {
@@ -280,6 +317,7 @@ const createDocumentService = () => {
     submitDraft,
     updateDocument,
     deleteDocument,
+    submitToFAD,
   };
 };
 
