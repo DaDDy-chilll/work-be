@@ -8,12 +8,12 @@ module.exports = (schema, ctx) => {
   }
 
   const hasAdminPermissions =
-    schema.permissions.adminSection &&
-    Object.values(schema.permissions.adminSection).some((action) => action);
+    schema.permissions.admin &&
+    Object.values(schema.permissions.admin).some((action) => action);
 
   const hasFADPermissions =
-    schema.permissions.fadSection &&
-    Object.values(schema.permissions.fadSection).some((action) => action);
+    schema.permissions.fad &&
+    Object.values(schema.permissions.fad).some((action) => action);
 
   if (
     schema.role === userRoles.normal &&
