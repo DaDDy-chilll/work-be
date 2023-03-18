@@ -14,13 +14,32 @@ const authorize = require('../middlewares/authorize');
 const { userRoles, documentActions } = require('../constants');
 const checkPermissions = require('../middlewares/checkFormPermissions');
 
-router.get('/', authenticate, documentController.getAllDocuments);
+router.get(
+  '/',
+  authenticate,
+  authorize([userRoles.superadmin]),
+  documentController.getAllDocuments
+);
 
 router.get('/me', authenticate, documentController.getMyDocuments);
 
-router.get('/:id', authenticate, documentController.getDocumentById);
-
 router.get('/requested', documentController.getRequestedDocuments);
+
+router.get(
+  '/fad',
+  authenticate,
+  authorize([userRoles.superadmin, userRoles.executive, userRoles.fad]),
+  documentController.getDocumentsInFADSection
+);
+
+router.get(
+  '/admin',
+  authenticate,
+  authorize([userRoles.superadmin, userRoles.executive, userRoles.admin]),
+  documentController.getDocumentsInAdminSection
+);
+
+router.get('/:id', authenticate, documentController.getDocumentById);
 
 router.post(
   '/',

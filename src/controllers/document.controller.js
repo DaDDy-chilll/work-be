@@ -1,4 +1,4 @@
-const { documentStatus } = require('../constants');
+const { documentStatus, documentSections } = require('../constants');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const documentService = require('../services/document.service');
@@ -126,6 +126,36 @@ const createDocumentController = () => {
     });
   });
 
+  const getDocumentsInFADSection = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      query: {
+        ...req.query,
+        section: documentSections.fad,
+      },
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
+  const getDocumentsInAdminSection = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      query: {
+        ...req.query,
+        section: documentSections.admin,
+      },
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
   const getDocumentById = catchAsync(async (req, res, next) => {
     const document = await documentService.getDocumentById({
       id: req.params.id,
@@ -188,6 +218,8 @@ const createDocumentController = () => {
     submitDraft,
     updateDocument,
     deleteDocument,
+    getDocumentsInFADSection,
+    getDocumentsInAdminSection,
   };
 };
 

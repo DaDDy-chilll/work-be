@@ -24,10 +24,16 @@ const createDocumentService = () => {
 
     if (queryFilter.status) {
       if (Array.isArray(queryFilter.status)) {
-        filter.$or = queryFilter.status.map((value) => ({ status: value }));
+        filter.$or = queryFilter.status.map((value) => ({
+          'state.status': value,
+        }));
       } else {
-        filter.status = queryFilter.status;
+        filter['state.status'] = queryFilter.status;
       }
+    }
+
+    if (queryFilter.section) {
+      filter['state.section'] = queryFilter.section;
     }
 
     if (queryFilter.amount) {
