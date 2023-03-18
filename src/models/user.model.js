@@ -7,7 +7,7 @@ const Count = require('./count.model');
 const Schema = mongoose.Schema;
 
 const permissions = {
-  adminSection: {
+  admin: {
     approve: {
       type: Boolean,
       default: false,
@@ -21,7 +21,7 @@ const permissions = {
       default: false,
     },
   },
-  fadSection: {
+  fad: {
     approve: {
       type: Boolean,
       default: false,
@@ -42,6 +42,38 @@ const permissions = {
   canSubmit: {
     type: Boolean,
     default: true,
+  },
+};
+
+const myPermissions = {
+  adminApprove: {
+    type: Boolean,
+    default: false,
+  },
+  adminReject: {
+    type: Boolean,
+    default: false,
+  },
+  adminVerify: {
+    type: Boolean,
+    default: false,
+  },
+  fadApprove: {
+    type: Boolean,
+    default: false,
+  },
+  fadReject: {
+    type: Boolean,
+    default: false,
+  },
+  fadVerify: {
+    type: Boolean,
+    default: false,
+  },
+
+  fadAcknowledge: {
+    type: Boolean,
+    default: false,
   },
 };
 

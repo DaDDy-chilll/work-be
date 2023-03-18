@@ -23,14 +23,14 @@ const registerUserBodySchema = z.object({
   jobLabel: z.string({ required_error: 'Job label is required.' }),
   permissions: z
     .object({
-      adminSection: z
+      admin: z
         .object({
           approve: z.boolean().default(false),
           reject: z.boolean().default(false),
           verify: z.boolean().default(false),
         })
         .optional(),
-      fadSection: z
+      fad: z
         .object({
           approve: z.boolean().default(false),
           reject: z.boolean().default(false),
