@@ -1,17 +1,21 @@
 const router = require('express').Router();
+const url = require('url');
 
 const documentController = require('../controllers/document.controller');
 const validate = require('../middlewares/validate');
 const authenticate = require('../middlewares/authenticate');
-const checkFormPermissions = require('../middlewares/checkFormPermissions');
 
 const createDocumentSchema = require('../schema/createDocument.schema');
 const formActionSchema = require('../schema/formAction.schema');
-const submitDraftSchema = require('../schema/submitDraft.schema');
 const updateDocumentSchema = require('../schema/updateDocument.schema');
 const deleteDocumentSchema = require('../schema/deleteDocument.schema');
 const authorize = require('../middlewares/authorize');
-const { userRoles, documentActions } = require('../constants');
+const {
+  userRoles,
+  documentActions,
+  documentStatus,
+  documentSections,
+} = require('../constants');
 const checkPermissions = require('../middlewares/checkFormPermissions');
 
 router.get(
@@ -22,6 +26,26 @@ router.get(
 );
 
 router.get('/me', authenticate, documentController.getMyDocuments);
+
+router.get('/me/admin', authenticate, (req, res) => {
+  const params = new URLSearchParams({
+    ...req.query,
+    status: documentStatus.approved,
+    section: documentSections.admin,
+  }).toString();
+
+  res.redirect(`/api/documents/me?${params}`);
+});
+
+router.get('/me/fad', authenticate, (req, res) => {
+  const params = new URLSearchParams({
+    ...req.query,
+    status: documentStatus.approved,
+    section: documentSections.fad,
+  }).toString();
+
+  res.redirect(`/api/documents/me?${params}`);
+});
 
 router.get('/requested', documentController.getRequestedDocuments);
 
