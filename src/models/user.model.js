@@ -45,38 +45,6 @@ const permissions = {
   },
 };
 
-const myPermissions = {
-  adminApprove: {
-    type: Boolean,
-    default: false,
-  },
-  adminReject: {
-    type: Boolean,
-    default: false,
-  },
-  adminVerify: {
-    type: Boolean,
-    default: false,
-  },
-  fadApprove: {
-    type: Boolean,
-    default: false,
-  },
-  fadReject: {
-    type: Boolean,
-    default: false,
-  },
-  fadVerify: {
-    type: Boolean,
-    default: false,
-  },
-
-  fadAcknowledge: {
-    type: Boolean,
-    default: false,
-  },
-};
-
 const userSchema = new Schema(
   {
     email: {

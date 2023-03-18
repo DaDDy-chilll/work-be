@@ -33,7 +33,7 @@ const createDocumentSchema = z.object({
           .enum(Object.values(documentSections), {
             errorMap: (_issue, _ctx) => ({ message: 'Invalid section.' }),
           })
-          .optional(),
+          .default(documentSections.admin),
       })
       .optional(),
   }),

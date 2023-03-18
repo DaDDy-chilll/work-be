@@ -3,6 +3,7 @@ const {
   documentStatus,
   userRoles,
   documentSections,
+  documentActions,
 } = require('../constants');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
@@ -10,18 +11,6 @@ const Document = require('../models/document.model');
 
 const createDocumentService = () => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
-
-  const canUserDoAction = ({ action, document, user }) => {
-    const canUserDoActionInFADSection =
-      document.state.section === documentSections.fad &&
-      user.permissions.fadSection[action];
-
-    const canUserDoActionInAdminSection =
-      document.state.section === documentSections.admin &&
-      user.permissions.adminSection[action];
-
-    return canUserDoActionInAdminSection || canUserDoActionInFADSection;
-  };
 
   const _canUserUpdateOrDelete = ({ document, user }) => {
     return (
@@ -72,16 +61,8 @@ const createDocumentService = () => {
   const verifyDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
-    if (!document) {
-      throw _noDocumentError;
-    }
-
     if (document.state.status !== documentStatus.pending) {
       throw ApiError.badRequest('Cannot verify this document.');
-    }
-
-    if (!canUserDoAction({ action: 'verify', document, user })) {
-      throw ApiError.notAuthorized();
     }
 
     const newDocument = await Document.findByIdAndUpdate(
@@ -92,7 +73,8 @@ const createDocumentService = () => {
           remarks: {
             remarker: user._id,
             content: remark,
-            action: documentRemarkActions.verify,
+            action: documentActions.verify,
+            section: document.state.section,
           },
         },
       },
@@ -105,10 +87,6 @@ const createDocumentService = () => {
   const approveDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
-    if (!document) {
-      throw _noDocumentError;
-    }
-
     if (
       !(
         document.state.status === documentStatus.verified ||
@@ -116,10 +94,6 @@ const createDocumentService = () => {
       )
     ) {
       throw ApiError.badRequest('Cannot approve this document.');
-    }
-
-    if (!canUserDoAction({ action: 'approve', document, user })) {
-      throw ApiError.notAuthorized();
     }
 
     if (document.amount > user.approvalAmount) {
@@ -135,6 +109,7 @@ const createDocumentService = () => {
             remarker: user._id,
             content: remark,
             action: documentRemarkActions.approve,
+            section: document.state.section,
           },
         },
       },
@@ -146,10 +121,6 @@ const createDocumentService = () => {
 
   const rejectDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
-
-    if (!document) {
-      throw _noDocumentError;
-    }
 
     if (document.state.status !== documentStatus.pending) {
       throw ApiError.badRequest('Cannot reject the form.');
@@ -163,7 +134,8 @@ const createDocumentService = () => {
           remarks: {
             remarker: user._id,
             content: remark,
-            action: documentRemarkActions.reject,
+            action: documentActions.reject,
+            section: document.state.section,
           },
         },
       },
@@ -195,7 +167,8 @@ const createDocumentService = () => {
           remarks: {
             remarker: user,
             content: remark,
-            action: documentRemarkActions.acknowledge,
+            action: documentActions.acknowledge,
+            section: document.state.section,
           },
         },
       },

@@ -15,6 +15,12 @@ module.exports = {
     normal: 'normal',
     advanced: 'advanced',
   }),
+  documentActions: Object.freeze({
+    verify: 'verify',
+    approve: 'approve',
+    reject: 'reject',
+    acknowledge: 'acknowledge',
+  }),
   documentStatus: Object.freeze({
     drafted: 'drafted',
     pending: 'pending',

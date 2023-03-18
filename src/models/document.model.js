@@ -6,6 +6,7 @@ const {
   documentStatus,
   documentRemarkActions,
   documentSections,
+  documentActions,
 } = require('../constants');
 
 const Schema = mongoose.Schema;
@@ -52,7 +53,12 @@ const documentSchema = new Schema(
         action: {
           type: String,
           required: true,
-          enum: Object.values(documentRemarkActions),
+          enum: Object.values(documentActions),
+        },
+        section: {
+          type: String,
+          required: true,
+          enum: Object.values(documentSections),
         },
       },
     ],

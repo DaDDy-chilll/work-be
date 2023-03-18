@@ -6,12 +6,13 @@ const authenticate = require('../middlewares/authenticate');
 const checkFormPermissions = require('../middlewares/checkFormPermissions');
 
 const createDocumentSchema = require('../schema/createDocument.schema');
-const formRemarkSchema = require('../schema/formRemark.schema');
+const formActionSchema = require('../schema/formAction.schema');
 const submitDraftSchema = require('../schema/submitDraft.schema');
 const updateDocumentSchema = require('../schema/updateDocument.schema');
 const deleteDocumentSchema = require('../schema/deleteDocument.schema');
 const authorize = require('../middlewares/authorize');
-const { userRoles } = require('../constants');
+const { userRoles, documentActions } = require('../constants');
+const checkPermissions = require('../middlewares/checkFormPermissions');
 
 router.get('/', authenticate, documentController.getAllDocuments);
 
@@ -61,7 +62,8 @@ router.patch(
     userRoles.fad,
     userRoles.admin,
   ]),
-  validate(formRemarkSchema),
+  validate(formActionSchema),
+  checkPermissions(documentActions.verify),
   documentController.verifyDocument
 );
 
@@ -74,7 +76,8 @@ router.patch(
     userRoles.fad,
     userRoles.admin,
   ]),
-  validate(formRemarkSchema),
+  validate(formActionSchema),
+  checkPermissions(documentActions.approve),
   documentController.approveDocument
 );
 
@@ -87,7 +90,7 @@ router.patch(
     userRoles.fad,
     userRoles.admin,
   ]),
-  validate(formRemarkSchema),
+  validate(formActionSchema),
   documentController.rejectDocument
 );
 
@@ -95,7 +98,7 @@ router.patch(
   '/:id/acknowledge',
   authenticate,
   authorize([userRoles.executive, userRoles.superadmin, userRoles.fad]),
-  validate(formRemarkSchema),
+  validate(formActionSchema),
   documentController.acknowledgeDocument
 );
 
