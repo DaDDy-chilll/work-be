@@ -10,7 +10,7 @@ const router = require('express').Router();
 router.get(
   '/',
   authenticate,
-  authorize([userRoles.admin]),
+  authorize([userRoles.superadmin]),
   userController.getAllUsers
 );
 
