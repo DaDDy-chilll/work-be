@@ -11,13 +11,11 @@ const checkPermissions = (action) => {
 
     if (!user.permissions[document.state.section][action]) {
       return next(
-        ApiError.notAuthorized(`Not allowed to '${action}' the document.`)
+        ApiError.notAuthorized(
+          `Not allowed to '${action}' the document in '${document.state.section.toUpperCase()}' section.`
+        )
       );
     }
-
-    // if (req.body.section !== document.state.section) {
-    //   return next(ApiError.badRequest('Wrong section.'));
-    // }
 
     next();
   });

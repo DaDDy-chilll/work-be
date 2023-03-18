@@ -178,6 +178,40 @@ const createDocumentService = () => {
     return newDocument;
   };
 
+  const submitToFAD = async ({ id, user }) => {
+    const document = await Document.findById(id);
+
+    if (!document) {
+      throw _noDocumentError;
+    }
+
+    if (!document.requestedBy.equals(user._id)) {
+      throw ApiError.notAuthorized();
+    }
+
+    if (
+      !(
+        document.state.status === documentStatus.approved &&
+        document.state.section === documentSections.admin
+      )
+    ) {
+      throw ApiError.badRequest('Cannot submit to FAD yet.');
+    }
+
+    const submittedDocument = await Document.findByIdAndUpdate(
+      id,
+      {
+        state: {
+          status: documentStatus.pending,
+          section: documentSections.fad,
+        },
+      },
+      { new: true }
+    );
+
+    return submittedDocument;
+  };
+
   const getDocumentById = async ({ id }) => {
     const document = await Document.findById(id).populate('requestedBy');
 
@@ -277,6 +311,7 @@ const createDocumentService = () => {
     submitDraft,
     updateDocument,
     deleteDocument,
+    submitToFAD,
   };
 };
 

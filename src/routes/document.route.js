@@ -29,6 +29,8 @@ router.post(
   documentController.createDocument
 );
 
+router.post('/fad/:id', authenticate, documentController.submitDocumentToFAD);
+
 // router.patch(
 //   '/:id/submit',
 //   authenticate,

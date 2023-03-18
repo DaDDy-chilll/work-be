@@ -74,6 +74,19 @@ const createDocumentController = () => {
     });
   });
 
+  const submitDocumentToFAD = catchAsync(async (req, res, next) => {
+    const document = await documentService.submitToFAD({
+      id: req.params.id,
+      user: req.user,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Submitted to FAD',
+    });
+  });
+
   const getRequestedDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
       query: {
@@ -167,6 +180,7 @@ const createDocumentController = () => {
     approveDocument,
     rejectDocument,
     acknowledgeDocument,
+    submitDocumentToFAD,
     getRequestedDocuments,
     getMyDocuments,
     getAllDocuments,
