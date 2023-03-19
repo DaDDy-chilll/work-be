@@ -171,7 +171,7 @@ const createDocumentService = () => {
         'state.status': documentStatus.acknowledged,
         $push: {
           remarks: {
-            remarker: user,
+            remarker: user._id,
             content: remark,
             action: documentActions.acknowledge,
             section: document.state.section,
