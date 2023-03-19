@@ -283,7 +283,7 @@ const createDocumentService = () => {
 
     if (
       document.state.status !== documentStatus.pending &&
-      document.status.section !== documentSections.admin
+      document.state.section !== documentSections.admin
     ) {
       throw ApiError.badRequest('Cannot update the document anymore.');
     }
@@ -305,7 +305,7 @@ const createDocumentService = () => {
 
     if (
       document.state.status !== documentStatus.pending &&
-      document.status.section !== documentSections.admin
+      document.state.section !== documentSections.admin
     ) {
       throw ApiError.badRequest('Cannot update the document anymore.');
     }
