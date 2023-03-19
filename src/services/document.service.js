@@ -281,6 +281,12 @@ const createDocumentService = () => {
       throw _noDocumentError;
     }
 
+    if (
+      document.state.status !== documentStatus.pending &&
+      document.status.section !== documentSections.admin
+    ) {
+      throw ApiError.badRequest('Cannot update the document anymore.');
+    }
     if (!_canUserUpdateOrDelete({ document, user })) {
       throw ApiError.notAuthorized();
     }
@@ -295,6 +301,13 @@ const createDocumentService = () => {
 
     if (!document) {
       throw _noDocumentError;
+    }
+
+    if (
+      document.state.status !== documentStatus.pending &&
+      document.status.section !== documentSections.admin
+    ) {
+      throw ApiError.badRequest('Cannot update the document anymore.');
     }
 
     if (!_canUserUpdateOrDelete({ document, user })) {
