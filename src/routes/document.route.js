@@ -16,6 +16,7 @@ const {
   documentSections,
 } = require('../constants');
 const checkPermissions = require('../middlewares/checkFormPermissions');
+const { upload } = require('../lib/multer');
 
 router.get(
   '/',
@@ -74,6 +75,7 @@ router.get('/:id', authenticate, documentController.getDocumentById);
 router.post(
   '/',
   authenticate,
+  upload.array('attachments'),
   validate(createDocumentSchema),
   documentController.createDocument
 );

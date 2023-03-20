@@ -18,7 +18,7 @@ const createDocumentSchema = z.object({
         },
       })
       .default(paymentType.normal),
-    amount: z.number().positive('Invalid amount'),
+    amount: z.coerce.number().positive('Invalid amount'),
     description: z.string().optional(),
     state: z
       .object({

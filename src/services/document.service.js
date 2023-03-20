@@ -6,6 +6,7 @@ const {
 } = require('../constants');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
+const { uploadFile } = require('../lib/s3');
 const Document = require('../models/document.model');
 
 const createDocumentService = () => {
@@ -62,6 +63,21 @@ const createDocumentService = () => {
     }
 
     return filter;
+  };
+
+  const uploadAttachments = async (files) => {
+    if (Array.isArray(files)) {
+      const uploadFiles = await Promise.all(
+        files.map((file) => uploadFile(file))
+      );
+
+      return uploadFiles.map((file) => ({
+        url: file.Location,
+        key: file.Key,
+      }));
+    }
+
+    return [];
   };
 
   const createRequisitionDocument = async (data) => {
@@ -353,6 +369,7 @@ const createDocumentService = () => {
     deleteDocument,
     submitToFAD,
     getAdminApprovedDocuments,
+    uploadAttachments,
   };
 };
 
