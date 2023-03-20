@@ -6,6 +6,7 @@ const {
 } = require('../constants');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
+const uploadFile = require('../lib/s3');
 const Document = require('../models/document.model');
 
 const createDocumentService = () => {
@@ -64,8 +65,17 @@ const createDocumentService = () => {
     return filter;
   };
 
-  const createRequisitionDocument = async (data) => {
-    const document = await Document.create(data);
+  const createRequisitionDocument = async ({ files, ...data }) => {
+    const attachments = [];
+
+    if (Array.isArray(files)) {
+      const uploadFiles = await Promise.all(
+        files.map((file) => uploadFile(file))
+      );
+      attachments.concat(uploadFiles.map((file) => file.Location));
+    }
+
+    const document = await Document.create({ ...data, attachments });
 
     return document;
   };

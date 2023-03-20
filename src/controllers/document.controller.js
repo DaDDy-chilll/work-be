@@ -12,6 +12,7 @@ const createDocumentController = () => {
     const document = await documentService.createRequisitionDocument({
       ...req.body,
       requestedBy: req.user._id,
+      files: req.files,
     });
 
     sendSuccessResponse({
