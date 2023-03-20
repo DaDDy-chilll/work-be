@@ -59,6 +59,10 @@ const documentSchema = new Schema(
           required: true,
           enum: Object.values(documentSections),
         },
+        date: {
+          type: Date,
+          default: Date.now(),
+        },
       },
     ],
     state: {
