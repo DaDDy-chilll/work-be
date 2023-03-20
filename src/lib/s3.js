@@ -1,7 +1,4 @@
 const S3 = require('aws-sdk/clients/s3');
-const fs = require('fs');
-
-const uuid = require('uuid').v4;
 
 const {
   AWS_REGION,
@@ -9,6 +6,7 @@ const {
   AWS_SECRET_KEY,
   AWS_S3_BUCKET_NAME,
 } = require('../constants');
+const generateKeyFromFile = require('../helpers/generateKeyFromFilename');
 
 const s3 = new S3({
   region: AWS_REGION,
@@ -19,12 +17,12 @@ const s3 = new S3({
 });
 
 function uploadFile(file) {
-  const [, ext] = file.originalname.split('.');
+  const key = generateKeyFromFile(file);
 
   return s3
     .upload({
       Bucket: AWS_S3_BUCKET_NAME,
-      Key: `${uuid()}.${ext}`,
+      Key: key,
       Body: file.buffer,
     })
     .promise();

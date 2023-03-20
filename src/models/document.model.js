@@ -32,7 +32,8 @@ const documentSchema = new Schema(
     },
     attachments: [
       {
-        type: String,
+        url: String,
+        key: String,
       },
     ],
     description: {

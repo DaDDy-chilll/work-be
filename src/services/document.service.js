@@ -66,13 +66,17 @@ const createDocumentService = () => {
   };
 
   const createRequisitionDocument = async ({ files, ...data }) => {
-    const attachments = [];
+    let attachments = [];
 
     if (Array.isArray(files)) {
       const uploadFiles = await Promise.all(
         files.map((file) => uploadFile(file))
       );
-      attachments.concat(uploadFiles.map((file) => file.Location));
+
+      attachments = uploadFiles.map((file) => ({
+        url: file.Location,
+        key: file.Key,
+      }));
     }
 
     const document = await Document.create({ ...data, attachments });
