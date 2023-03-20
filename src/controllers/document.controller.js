@@ -9,10 +9,11 @@ const documentService = require('../services/document.service');
 
 const createDocumentController = () => {
   const createDocument = catchAsync(async (req, res, next) => {
+    const attachments = await documentService.uploadAttachments(req.files);
     const document = await documentService.createRequisitionDocument({
       ...req.body,
       requestedBy: req.user._id,
-      files: req.files,
+      attachments,
     });
 
     sendSuccessResponse({

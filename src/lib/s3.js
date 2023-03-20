@@ -28,4 +28,4 @@ function uploadFile(file) {
     .promise();
 }
 
-module.exports = uploadFile;
+module.exports = { uploadFile };
