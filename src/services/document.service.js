@@ -219,7 +219,9 @@ const createDocumentService = () => {
   };
 
   const getDocumentById = async ({ id }) => {
-    const document = await Document.findById(id).populate('requestedBy');
+    const document = await Document.findById(id)
+      .populate('requestedBy')
+      .populate('remarks.remarker');
 
     if (!document) {
       throw _noDocumentError;
@@ -241,7 +243,8 @@ const createDocumentService = () => {
       .sort(sort)
       .skip(skip)
       .limit(limit)
-      .populate('requestedBy');
+      .populate('requestedBy')
+      .populate('remarks.remarker');
 
     return { total, documents };
   };
