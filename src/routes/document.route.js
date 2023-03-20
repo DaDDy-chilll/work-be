@@ -63,6 +63,13 @@ router.get(
   documentController.getDocumentsInAdminSection
 );
 
+router.get(
+  '/admin/approved',
+  authenticate,
+  authorize([userRoles.superadmin, userRoles.executive, userRoles.admin]),
+  documentController.getAdminApprovedDocuments
+);
+
 router.get('/:id', authenticate, documentController.getDocumentById);
 
 router.post(

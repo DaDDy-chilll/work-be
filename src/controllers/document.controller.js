@@ -1,4 +1,8 @@
-const { documentStatus, documentSections } = require('../constants');
+const {
+  documentStatus,
+  documentSections,
+  documentActions,
+} = require('../constants');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const documentService = require('../services/document.service');
@@ -167,6 +171,26 @@ const createDocumentController = () => {
     });
   });
 
+  // This will return documents that
+  // are approved by admin section
+  // no matter the state of the documents
+  const getAdminApprovedDocuments = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      query: {
+        history: {
+          action: 'verify',
+          section: 'admin',
+        },
+      },
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
   const submitDraft = catchAsync(async (req, res, next) => {
     const document = await documentService.submitDraft({ id: req.params.id });
 
@@ -220,6 +244,7 @@ const createDocumentController = () => {
     deleteDocument,
     getDocumentsInFADSection,
     getDocumentsInAdminSection,
+    getAdminApprovedDocuments,
   };
 };
 

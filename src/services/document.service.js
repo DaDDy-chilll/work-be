@@ -55,6 +55,13 @@ const createDocumentService = () => {
       filter.requestedBy = queryFilter.requestedBy;
     }
 
+    if (queryFilter.history) {
+      filter['remarks.action'] =
+        queryFilter.history.action || documentActions.approve;
+      filter['remarks.section'] =
+        queryFilter.history.section || documentSections.fad;
+    }
+
     return filter;
   };
 
@@ -114,7 +121,7 @@ const createDocumentService = () => {
           remarks: {
             remarker: user._id,
             content: remark,
-            action: documentRemarkActions.approve,
+            action: documentActions.approve,
             section: document.state.section,
           },
         },
@@ -237,6 +244,8 @@ const createDocumentService = () => {
       queryFilter,
     });
 
+    console.log(filter);
+
     const total = await Document.count(filter);
 
     const documents = await Document.find(filter)
@@ -247,6 +256,15 @@ const createDocumentService = () => {
       .populate('remarks.remarker');
 
     return { total, documents };
+  };
+
+  const getAdminApprovedDocuments = async () => {
+    const documents = await Document.find({
+      'remarks.action': documentActions.approve,
+      'remarks.section': documentSections.admin,
+    });
+
+    return { documents, total: documents.length };
   };
 
   const submitDraft = async ({ id }) => {
@@ -334,6 +352,7 @@ const createDocumentService = () => {
     updateDocument,
     deleteDocument,
     submitToFAD,
+    getAdminApprovedDocuments,
   };
 };
 
