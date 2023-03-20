@@ -4,7 +4,6 @@ const Count = require('./count.model');
 const {
   paymentType,
   documentStatus,
-  documentRemarkActions,
   documentSections,
   documentActions,
 } = require('../constants');

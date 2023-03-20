@@ -1,5 +1,4 @@
 const {
-  documentRemarkActions,
   documentStatus,
   userRoles,
   documentSections,
@@ -246,8 +245,6 @@ const createDocumentService = () => {
     const filter = _getFilterForGetAllDocs({
       queryFilter,
     });
-
-    console.log(filter);
 
     const total = await Document.count(filter);
 
