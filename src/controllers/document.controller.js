@@ -177,9 +177,10 @@ const createDocumentController = () => {
   const getAdminApprovedDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
       query: {
+        ...req.query,
         history: {
-          action: 'verify',
-          section: 'admin',
+          action: documentActions.approve,
+          section: documentSections.admin,
         },
       },
     });

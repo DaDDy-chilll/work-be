@@ -59,7 +59,7 @@ const createDocumentService = () => {
       filter['remarks.action'] =
         queryFilter.history.action || documentActions.approve;
       filter['remarks.section'] =
-        queryFilter.history.section || documentSections.fad;
+        queryFilter.history.section || documentSections.admin;
     }
 
     return filter;
