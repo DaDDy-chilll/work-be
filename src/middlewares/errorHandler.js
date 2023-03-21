@@ -11,6 +11,7 @@ function errorHandler(error, req, res, next) {
   if (error instanceof ApiError) {
     sendFailedResponse({ res, error });
   } else {
+    console.log(error);
     res.status(500).json({
       code: 500,
       message: 'Internal server error.',
