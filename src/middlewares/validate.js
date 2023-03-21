@@ -1,4 +1,4 @@
-const { ZodSchema } = require('zod');
+const { ZodSchema, ZodError } = require('zod');
 const { RequestHandler } = require('express');
 const ApiError = require('../helpers/apiError');
 
@@ -10,24 +10,22 @@ const ApiError = require('../helpers/apiError');
  */
 function validate(schema) {
   return (req, res, next) => {
-    const result = schema.safeParse({
-      body: req.body,
-      query: req.query,
-      params: req.params,
-    });
+    try {
+      const result = schema.parse({
+        body: req.body,
+        query: req.query,
+        params: req.params,
+      });
+      req.body = { ...result.body };
 
-    if (!result.success) {
-      return next(
-        ApiError.badRequest(
-          result.error.issues[0].message,
-          result.error.format()
-        )
-      );
+      next();
+    } catch (error) {
+      if (error instanceof ZodError) {
+        next(ApiError.badRequest(error.issues[0].message, error.format()));
+      } else {
+        next(error);
+      }
     }
-
-    req.body = { ...result.data.body };
-
-    next();
   };
 }
 
