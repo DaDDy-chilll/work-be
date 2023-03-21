@@ -1,4 +1,6 @@
 const { z } = require('zod');
+const xss = require('xss');
+
 const {
   paymentType,
   documentStatus,
@@ -19,7 +21,7 @@ const createDocumentSchema = z.object({
       })
       .default(paymentType.normal),
     amount: z.coerce.number().positive('Invalid amount'),
-    description: z.string().optional(),
+    description: z.string().transform(xss).optional(),
     state: z
       .object({
         status: z
