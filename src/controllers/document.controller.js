@@ -205,9 +205,11 @@ const createDocumentController = () => {
   });
 
   const updateDocument = catchAsync(async (req, res, next) => {
+    const attachments = await documentService.uploadAttachments(req.files);
+
     const updatedDocument = await documentService.updateDocument({
       id: req.params.id,
-      data: req.body,
+      attachments,
       user: req.user,
     });
 

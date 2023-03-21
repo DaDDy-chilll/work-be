@@ -305,11 +305,9 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const updateDocument = async ({ id, data, user }) => {
-    const isEmptyData = Object.keys(data).length === 0;
-
-    if (isEmptyData) {
-      throw ApiError.badRequest('No data provided.');
+  const updateDocument = async ({ id, attachments, user }) => {
+    if (attachments.length === 0) {
+      throw ApiError.badRequest('Missing attachments.');
     }
 
     const document = await Document.findById(id);
@@ -319,18 +317,21 @@ const createDocumentService = () => {
     }
 
     if (
-      document.state.status !== documentStatus.pending &&
+      document.state.status !== documentStatus.approved &&
       document.state.section !== documentSections.admin
     ) {
       throw ApiError.badRequest('Cannot update the document anymore.');
     }
+
     if (!_canUserUpdateOrDelete({ document, user })) {
       throw ApiError.notAuthorized();
     }
 
-    const updatedDocument = await Document.findByIdAndUpdate(id, data);
+    document.attachments.push(...attachments);
 
-    return updatedDocument;
+    await document.save();
+
+    return document;
   };
 
   const deleteDocument = async ({ id, user }) => {
