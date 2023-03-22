@@ -67,14 +67,18 @@ const createDocumentService = () => {
 
   const uploadAttachments = async (files) => {
     if (Array.isArray(files)) {
-      const uploadFiles = await Promise.all(
-        files.map((file) => uploadFile(file))
+      const uploadedFiles = await Promise.all(
+        files.map(async (file) => {
+          const uploadedFile = await uploadFile(file);
+          return {
+            key: uploadedFile.Key,
+            url: uploadedFile.Location,
+            filename: file.originalname,
+          };
+        })
       );
 
-      return uploadFiles.map((file) => ({
-        url: file.Location,
-        key: file.Key,
-      }));
+      return uploadedFiles;
     }
 
     return [];
