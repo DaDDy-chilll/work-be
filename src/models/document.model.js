@@ -34,6 +34,7 @@ const documentSchema = new Schema(
       {
         url: String,
         key: String,
+        filename: String,
       },
     ],
     description: {
