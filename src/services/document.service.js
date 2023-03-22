@@ -305,13 +305,7 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const updateDocument = async ({ id, data, user }) => {
-    const isEmptyData = Object.keys(data).length === 0;
-
-    if (isEmptyData) {
-      throw ApiError.badRequest('No data provided.');
-    }
-
+  const updateDocument = async ({ id, attachments, user, data = {} }) => {
     const document = await Document.findById(id);
 
     if (!document) {
@@ -319,18 +313,28 @@ const createDocumentService = () => {
     }
 
     if (
-      document.state.status !== documentStatus.pending &&
-      document.state.section !== documentSections.admin
+      !(
+        document.state.status === documentStatus.pending &&
+        document.state.section === documentSections.admin
+      )
     ) {
       throw ApiError.badRequest('Cannot update the document anymore.');
     }
+
     if (!_canUserUpdateOrDelete({ document, user })) {
       throw ApiError.notAuthorized();
     }
 
-    const updatedDocument = await Document.findByIdAndUpdate(id, data);
+    await document.updateOne({
+      ...data,
+      $push: {
+        attachments: {
+          $each: attachments,
+        },
+      },
+    });
 
-    return updatedDocument;
+    return document;
   };
 
   const deleteDocument = async ({ id, user }) => {
