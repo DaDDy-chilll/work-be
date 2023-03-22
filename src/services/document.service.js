@@ -305,11 +305,7 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const updateDocument = async ({ id, attachments, user }) => {
-    if (attachments.length === 0) {
-      throw ApiError.badRequest('Missing attachments.');
-    }
-
+  const updateDocument = async ({ id, attachments, user, data = {} }) => {
     const document = await Document.findById(id);
 
     if (!document) {
@@ -317,8 +313,10 @@ const createDocumentService = () => {
     }
 
     if (
-      document.state.status !== documentStatus.approved &&
-      document.state.section !== documentSections.admin
+      !(
+        document.state.status === documentStatus.pending &&
+        document.state.section === documentSections.admin
+      )
     ) {
       throw ApiError.badRequest('Cannot update the document anymore.');
     }
@@ -327,9 +325,14 @@ const createDocumentService = () => {
       throw ApiError.notAuthorized();
     }
 
-    document.attachments.push(...attachments);
-
-    await document.save();
+    await document.updateOne({
+      ...data,
+      $push: {
+        attachments: {
+          $each: attachments,
+        },
+      },
+    });
 
     return document;
   };
