@@ -94,8 +94,10 @@ const createDocumentService = () => {
     const document = await Document.findById(id);
 
     if (
-      document.state.status !== documentStatus.pending ||
-      document.state.status !== documentStatus.verified
+      !(
+        document.state.status === documentStatus.pending ||
+        document.state.status === documentStatus.verified
+      )
     ) {
       throw ApiError.badRequest('Cannot verify this document.');
     }
