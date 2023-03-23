@@ -3,6 +3,7 @@ const userController = require('../controllers/user.controller');
 const authenticate = require('../middlewares/authenticate');
 const authorize = require('../middlewares/authorize');
 const validate = require('../middlewares/validate');
+const checkParamsId = require('../schema/checkParamsId.schema');
 const updateUserSchema = require('../schema/updateUser.schema');
 
 const router = require('express').Router();
@@ -20,6 +21,7 @@ router.get(
   '/:id',
   authenticate,
   authorize([userRoles.superadmin]),
+  validate(checkParamsId),
   userController.getUserById
 );
 
@@ -27,6 +29,7 @@ router.delete(
   '/:id',
   authenticate,
   authorize([userRoles.superadmin]),
+  validate(checkParamsId),
   userController.deleteUserById
 );
 

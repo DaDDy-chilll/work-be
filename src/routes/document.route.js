@@ -17,6 +17,7 @@ const {
 } = require('../constants');
 const checkPermissions = require('../middlewares/checkFormPermissions');
 const { upload } = require('../lib/multer');
+const checkParamsId = require('../schema/checkParamsId.schema');
 
 router.get(
   '/',
@@ -70,7 +71,12 @@ router.get(
   documentController.getAdminApprovedDocuments
 );
 
-router.get('/:id', authenticate, documentController.getDocumentById);
+router.get(
+  '/:id',
+  validate(checkParamsId),
+  authenticate,
+  documentController.getDocumentById
+);
 
 router.post(
   '/',
@@ -80,7 +86,12 @@ router.post(
   documentController.createDocument
 );
 
-router.post('/fad/:id', authenticate, documentController.submitDocumentToFAD);
+router.post(
+  '/fad/:id',
+  validate(checkParamsId),
+  authenticate,
+  documentController.submitDocumentToFAD
+);
 
 // for drafting: currently the route is disabled.
 // router.patch(
@@ -101,7 +112,7 @@ router.patch(
 router.delete(
   '/:id',
   authenticate,
-  validate(deleteDocumentSchema),
+  validate(checkParamsId),
   documentController.deleteDocument
 );
 
