@@ -10,6 +10,7 @@ const ApiError = require('./helpers/apiError');
 const authRouter = require('./routes/auth.route');
 const documentRouter = require('./routes/document.route');
 const userRouter = require('./routes/user.route');
+const { getFileStream } = require('./lib/s3');
 
 const app = express();
 
@@ -24,6 +25,23 @@ if (NODE_ENV !== 'production') {
 app.use('/api/auth', authRouter);
 app.use('/api/documents', documentRouter);
 app.use('/api/users', userRouter);
+
+app.get(
+  '/images/:key',
+  cors({
+    origin: '*',
+  }),
+  async (req, res) => {
+    try {
+      const key = req.params.key;
+      const fileStream = await getFileStream(key);
+
+      fileStream.pipe(res);
+    } catch (error) {
+      res.status(404).send();
+    }
+  }
+);
 
 app.all('*', (req, res, next) => {
   next(ApiError.notFound());
