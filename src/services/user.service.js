@@ -1,3 +1,4 @@
+const { userRoles } = require('../constants');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const User = require('../models/user.model');
@@ -51,7 +52,7 @@ const createUserService = () => {
       throw _noUserError;
     }
 
-    if (user.role === 'Superadmin') {
+    if (user.role === userRoles.superadmin) {
       throw ApiError.badRequest('Cannot delete the user.');
     }
 
