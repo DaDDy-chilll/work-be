@@ -318,7 +318,9 @@ const createDocumentService = () => {
         document.state.section === documentSections.admin
       )
     ) {
-      throw ApiError.badRequest('Cannot update the document anymore.');
+      if (!attachments) {
+        throw ApiError.badRequest('Cannot update the document anymore.');
+      }
     }
 
     if (!_canUserUpdateOrDelete({ document, user })) {
