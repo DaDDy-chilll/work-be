@@ -24,7 +24,7 @@ function uploadFile(file) {
       Bucket: AWS_S3_BUCKET_NAME,
       Key: key,
       Body: file.buffer,
-      // ACL: 'public-read',
+      ACL: 'public-read',
     })
     .promise();
 }
