@@ -320,17 +320,6 @@ const createDocumentService = () => {
       throw _noDocumentError;
     }
 
-    if (
-      !(
-        document.state.status === documentStatus.pending &&
-        document.state.section === documentSections.admin
-      )
-    ) {
-      if (!attachments) {
-        throw ApiError.badRequest('Cannot update the document anymore.');
-      }
-    }
-
     if (!_canUserUpdateOrDelete({ document, user })) {
       throw ApiError.notAuthorized();
     }
