@@ -5,10 +5,9 @@ const updateDocumentSchema = z
   .object({
     body: z
       .object({
-        name: z
-          .string()
-          .min(2, 'Name must have at least 2 characters.')
-          .max(50, 'Name must have at most 50 characters.'),
+        name: z.undefined({
+          invalid_type_error: 'Forbidden key: `name`',
+        }),
         amount: z.number().positive('Invalid amount'),
         description: z.string().optional(),
         state: z.undefined({
