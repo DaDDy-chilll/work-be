@@ -70,10 +70,12 @@ const createDocumentService = () => {
       const uploadedFiles = await Promise.all(
         files.map(async (file) => {
           const uploadedFile = await uploadFile(file);
+
           return {
             key: uploadedFile.Key,
             url: uploadedFile.Location,
             filename: file.originalname,
+            mimetype: file.mimetype,
           };
         })
       );
