@@ -5,7 +5,7 @@ function sendFailedResponse({ res, error }) {
     code: error.statusCode,
     message: error.message,
     payload: error.data,
-    ...(NODE_ENV === 'development' ? { stack: error.stack } : undefined),
+    ...(NODE_ENV === 'local' ? { stack: error.stack } : undefined),
   });
 }
 
