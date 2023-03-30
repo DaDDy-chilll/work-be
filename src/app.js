@@ -22,6 +22,10 @@ if (NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
+app.get('/api/', (req, res) => {
+  res.send(`Parami Hostipal Budget Requisition API - ${NODE_ENV}`);
+});
+
 app.use('/api/auth', authRouter);
 app.use('/api/documents', documentRouter);
 app.use('/api/users', userRouter);
