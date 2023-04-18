@@ -3,7 +3,7 @@ const ApiError = require('../helpers/apiError');
 const AssigneeGroup = require('../models/assignees-group.model');
 const User = require('../models/user.model');
 
-const createDocumentAssigneesService = () => {
+const createAssigneesService = () => {
   const getAssigneesGroup = async () => {
     const groups = await AssigneeGroup.find();
     const total = await AssigneeGroup.count();
@@ -46,4 +46,4 @@ const createDocumentAssigneesService = () => {
   return { getAssigneesGroup, createAssigneeGroup };
 };
 
-module.exports = createDocumentAssigneesService();
+module.exports = createAssigneesService();

@@ -1,5 +1,5 @@
 const catchAsync = require('../helpers/catchAsync');
-const assigneeGroupService = require('../services/doc-assignees-groups.service');
+const assigneeGroupService = require('../services/assignees-groups.service');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 
 function createDocumentAssigneesController() {
