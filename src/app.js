@@ -7,9 +7,7 @@ const { NODE_ENV } = require('./constants');
 const errorHandler = require('./middlewares/errorHandler');
 const ApiError = require('./helpers/apiError');
 
-const authRouter = require('./routes/auth.route');
-const documentRouter = require('./routes/document.route');
-const userRouter = require('./routes/user.route');
+const router = require('./routes');
 const { getFileStream } = require('./lib/s3');
 
 const app = express();
@@ -26,9 +24,7 @@ app.get(['/', '/api'], (req, res) => {
   res.send(`Parami Hostipal Budget Requisition API - ${NODE_ENV}`);
 });
 
-app.use('/api/auth', authRouter);
-app.use('/api/documents', documentRouter);
-app.use('/api/users', userRouter);
+app.use('/api', router);
 
 app.get(
   '/images/:key',
