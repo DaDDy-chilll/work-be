@@ -1,5 +1,7 @@
+const { userRoles } = require('../constants');
 const ApiError = require('../helpers/apiError');
 const AssigneeGroup = require('../models/assignees-group.model');
+const User = require('../models/user.model');
 
 const createDocumentAssigneesService = () => {
   const getAssigneesGroup = async () => {
@@ -18,6 +20,25 @@ const createDocumentAssigneesService = () => {
         }
       }
     }
+
+    await Promise.all(
+      data.assignees.map(async (item) => {
+        const user = await User.findById(item.person);
+
+        if (
+          !user ||
+          ![
+            userRoles.superadmin,
+            userRoles.admin,
+            userRoles.executive,
+          ].includes(user.role)
+        ) {
+          throw ApiError.badRequest('User not eligible to be an assignee.');
+        }
+
+        return user;
+      })
+    );
 
     return await AssigneeGroup.create(data);
   };
