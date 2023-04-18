@@ -11,6 +11,6 @@ router.use('/documents', documentRouter);
 
 router.use('/users', userRouter);
 
-router.use('/document-assignees-groups', assigneeGroupRouter);
+router.use('/assignees-groups', assigneeGroupRouter);
 
 module.exports = router;
