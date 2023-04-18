@@ -86,6 +86,13 @@ const documentSchema = new Schema(
       ref: 'User',
       required: true,
     },
+    documentAssignees: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: 'User',
+        required: true,
+      },
+    ],
   },
   {
     timestamps: true,
