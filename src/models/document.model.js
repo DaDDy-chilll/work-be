@@ -88,9 +88,14 @@ const documentSchema = new Schema(
     },
     documentAssignees: [
       {
-        type: mongoose.Types.ObjectId,
-        ref: 'User',
-        required: true,
+        order: {
+          type: Number,
+          required: true,
+        },
+        person: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+        },
       },
     ],
   },

@@ -173,9 +173,11 @@ const createDocumentController = () => {
     });
   });
 
-  // This will return documents that
-  // are approved by admin section
-  // no matter the state of the documents
+  /**
+   * This will return documents that
+   * are approved by admin section
+   * no matter the state of the documents
+   */
   const getAdminApprovedDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
       query: {
