@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const { userRoles } = require('../constants');
 const Count = require('./count.model');
+const createCustomIdMiddleware = require('../helpers/model-customId-middleware.helper');
+const { USER_ROLES } = require('../constants/user');
 
 const Schema = mongoose.Schema;
 
@@ -68,7 +69,7 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: Object.values(userRoles),
+      enum: Object.values(USER_ROLES),
     },
     permissions,
     jobLabel: {
@@ -92,22 +93,14 @@ const userSchema = new Schema(
   }
 );
 
-userSchema.pre('validate', async function (next) {
-  if (!this.isNew) return next();
-  const countDoc = await Count.findOneAndUpdate(
-    { model: 'user' },
-    {
-      model: 'user',
-      $inc: {
-        count: 1,
-      },
-    },
-    { new: true, upsert: true }
-  );
-
-  this.customId = 'U-' + countDoc.count.toString().padStart(3, '0');
-  next();
-});
+userSchema.pre(
+  'validate',
+  createCustomIdMiddleware({
+    modelName: 'User',
+    prefix: 'U',
+    fieldName: 'customId',
+  })
+);
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
