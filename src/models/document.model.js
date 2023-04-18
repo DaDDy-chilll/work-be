@@ -86,7 +86,19 @@ const documentSchema = new Schema(
       ref: 'User',
       required: true,
     },
-    documentAssignees: [
+    adminAssignees: [
+      {
+        order: {
+          type: Number,
+          required: true,
+        },
+        person: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+        },
+      },
+    ],
+    fadAssignees: [
       {
         order: {
           type: Number,
