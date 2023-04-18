@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const Count = require('./count.model');
+const createCustomIdMiddlware = require('../helpers/model-customId-middleware.helper');
 const {
   paymentType,
   documentStatus,
@@ -111,22 +111,14 @@ const documentSchema = new Schema(
   }
 );
 
-documentSchema.pre('validate', async function (next) {
-  if (!this.isNew) return next();
-  const countDoc = await Count.findOneAndUpdate(
-    { model: 'document' },
-    {
-      model: 'document',
-      $inc: {
-        count: 1,
-      },
-    },
-    { new: true, upsert: true }
-  );
-
-  this.customId = 'D-' + countDoc.count.toString().padStart(3, '0');
-  next();
-});
+documentSchema.pre(
+  'validate',
+  createCustomIdMiddlware({
+    modelName: 'Document',
+    prefix: 'D',
+    fieldName: 'customId',
+  })
+);
 
 documentSchema.virtual('id').get(function () {
   return this.customId;

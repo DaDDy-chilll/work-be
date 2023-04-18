@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const Count = require('./count.model');
 const createCustomIdMiddleware = require('../helpers/model-customId-middleware.helper');
 const { USER_ROLES } = require('../constants/user');
 
