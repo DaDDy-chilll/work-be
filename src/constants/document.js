@@ -1,0 +1,30 @@
+module.exports = {
+  PAYMENT_TYPES: Object.freeze({
+    normal: 'normal',
+    advanced: 'advanced',
+  }),
+  DOCUMENT_ACTIONS: Object.freeze({
+    verify: 'verify',
+    approve: 'approve',
+    reject: 'reject',
+    acknowledge: 'acknowledge',
+  }),
+  DOCUMENT_STATUSES: Object.freeze({
+    drafted: 'drafted',
+    pending: 'pending',
+    approved: 'approved',
+    rejected: 'rejected',
+    verified: 'verified',
+    acknowledged: 'acknowledged',
+  }),
+  REMARK_ACTIONS: Object.freeze({
+    approved: 'approved',
+    verified: 'verified',
+    rejected: 'rejected',
+    acknowledged: 'acknowledged',
+  }),
+  DOCUMENT_SECTIONS: {
+    admin: 'admin',
+    fad: 'fad',
+  },
+};
