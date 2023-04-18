@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const createCustomIdMiddleware = require('../helpers/model-customId-middleware.helper');
+
 const Schema = mongoose.Schema;
 
 const assigneesGroupSchema = new Schema(
@@ -24,23 +26,14 @@ const assigneesGroupSchema = new Schema(
   }
 );
 
-assigneesGroupSchema.pre('validate', async function () {
-  if (!this.isNew) return;
-
-  const [lastGroup] = await this.$model('AssigneeGroup')
-    .find()
-    .sort('-createdAt')
-    .limit(1);
-
-  if (!lastGroup) {
-    this.groupId = 'AG-001';
-    return;
-  }
-  const lastGroupIdNumber = parseInt(lastGroup.groupId.split('-')[1], 10);
-
-  this.groupId = `AG-${(lastGroupIdNumber + 1).toString().padStart(3, '0')}`;
-  return;
-});
+assigneesGroupSchema.pre(
+  'validate',
+  createCustomIdMiddleware({
+    modelName: 'AssigneeGroup',
+    fieldName: 'groupId',
+    prefix: 'AG',
+  })
+);
 
 const AssigneeGroup = mongoose.model('AssigneeGroup', assigneesGroupSchema);
 
