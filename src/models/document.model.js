@@ -20,6 +20,10 @@ const assigneeSchema = {
     type: Schema.Types.ObjectId,
     ref: 'User',
   },
+  hasApproved: {
+    type: Boolean,
+    default: false,
+  },
 };
 
 const documentSchema = new Schema(

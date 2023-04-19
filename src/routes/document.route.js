@@ -7,7 +7,6 @@ const authenticate = require('../middlewares/authenticate');
 const createDocumentSchema = require('../schema/createDocument.schema');
 const formActionSchema = require('../schema/formAction.schema');
 const updateDocumentSchema = require('../schema/updateDocument.schema');
-const deleteDocumentSchema = require('../schema/deleteDocument.schema');
 const authorize = require('../middlewares/authorize');
 const {
   userRoles,
