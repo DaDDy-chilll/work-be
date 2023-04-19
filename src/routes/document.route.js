@@ -17,12 +17,36 @@ const {
 const checkPermissions = require('../middlewares/checkFormPermissions');
 const { upload } = require('../lib/multer');
 const checkParamsId = require('../schema/checkParamsId.schema');
+const { DOCUMENT_ACTIONS } = require('../constants/document');
+const { USER_ROLES } = require('../constants/user');
 
 router.get(
   '/',
   authenticate,
   authorize([userRoles.superadmin]),
   documentController.getAllDocuments
+);
+
+router.post(
+  '/',
+  authenticate,
+  upload.array('attachments'),
+  validate(createDocumentSchema),
+  documentController.createDocument
+);
+
+router.patch(
+  '/:id/admin-approve',
+  authenticate,
+  authorize([
+    USER_ROLES.executive,
+    USER_ROLES.superadmin,
+    USER_ROLES.fad,
+    USER_ROLES.admin,
+  ]),
+  validate(formActionSchema),
+  checkPermissions(DOCUMENT_ACTIONS.approve),
+  documentController.adminApproveDocument
 );
 
 router.get('/me', authenticate, documentController.getMyDocuments);
@@ -78,14 +102,6 @@ router.get(
 );
 
 router.post(
-  '/',
-  authenticate,
-  upload.array('attachments'),
-  validate(createDocumentSchema),
-  documentController.createDocument
-);
-
-router.post(
   '/fad/:id',
   validate(checkParamsId),
   authenticate,
@@ -118,20 +134,6 @@ router.patch(
   validate(formActionSchema),
   checkPermissions(documentActions.verify),
   documentController.verifyDocument
-);
-
-router.patch(
-  '/:id/approve',
-  authenticate,
-  authorize([
-    userRoles.executive,
-    userRoles.superadmin,
-    userRoles.fad,
-    userRoles.admin,
-  ]),
-  validate(formActionSchema),
-  checkPermissions(documentActions.approve),
-  documentController.approveDocument
 );
 
 router.patch(

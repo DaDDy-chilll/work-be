@@ -53,8 +53,8 @@ const createDocumentController = () => {
     });
   });
 
-  const approveDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.approveDocument({
+  const adminApproveDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.adminApproveDocument({
       id: req.params.id,
       user: req.user,
       remark: req.body.remark,
@@ -253,7 +253,7 @@ const createDocumentController = () => {
   return {
     createDocument,
     verifyDocument,
-    approveDocument,
+    adminApproveDocument,
     rejectDocument,
     acknowledgeDocument,
     submitDocumentToFAD,

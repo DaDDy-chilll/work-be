@@ -7,6 +7,7 @@ const {
   DOCUMENT_SECTIONS,
   PAYMENT_TYPES,
   DOCUMENT_STATUSES,
+  DOCUMENT_ACTIONS,
 } = require('../constants/document');
 
 const Schema = mongoose.Schema;
@@ -71,7 +72,7 @@ const documentSchema = new Schema(
         action: {
           type: String,
           required: true,
-          enum: Object.values(REMARK_ACTIONS),
+          enum: Object.values(DOCUMENT_ACTIONS),
         },
         section: {
           type: String,
