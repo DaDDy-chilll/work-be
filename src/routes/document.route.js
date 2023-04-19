@@ -38,15 +38,19 @@ router.post(
 router.patch(
   '/:id/admin-approve',
   authenticate,
-  authorize([
-    USER_ROLES.executive,
-    USER_ROLES.superadmin,
-    USER_ROLES.fad,
-    USER_ROLES.admin,
-  ]),
+  authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.admin]),
   validate(formActionSchema),
   checkPermissions(DOCUMENT_ACTIONS.approve),
   documentController.adminApproveDocument
+);
+
+router.patch(
+  '/:id/admin-reject',
+  authenticate,
+  authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.admin]),
+  validate(formActionSchema),
+  checkPermissions(DOCUMENT_ACTIONS.reject),
+  documentController.adminRejectDocument
 );
 
 router.get('/me', authenticate, documentController.getMyDocuments);

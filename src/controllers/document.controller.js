@@ -67,6 +67,19 @@ const createDocumentController = () => {
     });
   });
 
+  const adminRejectDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.adminRejectDocument({
+      id: req.params.id,
+      user: req.user,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({ res, data: document });
+  });
+
+  /**
+   * @deprecated
+   */
   const rejectDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.rejectDocument({
       id: req.params.id,
@@ -254,6 +267,7 @@ const createDocumentController = () => {
     createDocument,
     verifyDocument,
     adminApproveDocument,
+    adminRejectDocument,
     rejectDocument,
     acknowledgeDocument,
     submitDocumentToFAD,

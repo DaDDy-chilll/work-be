@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const createCustomIdMiddlware = require('../helpers/model-customId-middleware.helper');
 
 const {
-  REMARK_ACTIONS,
   DOCUMENT_SECTIONS,
   PAYMENT_TYPES,
   DOCUMENT_STATUSES,

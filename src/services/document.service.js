@@ -507,6 +507,7 @@ const createDocumentService = () => {
     getAdminApprovedDocuments,
     uploadAttachments,
     adminApproveDocument,
+    adminRejectDocument,
   };
 };
 
