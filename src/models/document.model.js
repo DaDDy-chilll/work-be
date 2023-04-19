@@ -1,14 +1,26 @@
 const mongoose = require('mongoose');
 
 const createCustomIdMiddlware = require('../helpers/model-customId-middleware.helper');
+
 const {
-  paymentType,
-  documentStatus,
-  documentSections,
-  documentActions,
-} = require('../constants');
+  REMARK_ACTIONS,
+  DOCUMENT_SECTIONS,
+  PAYMENT_TYPES,
+  DOCUMENT_STATUSES,
+} = require('../constants/document');
 
 const Schema = mongoose.Schema;
+
+const assigneeSchema = {
+  order: {
+    type: Number,
+    required: true,
+  },
+  person: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  },
+};
 
 const documentSchema = new Schema(
   {
@@ -24,7 +36,7 @@ const documentSchema = new Schema(
     paymentType: {
       type: String,
       required: true,
-      enum: Object.values(paymentType),
+      enum: Object.values(PAYMENT_TYPES),
     },
     amount: {
       type: Number,
@@ -55,12 +67,12 @@ const documentSchema = new Schema(
         action: {
           type: String,
           required: true,
-          enum: Object.values(documentActions),
+          enum: Object.values(REMARK_ACTIONS),
         },
         section: {
           type: String,
           required: true,
-          enum: Object.values(documentSections),
+          enum: Object.values(DOCUMENT_SECTIONS),
         },
         date: {
           type: Date,
@@ -72,13 +84,16 @@ const documentSchema = new Schema(
       status: {
         type: String,
         required: true,
-        enum: Object.values(documentStatus),
-        default: documentStatus.pending,
+        enum: Object.values(DOCUMENT_STATUSES),
+        default: DOCUMENT_STATUSES.pending,
       },
       section: {
         type: String,
-        enum: Object.values(documentSections),
-        default: documentSections.admin,
+        enum: Object.values(DOCUMENT_SECTIONS),
+      },
+      nextAssignee: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
       },
     },
     requestedBy: {
@@ -86,30 +101,9 @@ const documentSchema = new Schema(
       ref: 'User',
       required: true,
     },
-    adminAssignees: [
-      {
-        order: {
-          type: Number,
-          required: true,
-        },
-        person: {
-          type: Schema.Types.ObjectId,
-          ref: 'User',
-        },
-      },
-    ],
-    fadAssignees: [
-      {
-        order: {
-          type: Number,
-          required: true,
-        },
-        person: {
-          type: Schema.Types.ObjectId,
-          ref: 'User',
-        },
-      },
-    ],
+
+    adminAssignees: [assigneeSchema],
+    fadAssignees: [assigneeSchema],
   },
   {
     timestamps: true,

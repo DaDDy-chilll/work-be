@@ -10,7 +10,6 @@ module.exports = {
     acknowledge: 'acknowledge',
   }),
   DOCUMENT_STATUSES: Object.freeze({
-    drafted: 'drafted',
     pending: 'pending',
     approved: 'approved',
     rejected: 'rejected',
@@ -22,6 +21,7 @@ module.exports = {
     verified: 'verified',
     rejected: 'rejected',
     acknowledged: 'acknowledged',
+    comment: 'commented',
   }),
   DOCUMENT_SECTIONS: {
     admin: 'admin',

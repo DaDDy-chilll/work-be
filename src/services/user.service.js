@@ -1,4 +1,5 @@
 const { userRoles } = require('../constants');
+const { USER_ROLES } = require('../constants/user');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const User = require('../models/user.model');
@@ -79,11 +80,25 @@ const createUserService = () => {
     return updatedUser;
   };
 
+  const checkIfUserValidAssignee = async (userId) => {
+    const user = await User.findById(userId);
+
+    const validRoles = [
+      USER_ROLES.superadmin,
+      USER_ROLES.admin,
+      USER_ROLES.superadmin,
+      USER_ROLES.executive,
+    ];
+
+    return Boolean(user && validRoles.includes(user.role));
+  };
+
   return {
     getAllUsers,
     getUserById,
     deleteUserById,
     updateUserById,
+    checkIfUserValidAssignee,
   };
 };
 

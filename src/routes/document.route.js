@@ -93,15 +93,6 @@ router.post(
   documentController.submitDocumentToFAD
 );
 
-// for drafting: currently the route is disabled.
-// router.patch(
-//   '/:id/submit',
-//   authenticate,
-//   checkFormPermissions('submit'),
-//   validate(submitDraftSchema),
-//   documentController.submitDraft
-// );
-
 router.patch(
   '/:id',
   authenticate,
