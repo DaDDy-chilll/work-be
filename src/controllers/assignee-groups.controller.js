@@ -19,7 +19,7 @@ function createDocumentAssigneesController() {
     const validAssigneesBooleans = await Promise.all(
       req.body.assignees.map(
         async (assignee) =>
-          await userService.checkIfUserValidAssignee(assignee.person)
+          await userService.checkIfUserValidAssignee(assignee.userId)
       )
     );
 

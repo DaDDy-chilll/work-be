@@ -6,6 +6,7 @@ const {
   documentStatus,
   documentSections,
 } = require('../constants');
+const { isObjectIdOrHexString } = require('mongoose');
 
 const createDocumentSchema = z.object({
   body: z.object({
@@ -38,6 +39,9 @@ const createDocumentSchema = z.object({
           .default(documentSections.admin),
       })
       .optional(),
+    assigneeGroupId: z
+      .string()
+      .refine(isObjectIdOrHexString, 'Invalid group id.'),
   }),
 });
 

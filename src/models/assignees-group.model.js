@@ -13,7 +13,7 @@ const assigneesGroupSchema = new Schema(
           type: Number,
           required: true,
         },
-        person: {
+        userId: {
           type: Schema.Types.ObjectId,
           ref: 'User',
         },

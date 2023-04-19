@@ -8,12 +8,12 @@ const createAssigneesService = () => {
     for (let i = 0; i < numberOfAssignees; i++) {
       for (let j = i + 1; j < numberOfAssignees; j++) {
         if (assignees[i].order === assignees[j].order) {
-          return false;
+          return true;
         }
       }
     }
 
-    return true;
+    return false;
   };
 
   const getAssigneesGroup = async () => {
@@ -26,11 +26,14 @@ const createAssigneesService = () => {
     if (_areOrdersDuplicated(data.assignees)) {
       throw ApiError.badRequest('Orders are duplicated.');
     }
-
     return await AssigneeGroup.create(data);
   };
 
-  return { getAssigneesGroup, createAssigneeGroup };
+  const getAssigneeGroupById = async (id) => {
+    return await AssigneeGroup.findById(id);
+  };
+
+  return { getAssigneesGroup, createAssigneeGroup, getAssigneeGroupById };
 };
 
 module.exports = createAssigneesService();
