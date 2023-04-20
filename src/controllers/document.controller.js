@@ -3,32 +3,17 @@ const {
   documentSections,
   documentActions,
 } = require('../constants');
-const ApiError = require('../helpers/apiError');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
-const assigneesGroupsService = require('../services/assignees-groups.service');
 const documentService = require('../services/document.service');
 
 const createDocumentController = () => {
   const createDocument = catchAsync(async (req, res, next) => {
-    let assigneeGroup;
-
-    if (req.body.assigneeGroupId) {
-      assigneeGroup = await assigneesGroupsService.getAssigneeGroupById(
-        req.body.assigneeGroupId
-      );
-
-      if (!assigneeGroup) {
-        throw ApiError('Assignee Group does not exist.');
-      }
-    }
-
     const attachments = await documentService.uploadAttachments(req.files);
     const document = await documentService.createRequisitionDocument({
       ...req.body,
       requestedBy: req.user._id,
       attachments,
-      adminAssignees: [...assigneeGroup.assignees],
     });
 
     sendSuccessResponse({

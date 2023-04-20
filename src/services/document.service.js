@@ -70,12 +70,6 @@ const createDocumentService = () => {
     return filter;
   };
 
-  const _getCurrentAdminAssignee = (document, userId) => {
-    return document.adminAssignees.find((assignee) =>
-      assignee.userId.equals(userId)
-    );
-  };
-
   const uploadAttachments = async (files) => {
     if (Array.isArray(files)) {
       const uploadedFiles = await Promise.all(
@@ -102,13 +96,14 @@ const createDocumentService = () => {
       (a, b) => a.order - b.order
     );
 
-    const documentState = {
-      status: DOCUMENT_STATUSES.pending,
-      section: DOCUMENT_SECTIONS.admin,
-      nextAssignee: sortedAssigneesByOrder[0].userId,
-    };
-
-    return await Document.create({ ...data, state: documentState });
+    return await Document.create({
+      ...data,
+      state: {
+        status: DOCUMENT_STATUSES.pending,
+        section: DOCUMENT_SECTIONS.admin,
+        currentAssignee: sortedAssigneesByOrder[0].userId,
+      },
+    });
   };
 
   /**
@@ -159,14 +154,20 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Document has already been approved.');
     }
 
-    if (!document.state.nextAssignee.equals(user._id)) {
+    if (!document.state.currentAssignee.equals(user._id)) {
       throw ApiError.badRequest('Not allowed to approve this document.');
     }
 
-    const currentAssignee = _getCurrentAdminAssignee(document, user._id);
+    const currentAssigneeOrder = document.adminAssignees.find((assignee) =>
+      assignee.userId.equals(document.state.currentAssignee)
+    ).order;
+
+    if (!currentAssigneeOrder) {
+      throw ApiError.badRequest('Current assignee does not exist.');
+    }
 
     const nextAssignee = document.adminAssignees.find(
-      (assignee) => assignee.order === currentAssignee.order + 1
+      (assignee) => assignee.order === currentAssigneeOrder + 1
     );
 
     const newDocument = await Document.findOneAndUpdate(
@@ -175,6 +176,9 @@ const createDocumentService = () => {
         'adminAssignees.userId': user._id,
       },
       {
+        // if there is no assignee left,
+        // consider the document to be 100% approved
+        // by admin dept
         'state.status': nextAssignee
           ? DOCUMENT_STATUSES.pending
           : DOCUMENT_STATUSES.approved,
@@ -183,7 +187,7 @@ const createDocumentService = () => {
           remarks: {
             remarker: user._id,
             content: remark,
-            action: documentActions.approve,
+            action: DOCUMENT_ACTIONS.approve,
             section: document.state.section,
           },
         },
