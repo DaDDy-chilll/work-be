@@ -19,6 +19,57 @@ const helpers = {
 const createDocumentController = () => {
   const { extractAssigneeIdList } = helpers;
 
+  /**
+   * @deprecated
+   */
+  const verifyDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.verifyDocument({
+      id: req.params.id,
+      user: req.user,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Document verified.',
+    });
+  });
+
+  /**
+   * @deprecated
+   */
+  const acknowledgeDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.acknowledgeDocument({
+      id: req.params.id,
+      userId: req.user._id,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Document acknowledged',
+    });
+  });
+
+  /**
+   * @deprecated
+   */
+  const rejectDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.rejectDocument({
+      id: req.params.id,
+      user: req.user,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Document rejected.',
+    });
+  });
+
   const createDocument = catchAsync(async (req, res, next) => {
     const adminAssigneeIdList = extractAssigneeIdList(req.body.adminAssignees);
 
@@ -47,23 +98,6 @@ const createDocumentController = () => {
       code: 201,
       data: document,
       message: 'Document successfully created.',
-    });
-  });
-
-  /**
-   * @deprecated
-   */
-  const verifyDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.verifyDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document verified.',
     });
   });
 
@@ -119,11 +153,8 @@ const createDocumentController = () => {
     });
   });
 
-  /**
-   * @deprecated
-   */
-  const rejectDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.rejectDocument({
+  const fadApproveDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.fadApproveDocument({
       id: req.params.id,
       user: req.user,
       remark: req.body.remark,
@@ -132,21 +163,45 @@ const createDocumentController = () => {
     sendSuccessResponse({
       res,
       data: document,
-      message: 'Document rejected.',
     });
   });
 
-  const acknowledgeDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.acknowledgeDocument({
+  const fadRejectDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.fadRejectDocument({
       id: req.params.id,
-      userId: req.user._id,
+      user: req.user,
       remark: req.body.remark,
+    });
+
+    sendSuccessResponse({ res, data: document });
+  });
+
+  const updateDocument = catchAsync(async (req, res, next) => {
+    const attachments = await documentService.uploadAttachments(req.files);
+
+    const updatedDocument = await documentService.updateDocument({
+      id: req.params.id,
+      attachments,
+      user: req.user,
     });
 
     sendSuccessResponse({
       res,
-      data: document,
-      message: 'Document acknowledged',
+      code: 201,
+      data: updatedDocument,
+      message: 'Document successfully updated.',
+    });
+  });
+
+  const deleteDocument = catchAsync(async (req, res, next) => {
+    const deletedDocument = await documentService.deleteDocument({
+      id: req.params.id,
+      user: req.user,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: deletedDocument,
     });
   });
 
@@ -253,50 +308,13 @@ const createDocumentController = () => {
     });
   });
 
-  const submitDraft = catchAsync(async (req, res, next) => {
-    const document = await documentService.submitDraft({ id: req.params.id });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document successfully submitted.',
-    });
-  });
-
-  const updateDocument = catchAsync(async (req, res, next) => {
-    const attachments = await documentService.uploadAttachments(req.files);
-
-    const updatedDocument = await documentService.updateDocument({
-      id: req.params.id,
-      attachments,
-      user: req.user,
-    });
-
-    sendSuccessResponse({
-      res,
-      code: 201,
-      data: updatedDocument,
-      message: 'Document successfully updated.',
-    });
-  });
-
-  const deleteDocument = catchAsync(async (req, res, next) => {
-    const deletedDocument = await documentService.deleteDocument({
-      id: req.params.id,
-      user: req.user,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: deletedDocument,
-    });
-  });
-
   return {
     createDocument,
     verifyDocument,
     adminApproveDocument,
     adminRejectDocument,
+    fadApproveDocument,
+    fadRejectDocument,
     rejectDocument,
     acknowledgeDocument,
     submitDocumentToFAD,
@@ -304,7 +322,6 @@ const createDocumentController = () => {
     getMyDocuments,
     getAllDocuments,
     getDocumentById,
-    submitDraft,
     updateDocument,
     deleteDocument,
     getDocumentsInFADSection,

@@ -54,6 +54,24 @@ router.patch(
   documentController.adminRejectDocument
 );
 
+router.patch(
+  '/:id/fad-approve',
+  authenticate,
+  authorize([USER_ROLES.executive, USER_ROLES.fad]),
+  validate(formActionSchema),
+  checkPermissions(DOCUMENT_ACTIONS.approve),
+  documentController.fadApproveDocument
+);
+
+router.patch(
+  '/:id/fad-reject',
+  authenticate,
+  authorize([USER_ROLES.executive, USER_ROLES.fad]),
+  validate(formActionSchema),
+  checkPermissions(DOCUMENT_ACTIONS.reject),
+  documentController.fadRejectDocument
+);
+
 router.post(
   '/fad/:id',
   validate(submitFadDocumentSchema),
@@ -127,6 +145,10 @@ router.delete(
   documentController.deleteDocument
 );
 
+/**
+ * The routes below are not necesary anymore.
+ * Will delete them soon.
+ */
 router.patch(
   '/:id/verify',
   authenticate,

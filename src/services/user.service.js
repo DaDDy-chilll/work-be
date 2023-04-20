@@ -1,5 +1,4 @@
 const { userRoles } = require('../constants');
-const { USER_ROLES } = require('../constants/user');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const User = require('../models/user.model');
