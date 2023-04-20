@@ -8,6 +8,13 @@ const {
 } = require('../constants');
 const { isObjectIdOrHexString } = require('mongoose');
 
+const assigneSchema = z
+  .object({
+    userId: z.string().refine(isObjectIdOrHexString, 'Invalid user ID.'),
+    order: z.coerce.number().int().nonnegative('Must be a positive order.'),
+  })
+  .array();
+
 const createDocumentSchema = z.object({
   body: z.object({
     name: z
@@ -39,9 +46,8 @@ const createDocumentSchema = z.object({
           .default(documentSections.admin),
       })
       .optional(),
-    assigneeGroupId: z
-      .string()
-      .refine(isObjectIdOrHexString, 'Invalid group id.'),
+    adminAssignees: assigneSchema,
+    fadAssignees: assigneSchema,
   }),
 });
 

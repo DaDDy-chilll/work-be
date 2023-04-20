@@ -28,7 +28,7 @@ const assigneeSchema = {
 
 const documentSchema = new Schema(
   {
-    customId: {
+    documentId: {
       type: String,
       required: true,
       unique: true,
@@ -95,7 +95,7 @@ const documentSchema = new Schema(
         type: String,
         enum: Object.values(DOCUMENT_SECTIONS),
       },
-      nextAssignee: {
+      currentAssignee: {
         type: Schema.Types.ObjectId,
         ref: 'User',
       },
@@ -126,12 +126,12 @@ documentSchema.pre(
   createCustomIdMiddlware({
     modelName: 'Document',
     prefix: 'D',
-    fieldName: 'customId',
+    fieldName: 'documentId',
   })
 );
 
 documentSchema.virtual('id').get(function () {
-  return this.customId;
+  return this.documentId;
 });
 
 const Document = mongoose.model('Document', documentSchema);

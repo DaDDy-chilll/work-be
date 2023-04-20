@@ -98,16 +98,19 @@ const createDocumentService = () => {
   };
 
   const createRequisitionDocument = async (data) => {
+    const sortedAssigneesByOrder = data.adminAssignees.sort(
+      (a, b) => a.order - b.order
+    );
+
     const documentState = {
       status: DOCUMENT_STATUSES.pending,
       section: DOCUMENT_SECTIONS.admin,
-      nextAssignee: data.adminAssignees.find((assignee) => assignee.order === 0)
-        .userId,
+      nextAssignee: sortedAssigneesByOrder[0].userId,
     };
-    const document = await Document.create({ ...data, state: documentState });
 
-    return document;
+    return await Document.create({ ...data, state: documentState });
   };
+
   /**
    * @deprecated
    */
@@ -424,6 +427,9 @@ const createDocumentService = () => {
     return { documents, total: documents.length };
   };
 
+  /**
+   * @deprecated
+   */
   const submitDraft = async ({ id }) => {
     const document = await Document.findById(id);
 
