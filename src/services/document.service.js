@@ -162,9 +162,9 @@ const createDocumentService = () => {
 
     const currentAssigneeOrder = document.adminAssignees.find((assignee) =>
       assignee.userId.equals(document.state.currentAssignee)
-    ).order;
+    )?.order;
 
-    if (!currentAssigneeOrder) {
+    if (typeof currentAssigneeOrder === 'undefined') {
       throw ApiError.badRequest('Current assignee does not exist.');
     }
 
@@ -184,7 +184,7 @@ const createDocumentService = () => {
         'state.status': nextAssignee
           ? DOCUMENT_STATUSES.pending
           : DOCUMENT_STATUSES.approved,
-        'state.nextAssignee': nextAssignee?.userId || null,
+        'state.currentAssignee': nextAssignee?.userId || null,
         $push: {
           remarks: {
             remarker: user._id,
