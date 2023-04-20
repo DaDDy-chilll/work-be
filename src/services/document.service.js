@@ -101,6 +101,8 @@ const createDocumentService = () => {
       state: {
         status: DOCUMENT_STATUSES.pending,
         section: DOCUMENT_SECTIONS.admin,
+        // Set the first assginee in the list
+        // as the current assignee
         currentAssignee: sortedAssigneesByOrder[0].userId,
       },
     });

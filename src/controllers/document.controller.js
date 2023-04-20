@@ -3,12 +3,38 @@ const {
   documentSections,
   documentActions,
 } = require('../constants');
+const { DOCUMENT_SECTIONS } = require('../constants/document');
+const ApiError = require('../helpers/apiError');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const documentService = require('../services/document.service');
+const userService = require('../services/user.service');
+
+const helpers = {
+  extractAssigneeIdList: (assignees) => {
+    return assignees.map((assignee) => assignee.userId);
+  },
+};
 
 const createDocumentController = () => {
+  const { extractAssigneeIdList } = helpers;
+
   const createDocument = catchAsync(async (req, res, next) => {
+    const adminAssigneeIdList = extractAssigneeIdList(req.body.adminAssignees);
+
+    const invalidAssignee = await userService.getInvalidAssignee(
+      adminAssigneeIdList,
+      DOCUMENT_SECTIONS.admin
+    );
+
+    if (invalidAssignee) {
+      return next(
+        ApiError.badRequest(
+          `${invalidAssignee.name} is not eligible to be an admin approval assignee.`
+        )
+      );
+    }
+
     const attachments = await documentService.uploadAttachments(req.files);
     const document = await documentService.createRequisitionDocument({
       ...req.body,
