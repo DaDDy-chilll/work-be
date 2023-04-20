@@ -92,7 +92,7 @@ const createUserService = () => {
     ).every((bool) => bool);
   };
 
-  const getInvalidAssignee = async (userIdList, dept) => {
+  const getInvalidAssignee = async (userIdList, dept = '') => {
     const userLists = await Promise.all(
       userIdList.map(async (id) => {
         const user = await User.findById(id);

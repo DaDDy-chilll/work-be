@@ -50,6 +50,9 @@ const createDocumentController = () => {
     });
   });
 
+  /**
+   * @deprecated
+   */
   const verifyDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.verifyDocument({
       id: req.params.id,
@@ -88,6 +91,34 @@ const createDocumentController = () => {
     sendSuccessResponse({ res, data: document });
   });
 
+  const submitDocumentToFAD = catchAsync(async (req, res, next) => {
+    const fadAssigneeIdList = extractAssigneeIdList(req.body.fadAssignees);
+
+    const invalidAssignee = await userService.getInvalidAssignee(
+      fadAssigneeIdList,
+      DOCUMENT_SECTIONS.fad
+    );
+
+    if (invalidAssignee) {
+      return next(
+        ApiError.badRequest(
+          `${invalidAssignee.name} is not eligible to be an FAD approval assignee.`
+        )
+      );
+    }
+    const document = await documentService.submitToFAD({
+      id: req.params.id,
+      user: req.user,
+      assignees: req.body.fadAssignees,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Submitted to FAD',
+    });
+  });
+
   /**
    * @deprecated
    */
@@ -116,19 +147,6 @@ const createDocumentController = () => {
       res,
       data: document,
       message: 'Document acknowledged',
-    });
-  });
-
-  const submitDocumentToFAD = catchAsync(async (req, res, next) => {
-    const document = await documentService.submitToFAD({
-      id: req.params.id,
-      user: req.user,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Submitted to FAD',
     });
   });
 

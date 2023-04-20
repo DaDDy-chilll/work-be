@@ -359,7 +359,7 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  const submitToFAD = async ({ id, user }) => {
+  const submitToFAD = async ({ id, user, assignees }) => {
     const document = await Document.findById(id);
 
     if (!document) {
@@ -379,13 +379,17 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Cannot submit to FAD yet.');
     }
 
+    const sortedAssigneesByOrder = assignees.sort((a, b) => a.order - b.order);
+
     const submittedDocument = await Document.findByIdAndUpdate(
       id,
       {
         state: {
-          status: documentStatus.pending,
-          section: documentSections.fad,
+          status: DOCUMENT_STATUSES.pending,
+          section: DOCUMENT_SECTIONS.fad,
+          currentAssignee: sortedAssigneesByOrder[0].userId,
         },
+        fadAssignees: sortedAssigneesByOrder,
       },
       { new: true }
     );

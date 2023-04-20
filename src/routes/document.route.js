@@ -19,6 +19,7 @@ const { upload } = require('../lib/multer');
 const checkParamsId = require('../schema/checkParamsId.schema');
 const { DOCUMENT_ACTIONS } = require('../constants/document');
 const { USER_ROLES } = require('../constants/user');
+const submitFadDocumentSchema = require('../schema/submitFadDocument.schema');
 
 router.get(
   '/',
@@ -51,6 +52,13 @@ router.patch(
   validate(formActionSchema),
   checkPermissions(DOCUMENT_ACTIONS.reject),
   documentController.adminRejectDocument
+);
+
+router.post(
+  '/fad/:id',
+  validate(submitFadDocumentSchema),
+  authenticate,
+  documentController.submitDocumentToFAD
 );
 
 router.get('/me', authenticate, documentController.getMyDocuments);
@@ -103,13 +111,6 @@ router.get(
   validate(checkParamsId),
   authenticate,
   documentController.getDocumentById
-);
-
-router.post(
-  '/fad/:id',
-  validate(checkParamsId),
-  authenticate,
-  documentController.submitDocumentToFAD
 );
 
 router.patch(
