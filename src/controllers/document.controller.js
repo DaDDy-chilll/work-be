@@ -3,24 +3,36 @@ const {
   documentSections,
   documentActions,
 } = require('../constants');
+const { DOCUMENT_SECTIONS } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
-const assigneesGroupsService = require('../services/assignees-groups.service');
 const documentService = require('../services/document.service');
+const userService = require('../services/user.service');
+
+const helpers = {
+  extractAssigneeIdList: (assignees) => {
+    return assignees.map((assignee) => assignee.userId);
+  },
+};
 
 const createDocumentController = () => {
+  const { extractAssigneeIdList } = helpers;
+
   const createDocument = catchAsync(async (req, res, next) => {
-    let assigneeGroup;
+    const adminAssigneeIdList = extractAssigneeIdList(req.body.adminAssignees);
 
-    if (req.body.assigneeGroupId) {
-      assigneeGroup = await assigneesGroupsService.getAssigneeGroupById(
-        req.body.assigneeGroupId
+    const invalidAssignee = await userService.getInvalidAssignee(
+      adminAssigneeIdList,
+      DOCUMENT_SECTIONS.admin
+    );
+
+    if (invalidAssignee) {
+      return next(
+        ApiError.badRequest(
+          `${invalidAssignee.name} is not eligible to be an admin approval assignee.`
+        )
       );
-
-      if (!assigneeGroup) {
-        throw ApiError('Assignee Group does not exist.');
-      }
     }
 
     const attachments = await documentService.uploadAttachments(req.files);
@@ -28,7 +40,6 @@ const createDocumentController = () => {
       ...req.body,
       requestedBy: req.user._id,
       attachments,
-      adminAssignees: [...assigneeGroup.assignees],
     });
 
     sendSuccessResponse({
@@ -53,8 +64,8 @@ const createDocumentController = () => {
     });
   });
 
-  const approveDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.approveDocument({
+  const adminApproveDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.adminApproveDocument({
       id: req.params.id,
       user: req.user,
       remark: req.body.remark,
@@ -67,6 +78,19 @@ const createDocumentController = () => {
     });
   });
 
+  const adminRejectDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.adminRejectDocument({
+      id: req.params.id,
+      user: req.user,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({ res, data: document });
+  });
+
+  /**
+   * @deprecated
+   */
   const rejectDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.rejectDocument({
       id: req.params.id,
@@ -253,7 +277,8 @@ const createDocumentController = () => {
   return {
     createDocument,
     verifyDocument,
-    approveDocument,
+    adminApproveDocument,
+    adminRejectDocument,
     rejectDocument,
     acknowledgeDocument,
     submitDocumentToFAD,

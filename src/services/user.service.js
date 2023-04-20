@@ -80,17 +80,28 @@ const createUserService = () => {
     return updatedUser;
   };
 
-  const checkIfUserValidAssignee = async (userId) => {
-    const user = await User.findById(userId);
+  const areUsersValidAssignees = async (userIdList, dept) => {
+    return (
+      await Promise.all(
+        userIdList.map(async (id) => {
+          const user = await User.findById(id);
 
-    const validRoles = [
-      USER_ROLES.superadmin,
-      USER_ROLES.admin,
-      USER_ROLES.superadmin,
-      USER_ROLES.executive,
-    ];
+          return user && user.permissions[dept].approve;
+        })
+      )
+    ).every((bool) => bool);
+  };
 
-    return Boolean(user && validRoles.includes(user.role));
+  const getInvalidAssignee = async (userIdList, dept) => {
+    const userLists = await Promise.all(
+      userIdList.map(async (id) => {
+        const user = await User.findById(id);
+
+        return user;
+      })
+    );
+
+    return userLists.find((user) => !user.permissions[dept].approve) || null;
   };
 
   return {
@@ -98,7 +109,8 @@ const createUserService = () => {
     getUserById,
     deleteUserById,
     updateUserById,
-    checkIfUserValidAssignee,
+    areUsersValidAssignees,
+    getInvalidAssignee,
   };
 };
 

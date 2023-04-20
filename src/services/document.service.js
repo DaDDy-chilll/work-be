@@ -7,6 +7,7 @@ const {
 const {
   DOCUMENT_STATUSES,
   DOCUMENT_SECTIONS,
+  DOCUMENT_ACTIONS,
 } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
@@ -91,17 +92,25 @@ const createDocumentService = () => {
   };
 
   const createRequisitionDocument = async (data) => {
-    const documentState = {
-      status: DOCUMENT_STATUSES.pending,
-      section: DOCUMENT_SECTIONS.admin,
-      nextAssignee: data.adminAssignees.find((assignee) => assignee.order === 0)
-        .userId,
-    };
-    const document = await Document.create({ ...data, state: documentState });
+    const sortedAssigneesByOrder = data.adminAssignees.sort(
+      (a, b) => a.order - b.order
+    );
 
-    return document;
+    return await Document.create({
+      ...data,
+      state: {
+        status: DOCUMENT_STATUSES.pending,
+        section: DOCUMENT_SECTIONS.admin,
+        // Set the first assginee in the list
+        // as the current assignee
+        currentAssignee: sortedAssigneesByOrder[0].userId,
+      },
+    });
   };
 
+  /**
+   * @deprecated
+   */
   const verifyDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
@@ -133,6 +142,104 @@ const createDocumentService = () => {
     return newDocument;
   };
 
+  /**
+   * - Update state.nextAssignee with next assignee user id
+   * by checking orders
+   * - update current assignee's hasApproved in adminAssignees
+   * - If there is no next assignee, update the doc state to
+   * admin approved.
+   */
+  const adminApproveDocument = async ({ id, user, remark }) => {
+    const document = await Document.findById(id);
+
+    if (document.state.status !== DOCUMENT_STATUSES.pending) {
+      throw ApiError.badRequest('Document has already been approved.');
+    }
+
+    if (!document.state.currentAssignee.equals(user._id)) {
+      throw ApiError.badRequest('Not allowed to approve this document.');
+    }
+
+    const currentAssigneeOrder = document.adminAssignees.find((assignee) =>
+      assignee.userId.equals(document.state.currentAssignee)
+    )?.order;
+
+    if (typeof currentAssigneeOrder === 'undefined') {
+      throw ApiError.badRequest('Current assignee does not exist.');
+    }
+
+    const nextAssignee = document.adminAssignees.find(
+      (assignee) => assignee.order === currentAssigneeOrder + 1
+    );
+
+    const newDocument = await Document.findOneAndUpdate(
+      {
+        _id: id,
+        'adminAssignees.userId': user._id,
+      },
+      {
+        // if there is no assignee left,
+        // consider the document to be 100% approved
+        // by admin dept
+        'state.status': nextAssignee
+          ? DOCUMENT_STATUSES.pending
+          : DOCUMENT_STATUSES.approved,
+        'state.currentAssignee': nextAssignee?.userId || null,
+        $push: {
+          remarks: {
+            remarker: user._id,
+            content: remark,
+            action: DOCUMENT_ACTIONS.approve,
+            section: document.state.section,
+          },
+        },
+        $set: {
+          'adminAssignees.$.hasApproved': true,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return newDocument;
+  };
+
+  const adminRejectDocument = async ({ id, user, remark }) => {
+    const document = await Document.findById(id);
+
+    if (document.state.status !== DOCUMENT_STATUSES.pending) {
+      throw ApiError.badRequest('Cannot reject the document.');
+    }
+
+    if (!document.state.nextAssignee.equals(user._id)) {
+      throw ApiError.badRequest('Cannot reject the document.');
+    }
+
+    const newDocument = await Document.findByIdAndUpdate(
+      id,
+      {
+        'state.status': DOCUMENT_STATUSES.rejected,
+        $push: {
+          remarks: {
+            remarker: user._id,
+            content: remark,
+            action: DOCUMENT_ACTIONS.reject,
+            section: document.state.section,
+          },
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return newDocument;
+  };
+
+  /**
+   * @deprecated
+   */
   const approveDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
@@ -145,14 +252,33 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Cannot approve this document.');
     }
 
-    if (document.amount > user.approvalAmount) {
-      throw ApiError.badRequest('Amount too high to approve.');
+    if (!document.state.nextAssignee.equals(user._id)) {
+      throw ApiError.badRequest('Not allowed to approve this document yet.');
     }
 
-    const newDocument = await Document.findByIdAndUpdate(
-      id,
+    const currentAssignees =
+      document.state.section === DOCUMENT_SECTIONS.admin
+        ? [...document.adminAssignees]
+        : [...document.fadAssignees];
+
+    const currentAssigneeOrder = currentAssignees.find((assignee) =>
+      assignee.userId.equals(user._id)
+    ).order;
+
+    const nextAssignee = currentAssignees.find(
+      (assignee) => assignee.order === currentAssigneeOrder + 1
+    );
+
+    const assigneeField =
+      document.state.section === DOCUMENT_SECTIONS.admin
+        ? 'adminAssignees'
+        : 'fadAssignees';
+
+    const newDocument = await Document.findOneAndUpdate(
+      { id, [`${assigneeField}.userId`]: user._id },
       {
         'state.status': documentStatus.approved,
+        'state.nextAssignee': nextAssignee ?? null,
         $push: {
           remarks: {
             remarker: user._id,
@@ -160,6 +286,9 @@ const createDocumentService = () => {
             action: documentActions.approve,
             section: document.state.section,
           },
+        },
+        $set: {
+          [`${assigneeField}.$.hasApproved`]: true,
         },
       },
       { new: true }
@@ -194,6 +323,9 @@ const createDocumentService = () => {
     return newDocument;
   };
 
+  /**
+   * @deprecated
+   */
   const acknowledgeDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
@@ -301,6 +433,9 @@ const createDocumentService = () => {
     return { documents, total: documents.length };
   };
 
+  /**
+   * @deprecated
+   */
   const submitDraft = async ({ id }) => {
     const document = await Document.findById(id);
 
@@ -383,6 +518,8 @@ const createDocumentService = () => {
     submitToFAD,
     getAdminApprovedDocuments,
     uploadAttachments,
+    adminApproveDocument,
+    adminRejectDocument,
   };
 };
 

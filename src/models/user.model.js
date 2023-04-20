@@ -52,7 +52,7 @@ const userSchema = new Schema(
       required: true,
       unique: true,
     },
-    customId: {
+    userId: {
       type: String,
       required: true,
       unique: true,
@@ -97,7 +97,7 @@ userSchema.pre(
   createCustomIdMiddleware({
     modelName: 'User',
     prefix: 'U',
-    fieldName: 'customId',
+    fieldName: 'userId',
   })
 );
 
@@ -109,7 +109,7 @@ userSchema.pre('save', async function (next) {
 });
 
 userSchema.virtual('id').get(function () {
-  return this.customId;
+  return this.userId;
 });
 
 const User = mongoose.model('User', userSchema);
