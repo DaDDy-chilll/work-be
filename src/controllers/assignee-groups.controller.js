@@ -1,8 +1,6 @@
 const catchAsync = require('../helpers/catchAsync');
 const assigneeGroupService = require('../services/assignees-groups.service');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
-const userService = require('../services/user.service');
-const ApiError = require('../helpers/apiError');
 
 function createDocumentAssigneesController() {
   const getAssigneesGroup = catchAsync(async (req, res, next) => {
@@ -16,16 +14,7 @@ function createDocumentAssigneesController() {
   });
 
   const createAssigneeGroup = catchAsync(async (req, res, next) => {
-    const validAssigneesBooleans = await Promise.all(
-      req.body.assignees.map(
-        async (assignee) =>
-          await userService.checkIfUserValidAssignee(assignee.userId)
-      )
-    );
-
-    if (validAssigneesBooleans.some((bool) => !bool)) {
-      throw ApiError.badRequest('User is not eligible to be an assignee.');
-    }
+    // TODO: Check if assignees are valid
 
     const group = await assigneeGroupService.createAssigneeGroup(req.body);
     sendSuccessResponse({

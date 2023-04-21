@@ -1,5 +1,4 @@
 const { userRoles } = require('../constants');
-const { USER_ROLES } = require('../constants/user');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const User = require('../models/user.model');
@@ -92,7 +91,7 @@ const createUserService = () => {
     ).every((bool) => bool);
   };
 
-  const getInvalidAssignee = async (userIdList, dept) => {
+  const getInvalidAssignee = async (userIdList, dept = '') => {
     const userLists = await Promise.all(
       userIdList.map(async (id) => {
         const user = await User.findById(id);

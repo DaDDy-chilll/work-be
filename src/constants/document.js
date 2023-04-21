@@ -8,6 +8,7 @@ module.exports = {
     approve: 'approve',
     reject: 'reject',
     acknowledge: 'acknowledge',
+    comment: 'comment',
   }),
   DOCUMENT_STATUSES: Object.freeze({
     pending: 'pending',

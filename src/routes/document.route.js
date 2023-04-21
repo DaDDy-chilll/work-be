@@ -19,6 +19,7 @@ const { upload } = require('../lib/multer');
 const checkParamsId = require('../schema/checkParamsId.schema');
 const { DOCUMENT_ACTIONS } = require('../constants/document');
 const { USER_ROLES } = require('../constants/user');
+const submitFadDocumentSchema = require('../schema/submitFadDocument.schema');
 
 router.get(
   '/',
@@ -51,6 +52,39 @@ router.patch(
   validate(formActionSchema),
   checkPermissions(DOCUMENT_ACTIONS.reject),
   documentController.adminRejectDocument
+);
+
+router.patch(
+  '/:id/fad-approve',
+  authenticate,
+  authorize([USER_ROLES.executive, USER_ROLES.fad]),
+  validate(formActionSchema),
+  checkPermissions(DOCUMENT_ACTIONS.approve),
+  documentController.fadApproveDocument
+);
+
+router.patch(
+  '/:id/fad-reject',
+  authenticate,
+  authorize([USER_ROLES.executive, USER_ROLES.fad]),
+  validate(formActionSchema),
+  checkPermissions(DOCUMENT_ACTIONS.reject),
+  documentController.fadRejectDocument
+);
+
+router.patch(
+  '/:id/comment',
+  authenticate,
+  authorize([USER_ROLES.executive, USER_ROLES.admin, USER_ROLES.fad]),
+  validate(formActionSchema),
+  documentController.commentOnDocument
+);
+
+router.post(
+  '/fad/:id',
+  validate(submitFadDocumentSchema),
+  authenticate,
+  documentController.submitDocumentToFAD
 );
 
 router.get('/me', authenticate, documentController.getMyDocuments);
@@ -105,13 +139,6 @@ router.get(
   documentController.getDocumentById
 );
 
-router.post(
-  '/fad/:id',
-  validate(checkParamsId),
-  authenticate,
-  documentController.submitDocumentToFAD
-);
-
 router.patch(
   '/:id',
   authenticate,
@@ -124,41 +151,6 @@ router.delete(
   authenticate,
   validate(checkParamsId),
   documentController.deleteDocument
-);
-
-router.patch(
-  '/:id/verify',
-  authenticate,
-  authorize([
-    userRoles.executive,
-    userRoles.superadmin,
-    userRoles.fad,
-    userRoles.admin,
-  ]),
-  validate(formActionSchema),
-  checkPermissions(documentActions.verify),
-  documentController.verifyDocument
-);
-
-router.patch(
-  '/:id/reject',
-  authenticate,
-  authorize([
-    userRoles.executive,
-    userRoles.superadmin,
-    userRoles.fad,
-    userRoles.admin,
-  ]),
-  validate(formActionSchema),
-  documentController.rejectDocument
-);
-
-router.patch(
-  '/:id/acknowledge',
-  authenticate,
-  authorize([userRoles.executive, userRoles.superadmin, userRoles.fad]),
-  validate(formActionSchema),
-  documentController.acknowledgeDocument
 );
 
 module.exports = router;

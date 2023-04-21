@@ -4,6 +4,7 @@ const {
   documentSections,
   documentActions,
 } = require('../constants');
+const document = require('../constants/document');
 const {
   DOCUMENT_STATUSES,
   DOCUMENT_SECTIONS,
@@ -70,6 +71,76 @@ const createDocumentService = () => {
     return filter;
   };
 
+  /**
+   * @deprecated
+   */
+  const verifyDocument = async ({ id, user, remark }) => {
+    const document = await Document.findById(id);
+
+    if (
+      !(
+        document.state.status === documentStatus.pending ||
+        document.state.status === documentStatus.verified
+      )
+    ) {
+      throw ApiError.badRequest('Cannot verify this document.');
+    }
+
+    const newDocument = await Document.findByIdAndUpdate(
+      id,
+      {
+        'state.status': documentStatus.verified,
+        $push: {
+          remarks: {
+            remarker: user._id,
+            content: remark,
+            action: documentActions.verify,
+            section: document.state.section,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    return newDocument;
+  };
+
+  /**
+   * @deprecated
+   */
+  const acknowledgeDocument = async ({ id, user, remark }) => {
+    const document = await Document.findById(id);
+
+    if (!document) {
+      throw _noDocumentError;
+    }
+
+    if (
+      document.state.status !== documentStatus.approved ||
+      document.state.section !== documentSections.fad
+    ) {
+      throw ApiError.badRequest('Cannot acknowledge the form.');
+    }
+
+    const newDocument = await Document.findByIdAndUpdate(
+      id,
+      {
+        'state.status': documentStatus.acknowledged,
+        $push: {
+          remarks: {
+            remarker: user._id,
+            content: remark,
+            action: documentActions.acknowledge,
+            section: document.state.section,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    return newDocument;
+  };
+
   const uploadAttachments = async (files) => {
     if (Array.isArray(files)) {
       const uploadedFiles = await Promise.all(
@@ -106,40 +177,6 @@ const createDocumentService = () => {
         currentAssignee: sortedAssigneesByOrder[0].userId,
       },
     });
-  };
-
-  /**
-   * @deprecated
-   */
-  const verifyDocument = async ({ id, user, remark }) => {
-    const document = await Document.findById(id);
-
-    if (
-      !(
-        document.state.status === documentStatus.pending ||
-        document.state.status === documentStatus.verified
-      )
-    ) {
-      throw ApiError.badRequest('Cannot verify this document.');
-    }
-
-    const newDocument = await Document.findByIdAndUpdate(
-      id,
-      {
-        'state.status': documentStatus.verified,
-        $push: {
-          remarks: {
-            remarker: user._id,
-            content: remark,
-            action: documentActions.verify,
-            section: document.state.section,
-          },
-        },
-      },
-      { new: true }
-    );
-
-    return newDocument;
   };
 
   /**
@@ -212,7 +249,7 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Cannot reject the document.');
     }
 
-    if (!document.state.nextAssignee.equals(user._id)) {
+    if (!document.state.currentAssignee.equals(user._id)) {
       throw ApiError.badRequest('Cannot reject the document.');
     }
 
@@ -240,63 +277,6 @@ const createDocumentService = () => {
   /**
    * @deprecated
    */
-  const approveDocument = async ({ id, user, remark }) => {
-    const document = await Document.findById(id);
-
-    if (
-      !(
-        document.state.status === documentStatus.verified ||
-        document.state.status === documentStatus.pending
-      )
-    ) {
-      throw ApiError.badRequest('Cannot approve this document.');
-    }
-
-    if (!document.state.nextAssignee.equals(user._id)) {
-      throw ApiError.badRequest('Not allowed to approve this document yet.');
-    }
-
-    const currentAssignees =
-      document.state.section === DOCUMENT_SECTIONS.admin
-        ? [...document.adminAssignees]
-        : [...document.fadAssignees];
-
-    const currentAssigneeOrder = currentAssignees.find((assignee) =>
-      assignee.userId.equals(user._id)
-    ).order;
-
-    const nextAssignee = currentAssignees.find(
-      (assignee) => assignee.order === currentAssigneeOrder + 1
-    );
-
-    const assigneeField =
-      document.state.section === DOCUMENT_SECTIONS.admin
-        ? 'adminAssignees'
-        : 'fadAssignees';
-
-    const newDocument = await Document.findOneAndUpdate(
-      { id, [`${assigneeField}.userId`]: user._id },
-      {
-        'state.status': documentStatus.approved,
-        'state.nextAssignee': nextAssignee ?? null,
-        $push: {
-          remarks: {
-            remarker: user._id,
-            content: remark,
-            action: documentActions.approve,
-            section: document.state.section,
-          },
-        },
-        $set: {
-          [`${assigneeField}.$.hasApproved`]: true,
-        },
-      },
-      { new: true }
-    );
-
-    return newDocument;
-  };
-
   const rejectDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
@@ -323,43 +303,7 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  /**
-   * @deprecated
-   */
-  const acknowledgeDocument = async ({ id, user, remark }) => {
-    const document = await Document.findById(id);
-
-    if (!document) {
-      throw _noDocumentError;
-    }
-
-    if (
-      document.state.status !== documentStatus.approved ||
-      document.state.section !== documentSections.fad
-    ) {
-      throw ApiError.badRequest('Cannot acknowledge the form.');
-    }
-
-    const newDocument = await Document.findByIdAndUpdate(
-      id,
-      {
-        'state.status': documentStatus.acknowledged,
-        $push: {
-          remarks: {
-            remarker: user._id,
-            content: remark,
-            action: documentActions.acknowledge,
-            section: document.state.section,
-          },
-        },
-      },
-      { new: true }
-    );
-
-    return newDocument;
-  };
-
-  const submitToFAD = async ({ id, user }) => {
+  const submitToFAD = async ({ id, user, assignees }) => {
     const document = await Document.findById(id);
 
     if (!document) {
@@ -379,18 +323,133 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Cannot submit to FAD yet.');
     }
 
+    const sortedAssigneesByOrder = assignees.sort((a, b) => a.order - b.order);
+
     const submittedDocument = await Document.findByIdAndUpdate(
       id,
       {
         state: {
-          status: documentStatus.pending,
-          section: documentSections.fad,
+          status: DOCUMENT_STATUSES.pending,
+          section: DOCUMENT_SECTIONS.fad,
+          currentAssignee: sortedAssigneesByOrder[0].userId,
         },
+        fadAssignees: sortedAssigneesByOrder,
       },
       { new: true }
     );
 
     return submittedDocument;
+  };
+
+  const fadApproveDocument = async ({ id, user, remark }) => {
+    const document = await Document.findById(id);
+
+    if (document.state.status !== DOCUMENT_STATUSES.pending) {
+      throw ApiError.badRequest('Document has already been approved.');
+    }
+
+    if (!document.state.currentAssignee.equals(user._id)) {
+      throw ApiError.badRequest('Not allowed to approve this document.');
+    }
+
+    const currentAssigneeOrder = document.fadAssignees.find((assignee) =>
+      assignee.userId.equals(document.state.currentAssignee)
+    )?.order;
+
+    if (typeof currentAssigneeOrder === 'undefined') {
+      throw ApiError.badRequest('Current assignee does not exist.');
+    }
+
+    const nextAssignee = document.fadAssignees.find(
+      (assignee) => assignee.order === currentAssigneeOrder + 1
+    );
+
+    const newDocument = await Document.findOneAndUpdate(
+      {
+        _id: id,
+        'fadAssignees.userId': user._id,
+      },
+      {
+        // if there is no assignee left,
+        // consider the document to be 100% approved
+        // by fad dept
+        'state.status': nextAssignee
+          ? DOCUMENT_STATUSES.pending
+          : DOCUMENT_STATUSES.approved,
+        'state.currentAssignee': nextAssignee?.userId || null,
+        $push: {
+          remarks: {
+            remarker: user._id,
+            content: remark,
+            action: DOCUMENT_ACTIONS.approve,
+            section: document.state.section,
+          },
+        },
+        $set: {
+          'fadAssignees.$.hasApproved': true,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return newDocument;
+  };
+
+  const fadRejectDocument = async ({ id, user, remark }) => {
+    const document = await Document.findById(id);
+
+    if (document.state.status !== DOCUMENT_STATUSES.pending) {
+      throw ApiError.badRequest('Cannot reject the document.');
+    }
+
+    if (!document.state.currentAssignee.equals(user._id)) {
+      throw ApiError.badRequest('Cannot reject the document.');
+    }
+
+    const newDocument = await Document.findByIdAndUpdate(
+      id,
+      {
+        'state.status': DOCUMENT_STATUSES.rejected,
+        $push: {
+          remarks: {
+            remarker: user._id,
+            content: remark,
+            action: DOCUMENT_ACTIONS.reject,
+            section: document.state.section,
+          },
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return newDocument;
+  };
+
+  const commentOnDocument = async ({ id, remark, user }) => {
+    const document = await Document.findById(id);
+
+    if (document.state.status !== DOCUMENT_STATUSES.pending) {
+      throw ApiError.badRequest('Document has already been approved.');
+    }
+
+    if (document.state.currentAssignee.equals(user._id)) {
+      throw ApiError.badRequest('You are not allowed to comment.');
+    }
+
+    document.remarks.push({
+      remarker: user._id,
+      content: remark,
+      action: DOCUMENT_ACTIONS.comment,
+      section: document.state.section,
+    });
+
+    await document.save();
+
+    return document;
   };
 
   const getDocumentById = async ({ id }) => {
@@ -431,31 +490,6 @@ const createDocumentService = () => {
     });
 
     return { documents, total: documents.length };
-  };
-
-  /**
-   * @deprecated
-   */
-  const submitDraft = async ({ id }) => {
-    const document = await Document.findById(id);
-
-    if (!document) {
-      throw _noDocumentError;
-    }
-
-    if (document.status !== documentStatus.drafted) {
-      throw ApiError.badRequest('Document is not drafted.');
-    }
-
-    const newDocument = await Document.findByIdAndUpdate(
-      id,
-      {
-        status: documentStatus.pending,
-      },
-      { new: true }
-    );
-
-    return newDocument;
   };
 
   const updateDocument = async ({ id, attachments, user, data = {} }) => {
@@ -507,12 +541,10 @@ const createDocumentService = () => {
   return {
     createRequisitionDocument,
     verifyDocument,
-    approveDocument,
     rejectDocument,
     acknowledgeDocument,
     getDocumentById,
     getAllDocuments,
-    submitDraft,
     updateDocument,
     deleteDocument,
     submitToFAD,
@@ -520,6 +552,9 @@ const createDocumentService = () => {
     uploadAttachments,
     adminApproveDocument,
     adminRejectDocument,
+    fadApproveDocument,
+    fadRejectDocument,
+    commentOnDocument,
   };
 };
 
