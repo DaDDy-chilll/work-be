@@ -4,7 +4,6 @@ const {
   documentSections,
   documentActions,
 } = require('../constants');
-const document = require('../constants/document');
 const {
   DOCUMENT_STATUSES,
   DOCUMENT_SECTIONS,
