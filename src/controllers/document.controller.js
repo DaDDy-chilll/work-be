@@ -176,6 +176,16 @@ const createDocumentController = () => {
     sendSuccessResponse({ res, data: document });
   });
 
+  const commentOnDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.commentOnDocument({
+      id: req.params.id,
+      user: req.user,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({ res, data: document });
+  });
+
   const updateDocument = catchAsync(async (req, res, next) => {
     const attachments = await documentService.uploadAttachments(req.files);
 
@@ -315,6 +325,7 @@ const createDocumentController = () => {
     adminRejectDocument,
     fadApproveDocument,
     fadRejectDocument,
+    commentOnDocument,
     rejectDocument,
     acknowledgeDocument,
     submitDocumentToFAD,

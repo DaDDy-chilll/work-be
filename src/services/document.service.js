@@ -4,6 +4,7 @@ const {
   documentSections,
   documentActions,
 } = require('../constants');
+const document = require('../constants/document');
 const {
   DOCUMENT_STATUSES,
   DOCUMENT_SECTIONS,
@@ -428,6 +429,29 @@ const createDocumentService = () => {
     return newDocument;
   };
 
+  const commentOnDocument = async ({ id, remark, user }) => {
+    const document = await Document.findById(id);
+
+    if (document.state.status !== DOCUMENT_STATUSES.pending) {
+      throw ApiError.badRequest('Document has already been approved.');
+    }
+
+    if (document.state.currentAssignee.equals(user._id)) {
+      throw ApiError.badRequest('You are not allowed to comment.');
+    }
+
+    document.remarks.push({
+      remarker: user._id,
+      content: remark,
+      action: DOCUMENT_ACTIONS.comment,
+      section: document.state.section,
+    });
+
+    await document.save();
+
+    return document;
+  };
+
   const getDocumentById = async ({ id }) => {
     const document = await Document.findById(id)
       .populate('requestedBy')
@@ -530,6 +554,7 @@ const createDocumentService = () => {
     adminRejectDocument,
     fadApproveDocument,
     fadRejectDocument,
+    commentOnDocument,
   };
 };
 

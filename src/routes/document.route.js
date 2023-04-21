@@ -72,6 +72,14 @@ router.patch(
   documentController.fadRejectDocument
 );
 
+router.patch(
+  '',
+  authenticate,
+  authorize([USER_ROLES.executive, USER_ROLES.admin, USER_ROLES.fad]),
+  validate(formActionSchema),
+  documentController.commentOnDocument
+);
+
 router.post(
   '/fad/:id',
   validate(submitFadDocumentSchema),
