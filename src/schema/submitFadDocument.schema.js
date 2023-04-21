@@ -6,7 +6,7 @@ const checkParamsId = require('./checkParamsId.schema');
 const submitFadDocumentSchema = z
   .object({
     body: z.object({
-      fadAssignees: z
+      fadReviewers: z
         .object({
           userId: z.string().refine(isObjectIdOrHexString, 'Invalid user ID.'),
           order: z.coerce

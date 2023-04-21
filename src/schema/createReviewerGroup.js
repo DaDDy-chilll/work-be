@@ -3,7 +3,7 @@ const { z } = require('zod');
 
 module.exports = z.object({
   body: z.object({
-    assignees: z
+    reviewers: z
       .object({
         order: z
           .number({ required_error: 'Order is required.' })

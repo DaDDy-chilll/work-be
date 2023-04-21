@@ -79,7 +79,7 @@ const createUserService = () => {
     return updatedUser;
   };
 
-  const areUsersValidAssignees = async (userIdList, dept) => {
+  const areUsersValidReviewers = async (userIdList, dept) => {
     return (
       await Promise.all(
         userIdList.map(async (id) => {
@@ -91,7 +91,7 @@ const createUserService = () => {
     ).every((bool) => bool);
   };
 
-  const getInvalidAssignee = async (userIdList, dept = '') => {
+  const getInvalidReviewer = async (userIdList, dept = '') => {
     const userLists = await Promise.all(
       userIdList.map(async (id) => {
         const user = await User.findById(id);
@@ -108,8 +108,8 @@ const createUserService = () => {
     getUserById,
     deleteUserById,
     updateUserById,
-    areUsersValidAssignees,
-    getInvalidAssignee,
+    areUsersValidReviewers,
+    getInvalidReviewer,
   };
 };
 

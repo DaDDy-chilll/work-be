@@ -1,7 +1,7 @@
 module.exports = {
-  getCurrentAssignee: (document, userId) => {
-    return document.adminAssignees.find((assignee) =>
-      assignee.userId.equals(userId)
+  getCurrentReviewer: (document, userId) => {
+    return document.adminReviewers.find((reviewer) =>
+      reviewer.userId.equals(userId)
     );
   },
 };

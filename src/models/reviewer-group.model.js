@@ -4,10 +4,10 @@ const createCustomIdMiddleware = require('../helpers/model-customId-middleware.h
 
 const Schema = mongoose.Schema;
 
-const assigneesGroupSchema = new Schema(
+const reviewerGroupSchema = new Schema(
   {
     groupId: { type: String, required: true, unique: true },
-    assignees: [
+    reviewers: [
       {
         order: {
           type: Number,
@@ -26,15 +26,15 @@ const assigneesGroupSchema = new Schema(
   }
 );
 
-assigneesGroupSchema.pre(
+reviewerGroupSchema.pre(
   'validate',
   createCustomIdMiddleware({
-    modelName: 'AssigneeGroup',
+    modelName: 'ReviewerGroup',
     fieldName: 'groupId',
-    prefix: 'AG',
+    prefix: 'RG',
   })
 );
 
-const AssigneeGroup = mongoose.model('AssigneeGroup', assigneesGroupSchema);
+const ReviewerGroup = mongoose.model('ReviewerGroup', reviewerGroupSchema);
 
-module.exports = AssigneeGroup;
+module.exports = ReviewerGroup;
