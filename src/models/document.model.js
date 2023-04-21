@@ -117,7 +117,6 @@ const documentSchema = new Schema(
     toObject: {
       virtuals: true,
     },
-    id: false,
   }
 );
 
@@ -129,10 +128,6 @@ documentSchema.pre(
     fieldName: 'documentId',
   })
 );
-
-documentSchema.virtual('id').get(function () {
-  return this.documentId;
-});
 
 const Document = mongoose.model('Document', documentSchema);
 

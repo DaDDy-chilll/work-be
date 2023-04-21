@@ -88,7 +88,6 @@ const userSchema = new Schema(
     toObject: {
       virtuals: true,
     },
-    id: false,
   }
 );
 
@@ -106,10 +105,6 @@ userSchema.pre('save', async function (next) {
 
   this.password = await bcrypt.hash(this.password, 12);
   next();
-});
-
-userSchema.virtual('id').get(function () {
-  return this.userId;
 });
 
 const User = mongoose.model('User', userSchema);
