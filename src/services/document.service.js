@@ -115,7 +115,12 @@ const createDocumentService = () => {
    * - If there is no next reviewer, update the doc state to
    * admin approved.
    */
-  const adminApproveDocument = async ({ id, user, remark }) => {
+  const adminApproveDocument = async ({
+    id,
+    user,
+    remark,
+    action = DOCUMENT_ACTIONS.approve,
+  }) => {
     const document = await Document.findById(id);
 
     if (document.state.status !== DOCUMENT_STATUSES.pending) {
@@ -138,6 +143,11 @@ const createDocumentService = () => {
       (reviewer) => reviewer.order === currentReviewerOrder + 1
     );
 
+    const nextStatus =
+      action === DOCUMENT_ACTIONS.approve
+        ? DOCUMENT_STATUSES.approved
+        : DOCUMENT_STATUSES.verified;
+
     const newDocument = await Document.findOneAndUpdate(
       {
         _id: id,
@@ -147,15 +157,13 @@ const createDocumentService = () => {
         // if there is no reviewer left,
         // consider the document to be 100% approved
         // by admin dept
-        'state.status': nextReviewer
-          ? DOCUMENT_STATUSES.pending
-          : DOCUMENT_STATUSES.approved,
+        'state.status': nextReviewer ? DOCUMENT_STATUSES.pending : nextStatus,
         'state.currentReviewer': nextReviewer?.userId || null,
         $push: {
           remarks: {
             remarker: user._id,
             content: remark,
-            action: DOCUMENT_ACTIONS.approve,
+            action: action,
             section: document.state.section,
           },
         },
@@ -241,7 +249,12 @@ const createDocumentService = () => {
     return submittedDocument;
   };
 
-  const fadApproveDocument = async ({ id, user, remark }) => {
+  const fadApproveDocument = async ({
+    id,
+    user,
+    remark,
+    action = DOCUMENT_ACTIONS.approve,
+  }) => {
     const document = await Document.findById(id);
 
     if (document.state.status !== DOCUMENT_STATUSES.pending) {
@@ -264,6 +277,11 @@ const createDocumentService = () => {
       (reviewer) => reviewer.order === currentReviewerOrder + 1
     );
 
+    const nextStatus =
+      action === DOCUMENT_ACTIONS.approve
+        ? DOCUMENT_STATUSES.approved
+        : DOCUMENT_STATUSES.verified;
+
     const newDocument = await Document.findOneAndUpdate(
       {
         _id: id,
@@ -273,9 +291,7 @@ const createDocumentService = () => {
         // if there is no reviewer left,
         // consider the document to be 100% approved
         // by fad dept
-        'state.status': nextReviewer
-          ? DOCUMENT_STATUSES.pending
-          : DOCUMENT_STATUSES.approved,
+        'state.status': nextReviewer ? DOCUMENT_STATUSES.pending : nextStatus,
         'state.currentReviewer': nextReviewer?.userId || null,
         $push: {
           remarks: {

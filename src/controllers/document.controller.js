@@ -3,7 +3,10 @@ const {
   documentSections,
   documentActions,
 } = require('../constants');
-const { DOCUMENT_SECTIONS } = require('../constants/document');
+const {
+  DOCUMENT_SECTIONS,
+  DOCUMENT_ACTIONS,
+} = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
@@ -64,6 +67,15 @@ const createDocumentController = () => {
     });
   });
 
+  const adminVerifyDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.adminApproveDocument({
+      id: req.params.id,
+      user: req.user,
+      remark: req.body.remark,
+      action: DOCUMENT_ACTIONS.verify,
+    });
+  });
+
   const adminRejectDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.adminRejectDocument({
       id: req.params.id,
@@ -112,6 +124,15 @@ const createDocumentController = () => {
     sendSuccessResponse({
       res,
       data: document,
+    });
+  });
+
+  const fadVerifyDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.fadApproveDocument({
+      id: req.params.id,
+      user: req.user,
+      remark: req.body.remark,
+      action: DOCUMENT_ACTIONS.verify,
     });
   });
 
@@ -270,8 +291,10 @@ const createDocumentController = () => {
   return {
     createDocument,
     adminApproveDocument,
+    adminVerifyDocument,
     adminRejectDocument,
     fadApproveDocument,
+    fadVerifyDocument,
     fadRejectDocument,
     commentOnDocument,
     submitDocumentToFAD,

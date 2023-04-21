@@ -31,6 +31,7 @@ router.post(
   documentController.createDocument
 );
 
+// TODO: Refactor the routes to be more dynamic
 router.patch(
   '/:id/admin-approve',
   authenticate,
@@ -42,6 +43,15 @@ router.patch(
 
 router.patch(
   '/:id/admin-reject',
+  authenticate,
+  authorize([USER_ROLES.admin, USER_ROLES.executive]),
+  validate(formActionSchema),
+  checkPermissions(DOCUMENT_ACTIONS.verify),
+  documentController.adminVerifyDocument
+);
+
+router.patch(
+  '/:id/admin-verify',
   authenticate,
   authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.admin]),
   validate(formActionSchema),
@@ -56,6 +66,15 @@ router.patch(
   validate(formActionSchema),
   checkPermissions(DOCUMENT_ACTIONS.approve),
   documentController.fadApproveDocument
+);
+
+router.patch(
+  '/:id/fad-verify',
+  authenticate,
+  authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.fad]),
+  validate(formActionSchema),
+  checkPermissions(DOCUMENT_ACTIONS.reject),
+  documentController.fadVerifyDocument
 );
 
 router.patch(
