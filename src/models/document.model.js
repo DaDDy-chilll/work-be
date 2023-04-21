@@ -11,7 +11,7 @@ const {
 
 const Schema = mongoose.Schema;
 
-const assigneeSchema = {
+const reviewerSchema = {
   order: {
     type: Number,
     required: true,
@@ -95,7 +95,7 @@ const documentSchema = new Schema(
         type: String,
         enum: Object.values(DOCUMENT_SECTIONS),
       },
-      currentAssignee: {
+      currentReviewer: {
         type: Schema.Types.ObjectId,
         ref: 'User',
       },
@@ -106,8 +106,8 @@ const documentSchema = new Schema(
       required: true,
     },
 
-    adminAssignees: [assigneeSchema],
-    fadAssignees: [assigneeSchema],
+    adminReviewers: [reviewerSchema],
+    fadReviewers: [reviewerSchema],
   },
   {
     timestamps: true,

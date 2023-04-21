@@ -11,77 +11,26 @@ const documentService = require('../services/document.service');
 const userService = require('../services/user.service');
 
 const helpers = {
-  extractAssigneeIdList: (assignees) => {
-    return assignees.map((assignee) => assignee.userId);
+  extractReviewerIdList: (reviewers) => {
+    return reviewers.map((reviewer) => reviewer.userId);
   },
 };
 
 const createDocumentController = () => {
-  const { extractAssigneeIdList } = helpers;
-
-  /**
-   * @deprecated
-   */
-  const verifyDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.verifyDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document verified.',
-    });
-  });
-
-  /**
-   * @deprecated
-   */
-  const acknowledgeDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.acknowledgeDocument({
-      id: req.params.id,
-      userId: req.user._id,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document acknowledged',
-    });
-  });
-
-  /**
-   * @deprecated
-   */
-  const rejectDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.rejectDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document rejected.',
-    });
-  });
+  const { extractReviewerIdList } = helpers;
 
   const createDocument = catchAsync(async (req, res, next) => {
-    const adminAssigneeIdList = extractAssigneeIdList(req.body.adminAssignees);
+    const adminReviewerIdList = extractReviewerIdList(req.body.adminReviewers);
 
-    const invalidAssignee = await userService.getInvalidAssignee(
-      adminAssigneeIdList,
+    const invalidReviewer = await userService.getInvalidReviewer(
+      adminReviewerIdList,
       DOCUMENT_SECTIONS.admin
     );
 
-    if (invalidAssignee) {
+    if (invalidReviewer) {
       return next(
         ApiError.badRequest(
-          `${invalidAssignee.name} is not eligible to be an admin approval assignee.`
+          `${invalidReviewer.name} is not eligible to be an admin approval reviewer.`
         )
       );
     }
@@ -126,24 +75,24 @@ const createDocumentController = () => {
   });
 
   const submitDocumentToFAD = catchAsync(async (req, res, next) => {
-    const fadAssigneeIdList = extractAssigneeIdList(req.body.fadAssignees);
+    const fadReviewerIdList = extractReviewerIdList(req.body.fadReviewers);
 
-    const invalidAssignee = await userService.getInvalidAssignee(
-      fadAssigneeIdList,
+    const invalidReviewer = await userService.getInvalidReviewer(
+      fadReviewerIdList,
       DOCUMENT_SECTIONS.fad
     );
 
-    if (invalidAssignee) {
+    if (invalidReviewer) {
       return next(
         ApiError.badRequest(
-          `${invalidAssignee.name} is not eligible to be an FAD approval assignee.`
+          `${invalidReviewer.name} is not eligible to be an FAD approval reviewer.`
         )
       );
     }
     const document = await documentService.submitToFAD({
       id: req.params.id,
       user: req.user,
-      assignees: req.body.fadAssignees,
+      reviewers: req.body.fadReviewers,
     });
 
     sendSuccessResponse({
@@ -320,14 +269,11 @@ const createDocumentController = () => {
 
   return {
     createDocument,
-    verifyDocument,
     adminApproveDocument,
     adminRejectDocument,
     fadApproveDocument,
     fadRejectDocument,
     commentOnDocument,
-    rejectDocument,
-    acknowledgeDocument,
     submitDocumentToFAD,
     getRequestedDocuments,
     getMyDocuments,

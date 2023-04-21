@@ -4,7 +4,6 @@ const {
   documentSections,
   documentActions,
 } = require('../constants');
-const document = require('../constants/document');
 const {
   DOCUMENT_STATUSES,
   DOCUMENT_SECTIONS,
@@ -71,76 +70,6 @@ const createDocumentService = () => {
     return filter;
   };
 
-  /**
-   * @deprecated
-   */
-  const verifyDocument = async ({ id, user, remark }) => {
-    const document = await Document.findById(id);
-
-    if (
-      !(
-        document.state.status === documentStatus.pending ||
-        document.state.status === documentStatus.verified
-      )
-    ) {
-      throw ApiError.badRequest('Cannot verify this document.');
-    }
-
-    const newDocument = await Document.findByIdAndUpdate(
-      id,
-      {
-        'state.status': documentStatus.verified,
-        $push: {
-          remarks: {
-            remarker: user._id,
-            content: remark,
-            action: documentActions.verify,
-            section: document.state.section,
-          },
-        },
-      },
-      { new: true }
-    );
-
-    return newDocument;
-  };
-
-  /**
-   * @deprecated
-   */
-  const acknowledgeDocument = async ({ id, user, remark }) => {
-    const document = await Document.findById(id);
-
-    if (!document) {
-      throw _noDocumentError;
-    }
-
-    if (
-      document.state.status !== documentStatus.approved ||
-      document.state.section !== documentSections.fad
-    ) {
-      throw ApiError.badRequest('Cannot acknowledge the form.');
-    }
-
-    const newDocument = await Document.findByIdAndUpdate(
-      id,
-      {
-        'state.status': documentStatus.acknowledged,
-        $push: {
-          remarks: {
-            remarker: user._id,
-            content: remark,
-            action: documentActions.acknowledge,
-            section: document.state.section,
-          },
-        },
-      },
-      { new: true }
-    );
-
-    return newDocument;
-  };
-
   const uploadAttachments = async (files) => {
     if (Array.isArray(files)) {
       const uploadedFiles = await Promise.all(
@@ -163,7 +92,7 @@ const createDocumentService = () => {
   };
 
   const createRequisitionDocument = async (data) => {
-    const sortedAssigneesByOrder = data.adminAssignees.sort(
+    const sortedReviewersByOrder = data.adminReviewers.sort(
       (a, b) => a.order - b.order
     );
 
@@ -172,18 +101,18 @@ const createDocumentService = () => {
       state: {
         status: DOCUMENT_STATUSES.pending,
         section: DOCUMENT_SECTIONS.admin,
-        // Set the first assginee in the list
-        // as the current assignee
-        currentAssignee: sortedAssigneesByOrder[0].userId,
+        // Set the first reviewer in the list
+        // as the current reviewer
+        currentReviewer: sortedReviewersByOrder[0].userId,
       },
     });
   };
 
   /**
-   * - Update state.nextAssignee with next assignee user id
+   * - Update state.nextReviewer with next reviewer user id
    * by checking orders
-   * - update current assignee's hasApproved in adminAssignees
-   * - If there is no next assignee, update the doc state to
+   * - update current reviewer's hasApproved in adminReviewers
+   * - If there is no next reviewer, update the doc state to
    * admin approved.
    */
   const adminApproveDocument = async ({ id, user, remark }) => {
@@ -193,35 +122,35 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Document has already been approved.');
     }
 
-    if (!document.state.currentAssignee.equals(user._id)) {
+    if (!document.state.currentReviewer.equals(user._id)) {
       throw ApiError.badRequest('Not allowed to approve this document.');
     }
 
-    const currentAssigneeOrder = document.adminAssignees.find((assignee) =>
-      assignee.userId.equals(document.state.currentAssignee)
+    const currentReviewerOrder = document.adminReviewers.find((reviewer) =>
+      reviewer.userId.equals(document.state.currentReviewer)
     )?.order;
 
-    if (typeof currentAssigneeOrder === 'undefined') {
-      throw ApiError.badRequest('Current assignee does not exist.');
+    if (typeof currentReviewerOrder === 'undefined') {
+      throw ApiError.badRequest('Current reviewer does not exist.');
     }
 
-    const nextAssignee = document.adminAssignees.find(
-      (assignee) => assignee.order === currentAssigneeOrder + 1
+    const nextReviewer = document.adminReviewers.find(
+      (reviewer) => reviewer.order === currentReviewerOrder + 1
     );
 
     const newDocument = await Document.findOneAndUpdate(
       {
         _id: id,
-        'adminAssignees.userId': user._id,
+        'adminReviewers.userId': user._id,
       },
       {
-        // if there is no assignee left,
+        // if there is no reviewer left,
         // consider the document to be 100% approved
         // by admin dept
-        'state.status': nextAssignee
+        'state.status': nextReviewer
           ? DOCUMENT_STATUSES.pending
           : DOCUMENT_STATUSES.approved,
-        'state.currentAssignee': nextAssignee?.userId || null,
+        'state.currentReviewer': nextReviewer?.userId || null,
         $push: {
           remarks: {
             remarker: user._id,
@@ -231,7 +160,7 @@ const createDocumentService = () => {
           },
         },
         $set: {
-          'adminAssignees.$.hasApproved': true,
+          'adminReviewers.$.hasApproved': true,
         },
       },
       {
@@ -249,7 +178,7 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Cannot reject the document.');
     }
 
-    if (!document.state.currentAssignee.equals(user._id)) {
+    if (!document.state.currentReviewer.equals(user._id)) {
       throw ApiError.badRequest('Cannot reject the document.');
     }
 
@@ -274,36 +203,7 @@ const createDocumentService = () => {
     return newDocument;
   };
 
-  /**
-   * @deprecated
-   */
-  const rejectDocument = async ({ id, user, remark }) => {
-    const document = await Document.findById(id);
-
-    if (document.state.status !== documentStatus.pending) {
-      throw ApiError.badRequest('Cannot reject the form.');
-    }
-
-    const newDocument = await Document.findByIdAndUpdate(
-      id,
-      {
-        'state.status': documentStatus.rejected,
-        $push: {
-          remarks: {
-            remarker: user._id,
-            content: remark,
-            action: documentActions.reject,
-            section: document.state.section,
-          },
-        },
-      },
-      { new: true }
-    );
-
-    return newDocument;
-  };
-
-  const submitToFAD = async ({ id, user, assignees }) => {
+  const submitToFAD = async ({ id, user, reviewers }) => {
     const document = await Document.findById(id);
 
     if (!document) {
@@ -323,7 +223,7 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Cannot submit to FAD yet.');
     }
 
-    const sortedAssigneesByOrder = assignees.sort((a, b) => a.order - b.order);
+    const sortedReviewersByOrder = reviewers.sort((a, b) => a.order - b.order);
 
     const submittedDocument = await Document.findByIdAndUpdate(
       id,
@@ -331,9 +231,9 @@ const createDocumentService = () => {
         state: {
           status: DOCUMENT_STATUSES.pending,
           section: DOCUMENT_SECTIONS.fad,
-          currentAssignee: sortedAssigneesByOrder[0].userId,
+          currentReviewer: sortedReviewersByOrder[0].userId,
         },
-        fadAssignees: sortedAssigneesByOrder,
+        fadReviewers: sortedReviewersByOrder,
       },
       { new: true }
     );
@@ -348,35 +248,35 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Document has already been approved.');
     }
 
-    if (!document.state.currentAssignee.equals(user._id)) {
+    if (!document.state.currentReviewer.equals(user._id)) {
       throw ApiError.badRequest('Not allowed to approve this document.');
     }
 
-    const currentAssigneeOrder = document.fadAssignees.find((assignee) =>
-      assignee.userId.equals(document.state.currentAssignee)
+    const currentReviewerOrder = document.fadReviewers.find((reviewer) =>
+      reviewer.userId.equals(document.state.currentReviewer)
     )?.order;
 
-    if (typeof currentAssigneeOrder === 'undefined') {
-      throw ApiError.badRequest('Current assignee does not exist.');
+    if (typeof currentReviewerOrder === 'undefined') {
+      throw ApiError.badRequest('Current reviewer does not exist.');
     }
 
-    const nextAssignee = document.fadAssignees.find(
-      (assignee) => assignee.order === currentAssigneeOrder + 1
+    const nextReviewer = document.fadReviewers.find(
+      (reviewer) => reviewer.order === currentReviewerOrder + 1
     );
 
     const newDocument = await Document.findOneAndUpdate(
       {
         _id: id,
-        'fadAssignees.userId': user._id,
+        'fadReviewers.userId': user._id,
       },
       {
-        // if there is no assignee left,
+        // if there is no reviewer left,
         // consider the document to be 100% approved
         // by fad dept
-        'state.status': nextAssignee
+        'state.status': nextReviewer
           ? DOCUMENT_STATUSES.pending
           : DOCUMENT_STATUSES.approved,
-        'state.currentAssignee': nextAssignee?.userId || null,
+        'state.currentReviewer': nextReviewer?.userId || null,
         $push: {
           remarks: {
             remarker: user._id,
@@ -386,7 +286,7 @@ const createDocumentService = () => {
           },
         },
         $set: {
-          'fadAssignees.$.hasApproved': true,
+          'fadReviewers.$.hasApproved': true,
         },
       },
       {
@@ -404,7 +304,7 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Cannot reject the document.');
     }
 
-    if (!document.state.currentAssignee.equals(user._id)) {
+    if (!document.state.currentReviewer.equals(user._id)) {
       throw ApiError.badRequest('Cannot reject the document.');
     }
 
@@ -436,7 +336,7 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Document has already been approved.');
     }
 
-    if (document.state.currentAssignee.equals(user._id)) {
+    if (document.state.currentReviewer.equals(user._id)) {
       throw ApiError.badRequest('You are not allowed to comment.');
     }
 
@@ -540,9 +440,6 @@ const createDocumentService = () => {
 
   return {
     createRequisitionDocument,
-    verifyDocument,
-    rejectDocument,
-    acknowledgeDocument,
     getDocumentById,
     getAllDocuments,
     updateDocument,

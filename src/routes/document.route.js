@@ -8,12 +8,7 @@ const createDocumentSchema = require('../schema/createDocument.schema');
 const formActionSchema = require('../schema/formAction.schema');
 const updateDocumentSchema = require('../schema/updateDocument.schema');
 const authorize = require('../middlewares/authorize');
-const {
-  userRoles,
-  documentActions,
-  documentStatus,
-  documentSections,
-} = require('../constants');
+const { userRoles, documentStatus, documentSections } = require('../constants');
 const checkPermissions = require('../middlewares/checkFormPermissions');
 const { upload } = require('../lib/multer');
 const checkParamsId = require('../schema/checkParamsId.schema');

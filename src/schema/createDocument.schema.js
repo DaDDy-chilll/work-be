@@ -8,7 +8,7 @@ const {
 } = require('../constants');
 const { isObjectIdOrHexString } = require('mongoose');
 
-const assigneeSchema = z
+const reviewerSchema = z
   .object({
     userId: z.string().refine(isObjectIdOrHexString, 'Invalid user ID.'),
     order: z.coerce.number().int().nonnegative('Must be a positive order.'),
@@ -46,7 +46,7 @@ const createDocumentSchema = z.object({
           .default(documentSections.admin),
       })
       .optional(),
-    adminAssignees: assigneeSchema,
+    adminReviewers: reviewerSchema,
   }),
 });
 
