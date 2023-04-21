@@ -73,7 +73,7 @@ router.patch(
 );
 
 router.patch(
-  '',
+  '/:id/comment',
   authenticate,
   authorize([USER_ROLES.executive, USER_ROLES.admin, USER_ROLES.fad]),
   validate(formActionSchema),
@@ -151,45 +151,6 @@ router.delete(
   authenticate,
   validate(checkParamsId),
   documentController.deleteDocument
-);
-
-/**
- * The routes below are not necesary anymore.
- * Will delete them soon.
- */
-router.patch(
-  '/:id/verify',
-  authenticate,
-  authorize([
-    userRoles.executive,
-    userRoles.superadmin,
-    userRoles.fad,
-    userRoles.admin,
-  ]),
-  validate(formActionSchema),
-  checkPermissions(documentActions.verify),
-  documentController.verifyDocument
-);
-
-router.patch(
-  '/:id/reject',
-  authenticate,
-  authorize([
-    userRoles.executive,
-    userRoles.superadmin,
-    userRoles.fad,
-    userRoles.admin,
-  ]),
-  validate(formActionSchema),
-  documentController.rejectDocument
-);
-
-router.patch(
-  '/:id/acknowledge',
-  authenticate,
-  authorize([userRoles.executive, userRoles.superadmin, userRoles.fad]),
-  validate(formActionSchema),
-  documentController.acknowledgeDocument
 );
 
 module.exports = router;
