@@ -23,7 +23,8 @@ const createDocumentController = () => {
   const { extractReviewerIdList } = helpers;
 
   const createDocument = catchAsync(async (req, res, next) => {
-    const adminReviewerIdList = extractReviewerIdList(req.body.adminReviewers);
+    const data = JSON.parse(JSON.stringify(req.body));
+    const adminReviewerIdList = extractReviewerIdList(data.adminReviewers);
 
     const invalidReviewer = await userService.getInvalidReviewer(
       adminReviewerIdList,
@@ -40,7 +41,7 @@ const createDocumentController = () => {
 
     const attachments = await documentService.uploadAttachments(req.files);
     const document = await documentService.createRequisitionDocument({
-      ...req.body,
+      ...data,
       requestedBy: req.user._id,
       attachments,
     });

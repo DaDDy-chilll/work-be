@@ -56,7 +56,7 @@ const createUserController = () => {
   const checkApprovalEligibilityForUsers = catchAsync(
     async (req, res, next) => {
       const isValid = await userService.areUsersValidReviewers(
-        req.body.reviewers ? JSON.parse(req.body.reviewers) : [],
+        req.body.reviewers || [],
         req.params.dept
       );
 
