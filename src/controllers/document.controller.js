@@ -189,7 +189,7 @@ const createDocumentController = () => {
     const { documents, total } = await documentService.getAllDocuments({
       query: {
         ...req.query,
-        status: [documentStatus.pending, documentStatus.verified],
+        currentReviewer: req.user.id,
       },
     });
 

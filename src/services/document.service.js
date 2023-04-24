@@ -1,3 +1,4 @@
+const { isObjectIdOrHexString } = require('mongoose');
 const {
   documentStatus,
   userRoles,
@@ -65,6 +66,13 @@ const createDocumentService = () => {
         queryFilter.history.action || documentActions.approve;
       filter['remarks.section'] =
         queryFilter.history.section || documentSections.admin;
+    }
+
+    if (
+      queryFilter.currentReviewer &&
+      isObjectIdOrHexString(queryFilter.currentReviewer)
+    ) {
+      filter['state.currentReviewer'] = queryFilter.currentReviewer;
     }
 
     return filter;

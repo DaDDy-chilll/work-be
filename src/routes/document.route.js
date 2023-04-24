@@ -123,7 +123,11 @@ router.get('/me/fad', authenticate, (req, res) => {
   res.redirect(`/api/documents/me?${params}`);
 });
 
-router.get('/requested', documentController.getRequestedDocuments);
+router.get(
+  ['/requested', 'approval-requested'],
+  authenticate,
+  documentController.getRequestedDocuments
+);
 
 router.get(
   '/fad',
