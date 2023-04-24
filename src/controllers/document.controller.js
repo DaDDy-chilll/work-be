@@ -74,6 +74,12 @@ const createDocumentController = () => {
       remark: req.body.remark,
       action: DOCUMENT_ACTIONS.verify,
     });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Document verified.',
+    });
   });
 
   const adminRejectDocument = catchAsync(async (req, res, next) => {
@@ -124,6 +130,7 @@ const createDocumentController = () => {
     sendSuccessResponse({
       res,
       data: document,
+      message: 'Document approved.',
     });
   });
 
@@ -134,6 +141,12 @@ const createDocumentController = () => {
       remark: req.body.remark,
       action: DOCUMENT_ACTIONS.verify,
     });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Document verified.',
+    });
   });
 
   const fadRejectDocument = catchAsync(async (req, res, next) => {
@@ -143,7 +156,7 @@ const createDocumentController = () => {
       remark: req.body.remark,
     });
 
-    sendSuccessResponse({ res, data: document });
+    sendSuccessResponse({ res, data: document, message: 'Document rejected.' });
   });
 
   const commentOnDocument = catchAsync(async (req, res, next) => {
@@ -153,7 +166,11 @@ const createDocumentController = () => {
       remark: req.body.remark,
     });
 
-    sendSuccessResponse({ res, data: document });
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Commented on document.',
+    });
   });
 
   const updateDocument = catchAsync(async (req, res, next) => {
