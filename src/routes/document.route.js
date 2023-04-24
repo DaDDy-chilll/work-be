@@ -15,6 +15,7 @@ const checkParamsId = require('../schema/checkParamsId.schema');
 const { DOCUMENT_ACTIONS } = require('../constants/document');
 const { USER_ROLES } = require('../constants/user');
 const submitFadDocumentSchema = require('../schema/submitFadDocument.schema');
+const parseBody = require('../middlewares/parseBody');
 
 router.get(
   '/',
@@ -27,6 +28,7 @@ router.post(
   '/',
   authenticate,
   upload.array('attachments'),
+  parseBody,
   validate(createDocumentSchema),
   documentController.createDocument
 );
