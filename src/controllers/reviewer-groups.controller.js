@@ -29,7 +29,11 @@ function createDocumentReviewersController() {
       id: req.params.id,
     });
 
-    return updatedGroup;
+    sendSuccessResponse({
+      res,
+      data: updatedGroup,
+      message: 'Updated successfully',
+    });
   });
 
   return { getReviewersGroup, createReviewerGroup, updateReviewerGroup };
