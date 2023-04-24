@@ -23,6 +23,14 @@ function createDocumentReviewersController() {
     });
   });
 
+  const getGroupById = catchAsync(async (req, res, next) => {
+    const group = await reviewerGroupService.getReviewerGroupById(
+      req.params.id
+    );
+
+    sendSuccessResponse({ res, data: group });
+  });
+
   const updateReviewerGroup = catchAsync(async (req, res, next) => {
     const updatedGroup = await reviewerGroupService.updateReviewerGroup({
       data: req.body,
@@ -36,7 +44,12 @@ function createDocumentReviewersController() {
     });
   });
 
-  return { getReviewersGroup, createReviewerGroup, updateReviewerGroup };
+  return {
+    getReviewersGroup,
+    createReviewerGroup,
+    updateReviewerGroup,
+    getGroupById,
+  };
 }
 
 module.exports = createDocumentReviewersController();

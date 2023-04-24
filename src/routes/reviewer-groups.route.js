@@ -6,6 +6,7 @@ const reviewerGroupsController = require('../controllers/reviewer-groups.control
 const authenticate = require('../middlewares/authenticate');
 const authorize = require('../middlewares/authorize');
 const validate = require('../middlewares/validate');
+const checkParamsId = require('../schema/checkParamsId.schema');
 const createReviewerSchema = require('../schema/createReviewerGroup');
 const updateReviewerGroupSchema = require('../schema/updateReviewerGroupSchema');
 
@@ -18,6 +19,13 @@ router.post(
 );
 
 router.get('/', authenticate, reviewerGroupsController.getReviewersGroup);
+
+router.get(
+  '/:id',
+  authenticate,
+  validate(checkParamsId),
+  reviewerGroupsController.getGroupById
+);
 
 router.patch(
   '/:id',
