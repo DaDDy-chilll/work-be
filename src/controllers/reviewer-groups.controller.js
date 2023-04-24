@@ -23,7 +23,16 @@ function createDocumentReviewersController() {
     });
   });
 
-  return { getReviewersGroup, createReviewerGroup };
+  const updateReviewerGroup = catchAsync(async (req, res, next) => {
+    const updatedGroup = await reviewerGroupService.updateReviewerGroup({
+      data: req.body,
+      id: req.params.id,
+    });
+
+    return updatedGroup;
+  });
+
+  return { getReviewersGroup, createReviewerGroup, updateReviewerGroup };
 }
 
 module.exports = createDocumentReviewersController();
