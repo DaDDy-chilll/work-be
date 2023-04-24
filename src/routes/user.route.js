@@ -11,7 +11,8 @@ const router = require('express').Router();
 router.get(
   '/',
   authenticate,
-  authorize([userRoles.superadmin]),
+  // temporarily disabled for custom reviewers
+  // authorize([userRoles.superadmin]),
   userController.getAllUsers
 );
 
