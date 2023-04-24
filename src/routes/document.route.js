@@ -124,7 +124,7 @@ router.get('/me/fad', authenticate, (req, res) => {
 });
 
 router.get(
-  ['/requested', 'approval-requested'],
+  ['/requested', '/approval-requested'],
   authenticate,
   documentController.getRequestedDocuments
 );
