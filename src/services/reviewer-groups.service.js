@@ -29,11 +29,35 @@ const createReviewersService = () => {
     return await ReviewerGroup.create(data);
   };
 
+  const updateReviewerGroup = async ({ data, id }) => {
+    if (_areOrdersDuplicated(data.reviewers)) {
+      throw ApiError.badRequest('Orders are duplicated.');
+    }
+
+    const group = await ReviewerGroup.findById(id);
+
+    if (!group) {
+      throw ApiError.badRequest('Group does not exist.');
+    }
+
+    group.reviewers = data.reviewers;
+    group.groupName = data.groupName || '';
+
+    await group.save();
+
+    return group;
+  };
+
   const getReviewerGroupById = async (id) => {
     return await ReviewerGroup.findById(id);
   };
 
-  return { getReviewersGroup, createReviewerGroup, getReviewerGroupById };
+  return {
+    getReviewersGroup,
+    createReviewerGroup,
+    getReviewerGroupById,
+    updateReviewerGroup,
+  };
 };
 
 module.exports = createReviewersService();
