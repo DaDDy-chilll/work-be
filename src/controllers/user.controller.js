@@ -53,12 +53,27 @@ const createUserController = () => {
     });
   });
 
+  const checkApprovalEligibilityForUsers = catchAsync(
+    async (req, res, next) => {
+      const isValid = await userService.areUsersValidReviewers(
+        req.body.reviewers,
+        req.params.dept
+      );
+
+      sendSuccessResponse({
+        res,
+        data: isValid,
+      });
+    }
+  );
+
   return {
     getAllUsers,
     getUserById,
     getMe,
     deleteUserById,
     updateUserById,
+    checkApprovalEligibilityForUsers,
   };
 };
 

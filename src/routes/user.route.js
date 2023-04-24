@@ -3,6 +3,7 @@ const userController = require('../controllers/user.controller');
 const authenticate = require('../middlewares/authenticate');
 const authorize = require('../middlewares/authorize');
 const validate = require('../middlewares/validate');
+const checkApprovalEligibilitySchema = require('../schema/checkApprovalEligibility.schema');
 const checkParamsId = require('../schema/checkParamsId.schema');
 const updateUserSchema = require('../schema/updateUser.schema');
 
@@ -40,6 +41,13 @@ router.patch(
   authorize([userRoles.superadmin]),
   validate(updateUserSchema),
   userController.updateUserById
+);
+
+router.post(
+  '/approval-eligibility/:dept',
+  authenticate,
+  // validate(checkApprovalEligibilitySchema),
+  userController.checkApprovalEligibilityForUsers
 );
 
 module.exports = router;
