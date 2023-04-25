@@ -9,7 +9,7 @@ module.exports = z.object({
           .number({ required_error: 'Order is required.' })
           .int()
           .nonnegative('Must be positive number'),
-        userId: z.string().refine(isObjectIdOrHexString),
+        user: z.string().refine(isObjectIdOrHexString),
       })
       .array(),
     groupName: z.string().optional(),

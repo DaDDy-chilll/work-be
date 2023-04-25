@@ -103,6 +103,13 @@ const createUserService = () => {
     return userLists.find((user) => !user.permissions[dept].approve) || null;
   };
 
+  const getValidReviewers = async (dept) => {
+    const users = await User.find({
+      [`permissions.${dept}.approve`]: true,
+    });
+    return { users, total: users.length };
+  };
+
   return {
     getAllUsers,
     getUserById,
@@ -110,6 +117,7 @@ const createUserService = () => {
     updateUserById,
     areUsersValidReviewers,
     getInvalidReviewer,
+    getValidReviewers,
   };
 };
 

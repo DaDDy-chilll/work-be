@@ -67,6 +67,18 @@ const createUserController = () => {
     }
   );
 
+  const getValidReviewers = catchAsync(async (req, res, next) => {
+    const { users, total } = await userService.getValidReviewers(
+      req.params.dept
+    );
+
+    sendSuccessResponse({
+      res,
+      data: users,
+      total,
+    });
+  });
+
   return {
     getAllUsers,
     getUserById,
@@ -74,6 +86,7 @@ const createUserController = () => {
     deleteUserById,
     updateUserById,
     checkApprovalEligibilityForUsers,
+    getValidReviewers,
   };
 };
 

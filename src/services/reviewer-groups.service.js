@@ -17,7 +17,7 @@ const createReviewersService = () => {
   };
 
   const getReviewersGroup = async () => {
-    const groups = await ReviewerGroup.find();
+    const groups = await ReviewerGroup.find().populate('reviewers.user');
     const total = await ReviewerGroup.count();
     return { groups, total };
   };

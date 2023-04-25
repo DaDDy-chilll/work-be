@@ -28,14 +28,12 @@ router.post(
   authenticate,
   upload.array('attachments'),
   function (req, res, next) {
-    console.log(req.body);
     if (typeof req.body.adminReviewers === 'string') {
       req.body.adminReviewers = JSON.parse(req.body.adminReviewers);
     }
     if (typeof req.body.fadReviewers === 'string') {
       req.body.fadReviewers = JSON.parse(req.body.fadReviewers);
     }
-    console.log(req.body);
 
     next();
   },
