@@ -10,7 +10,7 @@ const { isObjectIdOrHexString } = require('mongoose');
 
 const reviewerSchema = z
   .object({
-    userId: z.string().refine(isObjectIdOrHexString, 'Invalid user ID.'),
+    user: z.string().refine(isObjectIdOrHexString, 'Invalid user ID.'),
     order: z.coerce.number().int().nonnegative('Must be a positive order.'),
   })
   .array();

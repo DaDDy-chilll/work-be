@@ -111,7 +111,7 @@ const createDocumentService = () => {
         section: DOCUMENT_SECTIONS.admin,
         // Set the first reviewer in the list
         // as the current reviewer
-        currentReviewer: sortedReviewersByOrder[0].userId,
+        currentReviewer: sortedReviewersByOrder[0].user,
       },
     });
   };
@@ -140,7 +140,7 @@ const createDocumentService = () => {
     }
 
     const currentReviewerOrder = document.adminReviewers.find((reviewer) =>
-      reviewer.userId.equals(document.state.currentReviewer)
+      reviewer.user.equals(document.state.currentReviewer)
     )?.order;
 
     if (typeof currentReviewerOrder === 'undefined') {
@@ -159,14 +159,14 @@ const createDocumentService = () => {
     const newDocument = await Document.findOneAndUpdate(
       {
         _id: id,
-        'adminReviewers.userId': user._id,
+        'adminReviewers.user': user._id,
       },
       {
         // if there is no reviewer left,
         // consider the document to be 100% approved
         // by admin dept
         'state.status': nextReviewer ? DOCUMENT_STATUSES.pending : nextStatus,
-        'state.currentReviewer': nextReviewer?.userId || null,
+        'state.currentReviewer': nextReviewer?.user || null,
         $push: {
           remarks: {
             remarker: user._id,
@@ -247,7 +247,7 @@ const createDocumentService = () => {
         state: {
           status: DOCUMENT_STATUSES.pending,
           section: DOCUMENT_SECTIONS.fad,
-          currentReviewer: sortedReviewersByOrder[0].userId,
+          currentReviewer: sortedReviewersByOrder[0].user,
         },
         fadReviewers: sortedReviewersByOrder,
       },
@@ -274,7 +274,7 @@ const createDocumentService = () => {
     }
 
     const currentReviewerOrder = document.fadReviewers.find((reviewer) =>
-      reviewer.userId.equals(document.state.currentReviewer)
+      reviewer.user.equals(document.state.currentReviewer)
     )?.order;
 
     if (typeof currentReviewerOrder === 'undefined') {
@@ -293,14 +293,14 @@ const createDocumentService = () => {
     const newDocument = await Document.findOneAndUpdate(
       {
         _id: id,
-        'fadReviewers.userId': user._id,
+        'fadReviewers.user': user._id,
       },
       {
         // if there is no reviewer left,
         // consider the document to be 100% approved
         // by fad dept
         'state.status': nextReviewer ? DOCUMENT_STATUSES.pending : nextStatus,
-        'state.currentReviewer': nextReviewer?.userId || null,
+        'state.currentReviewer': nextReviewer?.user || null,
         $push: {
           remarks: {
             remarker: user._id,

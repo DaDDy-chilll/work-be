@@ -15,7 +15,7 @@ const userService = require('../services/user.service');
 
 const helpers = {
   extractReviewerIdList: (reviewers) => {
-    return reviewers.map((reviewer) => reviewer.userId);
+    return reviewers.map((reviewer) => reviewer.user);
   },
 };
 
