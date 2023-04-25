@@ -379,7 +379,10 @@ const createDocumentService = () => {
   const getDocumentById = async ({ id }) => {
     const document = await Document.findById(id)
       .populate('requestedBy')
-      .populate('remarks.remarker');
+      .populate('remarks.remarker')
+      .populate('adminReviewers.user')
+      .populate('fadReviewers.user')
+      .populate('state.currentReviewer');
 
     if (!document) {
       throw _noDocumentError;
