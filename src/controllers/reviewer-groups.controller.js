@@ -44,11 +44,30 @@ function createDocumentReviewersController() {
     });
   });
 
+  const getValidReviewerGroups = catchAsync(async (req, res, next) => {
+    const dept = req.params.dept || 'admin';
+    const { groups } = await reviewerGroupService.getReviewersGroup();
+
+    const filteredGroups = groups.filter((group) =>
+      group.reviewers.some(
+        ({ user }) =>
+          user.permissions[dept].approve && user.permissions[dept].verify
+      )
+    );
+
+    sendSuccessResponse({
+      res,
+      data: filteredGroups,
+      total: filteredGroups.length,
+    });
+  });
+
   return {
     getReviewersGroup,
     createReviewerGroup,
     updateReviewerGroup,
     getGroupById,
+    getValidReviewerGroups,
   };
 }
 

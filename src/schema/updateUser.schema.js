@@ -1,4 +1,3 @@
-const { isObjectIdOrHexString } = require('mongoose');
 const { z } = require('zod');
 const registerUserBodySchema = require('./registerUserBody.schema');
 const userSchemaRefine = require('../helpers/userSchemaRefine');

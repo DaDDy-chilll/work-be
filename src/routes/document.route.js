@@ -15,7 +15,6 @@ const checkParamsId = require('../schema/checkParamsId.schema');
 const { DOCUMENT_ACTIONS } = require('../constants/document');
 const { USER_ROLES } = require('../constants/user');
 const submitFadDocumentSchema = require('../schema/submitFadDocument.schema');
-const parseBody = require('../middlewares/parseBody');
 
 router.get(
   '/',
@@ -28,7 +27,16 @@ router.post(
   '/',
   authenticate,
   upload.array('attachments'),
-  parseBody,
+  function (req, res, next) {
+    if (typeof req.body.adminReviewers === 'string') {
+      req.body.adminReviewers = JSON.parse(req.body.adminReviewers);
+    }
+    if (typeof req.body.fadReviewers === 'string') {
+      req.body.fadReviewers = JSON.parse(req.body.fadReviewers);
+    }
+
+    next();
+  },
   validate(createDocumentSchema),
   documentController.createDocument
 );

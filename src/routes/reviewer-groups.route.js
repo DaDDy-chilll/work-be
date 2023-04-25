@@ -21,6 +21,12 @@ router.post(
 router.get('/', authenticate, reviewerGroupsController.getReviewersGroup);
 
 router.get(
+  '/approval-eligibility/:dept',
+  authenticate,
+  reviewerGroupsController.getValidReviewerGroups
+);
+
+router.get(
   '/:id',
   authenticate,
   validate(checkParamsId),

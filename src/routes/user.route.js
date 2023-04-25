@@ -43,6 +43,12 @@ router.patch(
   userController.updateUserById
 );
 
+router.get(
+  '/approval-eligibility/:dept',
+  authenticate,
+  userController.getValidReviewers
+);
+
 router.post(
   '/approval-eligibility/:dept',
   authenticate,
