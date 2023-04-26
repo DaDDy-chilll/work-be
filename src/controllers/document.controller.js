@@ -1,10 +1,5 @@
 const { isObjectIdOrHexString } = require('mongoose');
 const {
-  documentStatus,
-  documentSections,
-  documentActions,
-} = require('../constants');
-const {
   DOCUMENT_SECTIONS,
   DOCUMENT_ACTIONS,
 } = require('../constants/document');
@@ -61,9 +56,9 @@ const helpers = {
 
     if (params.history) {
       filter['remarks.action'] =
-        params.history.action || documentActions.approve;
+        params.history.action || DOCUMENT_ACTIONS.approve;
       filter['remarks.section'] =
-        params.history.section || documentSections.admin;
+        params.history.section || DOCUMENT_SECTIONS.admin;
     }
 
     if (
@@ -109,6 +104,14 @@ const createDocumentController = () => {
       data: document,
       message: 'Document successfully created.',
     });
+  });
+
+  const invokeAction = catchAsync(async (req, res, next) => {
+    const { id, dept, action } = req.params;
+
+    // TODO: Add action for both admin & fad
+
+    return;
   });
 
   const adminApproveDocument = catchAsync(async (req, res, next) => {
@@ -303,7 +306,7 @@ const createDocumentController = () => {
     const { documents, total } = await documentService.getAllDocuments({
       query: {
         ...req.query,
-        section: documentSections.fad,
+        section: DOCUMENT_SECTIONS.fad,
       },
     });
 
@@ -318,7 +321,7 @@ const createDocumentController = () => {
     const { documents, total } = await documentService.getAllDocuments({
       query: {
         ...req.query,
-        section: documentSections.admin,
+        section: DOCUMENT_SECTIONS.admin,
       },
     });
 
@@ -350,8 +353,8 @@ const createDocumentController = () => {
       query: {
         ...req.query,
         history: {
-          action: documentActions.approve,
-          section: documentSections.admin,
+          action: DOCUMENT_ACTIONS.approve,
+          section: DOCUMENT_SECTIONS.admin,
         },
       },
     });

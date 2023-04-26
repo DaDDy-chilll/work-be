@@ -117,6 +117,68 @@ const createDocumentService = () => {
     });
   };
 
+  const approveDocument = async ({ id, user, remark, dept }) => {
+    const reviewerFieldName =
+      dept === 'admin' ? 'adminReviewers' : 'fadReviewers';
+
+    const document = await Document.findById(id);
+
+    if (document.state.status !== DOCUMENT_STATUSES.pending) {
+      throw ApiError.badRequest(
+        'Document has already been approved or verified.'
+      );
+    }
+
+    if (!document.state.currentReviewer.equals(user._id)) {
+      throw ApiError.badRequest('Not allowed to approve/verify this document.');
+    }
+
+    const currentReviewerOrder = document[reviewerFieldName].find((reviewer) =>
+      reviewer.user.equals(document.state.currentReviewer)
+    )?.order;
+
+    if (typeof currentReviewerOrder === 'undefined') {
+      throw ApiError.badRequest('Current reviewer does not exist.');
+    }
+
+    const nextReviewer = document.adminReviewers.find(
+      (reviewer) => reviewer.order === currentReviewerOrder + 1
+    );
+
+    const nextStatus = DOCUMENT_STATUSES.approved;
+
+    const newDocument = await Document.findOneAndUpdate(
+      {
+        _id: id,
+        [`${reviewerFieldName}.user`]: user._id,
+      },
+      {
+        // if there is no reviewer left,
+        // consider the document to be 100% approved
+        // by admin dept
+        'state.status': nextReviewer ? DOCUMENT_STATUSES.pending : nextStatus,
+        'state.currentReviewer': nextReviewer?.user || null,
+        $push: {
+          remarks: {
+            remarker: user._id,
+            content: remark,
+            action: DOCUMENT_ACTIONS.approve,
+            section: document.state.section,
+          },
+        },
+        $set: {
+          'adminReviewers.$.action': STATUS_ACTION_MAP.approve,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    return newDocument;
+  };
+
   /**
    * - Update state.nextReviewer with next reviewer user id
    * by checking orders
