@@ -1,26 +1,31 @@
 const router = require('express').Router();
 
 const documentController = require('../controllers/document.controller');
+
 const validate = require('../middlewares/validate');
 const authenticate = require('../middlewares/authenticate');
-
-const createDocumentSchema = require('../schema/createDocument.schema');
-const formActionSchema = require('../schema/formAction.schema');
-const updateDocumentSchema = require('../schema/updateDocument.schema');
 const authorize = require('../middlewares/authorize');
-const { userRoles, documentStatus, documentSections } = require('../constants');
 const checkPermissions = require('../middlewares/checkFormPermissions');
+
 const { upload } = require('../lib/multer');
-const checkParamsId = require('../schema/checkParamsId.schema');
-const { DOCUMENT_ACTIONS } = require('../constants/document');
+
+const {
+  DOCUMENT_ACTIONS,
+  DOCUMENT_STATUSES,
+  DOCUMENT_SECTIONS,
+} = require('../constants/document');
 const { USER_ROLES } = require('../constants/user');
-const submitFadDocumentSchema = require('../schema/submitFadDocument.schema');
+
 const {
   GET_DOCUMENTS,
   CREATE_DOCUMENT,
   DOCUMENT_ACTION,
   SUBMIT_TO_FAD,
+  UPDATE_DOCUMENT,
+  DELETE_DOCUMENT,
 } = require('../schema/document.schema');
+const checkParamsId = require('../schema/checkParamsId.schema');
+const parseDocumentPayload = require('../middlewares/parseDocumentPayload');
 
 router.get(
   '/',
@@ -34,16 +39,7 @@ router.post(
   '/',
   authenticate,
   upload.array('attachments'),
-  function (req, res, next) {
-    if (typeof req.body.adminReviewers === 'string') {
-      req.body.adminReviewers = JSON.parse(req.body.adminReviewers);
-    }
-    if (typeof req.body.fadReviewers === 'string') {
-      req.body.fadReviewers = JSON.parse(req.body.fadReviewers);
-    }
-
-    next();
-  },
+  parseDocumentPayload,
   validate(CREATE_DOCUMENT),
   documentController.createDocument
 );
@@ -89,7 +85,7 @@ router.patch(
   '/:id/fad-verify',
   authenticate,
   authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.fad]),
-  validate(formActionSchema),
+  validate(DOCUMENT_ACTION),
   checkPermissions(DOCUMENT_ACTIONS.reject),
   documentController.fadVerifyDocument
 );
@@ -113,8 +109,10 @@ router.patch(
 
 router.post(
   '/fad/:id',
-  validate(SUBMIT_TO_FAD),
   authenticate,
+  upload.none(),
+  parseDocumentPayload,
+  validate(SUBMIT_TO_FAD),
   documentController.submitDocumentToFAD
 );
 
@@ -128,8 +126,8 @@ router.get(
 router.get('/me/admin', authenticate, (req, res) => {
   const params = new URLSearchParams({
     ...req.query,
-    status: documentStatus.approved,
-    section: documentSections.admin,
+    status: DOCUMENT_STATUSES.approved,
+    section: DOCUMENT_SECTIONS.admin,
   }).toString();
 
   res.redirect(`/api/documents/me?${params}`);
@@ -138,8 +136,8 @@ router.get('/me/admin', authenticate, (req, res) => {
 router.get('/me/fad', authenticate, (req, res) => {
   const params = new URLSearchParams({
     ...req.query,
-    status: documentStatus.approved,
-    section: documentSections.fad,
+    status: DOCUMENT_STATUSES.approved,
+    section: DOCUMENT_SECTIONS.fad,
   }).toString();
 
   res.redirect(`/api/documents/me?${params}`);
@@ -148,27 +146,31 @@ router.get('/me/fad', authenticate, (req, res) => {
 router.get(
   ['/requested', '/approval-requested'],
   authenticate,
+  validate(GET_DOCUMENTS),
   documentController.getRequestedDocuments
 );
 
 router.get(
   '/fad',
   authenticate,
-  authorize([userRoles.superadmin, userRoles.executive, userRoles.fad]),
+  authorize([USER_ROLES.superadmin, USER_ROLES.executive, USER_ROLES.fad]),
+  validate(GET_DOCUMENTS),
   documentController.getDocumentsInFADSection
 );
 
 router.get(
   '/admin',
   authenticate,
-  authorize([userRoles.superadmin, userRoles.executive, userRoles.admin]),
+  authorize([USER_ROLES.superadmin, USER_ROLES.executive, USER_ROLES.admin]),
+  validate(GET_DOCUMENTS),
   documentController.getDocumentsInAdminSection
 );
 
 router.get(
   '/admin/approved',
   authenticate,
-  authorize([userRoles.superadmin, userRoles.executive, userRoles.admin]),
+  authorize([USER_ROLES.superadmin, USER_ROLES.executive, USER_ROLES.admin]),
+  validate(GET_DOCUMENTS),
   documentController.getAdminApprovedDocuments
 );
 
@@ -182,14 +184,14 @@ router.get(
 router.patch(
   '/:id',
   authenticate,
-  validate(updateDocumentSchema),
+  validate(UPDATE_DOCUMENT),
   documentController.updateDocument
 );
 
 router.delete(
   '/:id',
   authenticate,
-  validate(checkParamsId),
+  validate(DELETE_DOCUMENT),
   documentController.deleteDocument
 );
 
