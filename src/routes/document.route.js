@@ -65,8 +65,8 @@ router.patch(
   authenticate,
   authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.admin]),
   validate(formActionSchema),
-  checkPermissions(DOCUMENT_ACTIONS.reject),
-  documentController.adminRejectDocument
+  checkPermissions(DOCUMENT_ACTIONS.verify),
+  documentController.adminVerifyDocument
 );
 
 router.patch(
