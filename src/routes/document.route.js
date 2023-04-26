@@ -15,11 +15,18 @@ const checkParamsId = require('../schema/checkParamsId.schema');
 const { DOCUMENT_ACTIONS } = require('../constants/document');
 const { USER_ROLES } = require('../constants/user');
 const submitFadDocumentSchema = require('../schema/submitFadDocument.schema');
+const {
+  GET_DOCUMENTS,
+  CREATE_DOCUMENT,
+  DOCUMENT_ACTION,
+  SUBMIT_TO_FAD,
+} = require('../schema/document.schema');
 
 router.get(
   '/',
   authenticate,
-  authorize([userRoles.superadmin]),
+  authorize([USER_ROLES.superadmin]),
+  validate(GET_DOCUMENTS),
   documentController.getAllDocuments
 );
 
@@ -37,7 +44,7 @@ router.post(
 
     next();
   },
-  validate(createDocumentSchema),
+  validate(CREATE_DOCUMENT),
   documentController.createDocument
 );
 
@@ -46,7 +53,7 @@ router.patch(
   '/:id/admin-approve',
   authenticate,
   authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.admin]),
-  validate(formActionSchema),
+  validate(DOCUMENT_ACTION),
   checkPermissions(DOCUMENT_ACTIONS.approve),
   documentController.adminApproveDocument
 );
@@ -55,7 +62,7 @@ router.patch(
   '/:id/admin-reject',
   authenticate,
   authorize([USER_ROLES.admin, USER_ROLES.executive]),
-  validate(formActionSchema),
+  validate(DOCUMENT_ACTION),
   checkPermissions(DOCUMENT_ACTIONS.verify),
   documentController.adminVerifyDocument
 );
@@ -64,7 +71,7 @@ router.patch(
   '/:id/admin-verify',
   authenticate,
   authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.admin]),
-  validate(formActionSchema),
+  validate(DOCUMENT_ACTION),
   checkPermissions(DOCUMENT_ACTIONS.reject),
   documentController.adminRejectDocument
 );
@@ -73,7 +80,7 @@ router.patch(
   '/:id/fad-approve',
   authenticate,
   authorize([USER_ROLES.executive, USER_ROLES.fad]),
-  validate(formActionSchema),
+  validate(DOCUMENT_ACTION),
   checkPermissions(DOCUMENT_ACTIONS.approve),
   documentController.fadApproveDocument
 );
@@ -91,7 +98,7 @@ router.patch(
   '/:id/fad-reject',
   authenticate,
   authorize([USER_ROLES.executive, USER_ROLES.fad]),
-  validate(formActionSchema),
+  validate(DOCUMENT_ACTION),
   checkPermissions(DOCUMENT_ACTIONS.reject),
   documentController.fadRejectDocument
 );
@@ -100,18 +107,23 @@ router.patch(
   '/:id/comment',
   authenticate,
   authorize([USER_ROLES.executive, USER_ROLES.admin, USER_ROLES.fad]),
-  validate(formActionSchema),
+  validate(DOCUMENT_ACTION),
   documentController.commentOnDocument
 );
 
 router.post(
   '/fad/:id',
-  validate(submitFadDocumentSchema),
+  validate(SUBMIT_TO_FAD),
   authenticate,
   documentController.submitDocumentToFAD
 );
 
-router.get('/me', authenticate, documentController.getMyDocuments);
+router.get(
+  '/me',
+  authenticate,
+  validate(GET_DOCUMENTS),
+  documentController.getMyDocuments
+);
 
 router.get('/me/admin', authenticate, (req, res) => {
   const params = new URLSearchParams({
