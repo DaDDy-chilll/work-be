@@ -17,6 +17,17 @@ module.exports = {
     verified: 'verified',
     acknowledged: 'acknowledged',
   }),
+  STATUS_ACTION_MAP: Object.freeze({
+    pending: 'pending',
+    verified: 'verify',
+    approved: 'approve',
+    acknowledged: 'acknowledge',
+    commented: 'comment',
+    verify: 'verified',
+    approve: 'approved',
+    acknowledge: 'acknowledged',
+    comment: 'commented',
+  }),
   REMARK_ACTIONS: Object.freeze({
     approved: 'approved',
     verified: 'verified',

@@ -9,6 +9,7 @@ const {
   DOCUMENT_STATUSES,
   DOCUMENT_SECTIONS,
   DOCUMENT_ACTIONS,
+  STATUS_ACTION_MAP,
 } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
@@ -176,11 +177,12 @@ const createDocumentService = () => {
           },
         },
         $set: {
-          'adminReviewers.$.hasApproved': true,
+          'adminReviewers.$.action': STATUS_ACTION_MAP[action],
         },
       },
       {
         new: true,
+        runValidators: true,
       }
     );
 
@@ -210,9 +212,13 @@ const createDocumentService = () => {
             section: document.state.section,
           },
         },
+        $set: {
+          'adminReviewers.$.action': 'rejected',
+        },
       },
       {
         new: true,
+        runValidators: true,
       }
     );
 
@@ -251,7 +257,7 @@ const createDocumentService = () => {
         },
         fadReviewers: sortedReviewersByOrder,
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     return submittedDocument;
@@ -310,11 +316,12 @@ const createDocumentService = () => {
           },
         },
         $set: {
-          'fadReviewers.$.hasApproved': true,
+          'fadReviewers.$.action': STATUS_ACTION_MAP[action],
         },
       },
       {
         new: true,
+        runValidators: true,
       }
     );
 
@@ -344,9 +351,13 @@ const createDocumentService = () => {
             section: document.state.section,
           },
         },
+        $set: {
+          'fadReviewers.$.action': 'rejected',
+        },
       },
       {
         new: true,
+        runValidators: true,
       }
     );
 

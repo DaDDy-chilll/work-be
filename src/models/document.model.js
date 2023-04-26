@@ -20,9 +20,10 @@ const reviewerSchema = {
     type: Schema.Types.ObjectId,
     ref: 'User',
   },
-  hasApproved: {
-    type: Boolean,
-    default: false,
+  action: {
+    type: String,
+    enum: ['pending', 'verified', 'approved', 'rejected', 'acknowledge'],
+    default: 'pending',
   },
 };
 
