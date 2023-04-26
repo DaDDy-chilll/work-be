@@ -1,3 +1,4 @@
+const { isObjectIdOrHexString } = require('mongoose');
 const {
   documentStatus,
   documentSections,
@@ -16,6 +17,63 @@ const userService = require('../services/user.service');
 const helpers = {
   extractReviewerIdList: (reviewers) => {
     return reviewers.map((reviewer) => reviewer.user);
+  },
+  extractFilter: (query) => {
+    let { sort, limit, ...params } = query;
+
+    sort = sort || '-createdAt';
+    limit = limit ? parseInt(limit, 10) : 10;
+
+    const filter = {};
+
+    if (params.status) {
+      if (Array.isArray(params.status)) {
+        filter.$or = params.status.map((value) => ({
+          'state.status': value,
+        }));
+      } else {
+        filter['state.status'] = params.status;
+      }
+    }
+
+    if (params.section) {
+      filter['state.section'] = params.section;
+    }
+
+    if (params.amount) {
+      filter.amount = parseInt(params.amount, 10);
+    }
+
+    if (params.amountMin || params.amountMax) {
+      filter.amount = {
+        ...(params.amountMin && {
+          $gte: parseInt(params.amountMin, 10),
+        }),
+        ...(params.amountMax && {
+          $lte: parseInt(params.amountMax, 10),
+        }),
+      };
+    }
+
+    if (params.requestedBy) {
+      filter.requestedBy = params.requestedBy;
+    }
+
+    if (params.history) {
+      filter['remarks.action'] =
+        params.history.action || documentActions.approve;
+      filter['remarks.section'] =
+        params.history.section || documentSections.admin;
+    }
+
+    if (
+      params.currentReviewer &&
+      isObjectIdOrHexString(params.currentReviewer)
+    ) {
+      filter['state.currentReviewer'] = params.currentReviewer;
+    }
+
+    return { sort, limit, filter };
   },
 };
 
