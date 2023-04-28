@@ -58,7 +58,8 @@ const GET_USERS = z.object({
       department: z.string(),
       page: z.coerce.number().int().positive().default(1),
     })
-    .partial(),
+    .partial()
+    .strict(),
 });
 
 module.exports = {
