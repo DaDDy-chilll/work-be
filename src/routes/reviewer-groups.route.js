@@ -7,12 +7,13 @@ const checkParamsId = require('../schema/checkParamsId.schema');
 const createReviewerSchema = require('../schema/createReviewerGroup');
 const updateReviewerGroupSchema = require('../schema/updateReviewerGroupSchema');
 const isSuperadmin = require('../middlewares/is-superadmin');
+const { CREATE_GROUP } = require('../schema/reviewer-group.schema');
 
 router.post(
   '/',
   authenticate,
   isSuperadmin,
-  validate(createReviewerSchema),
+  validate(CREATE_GROUP),
   reviewerGroupsController.createReviewerGroup
 );
 

@@ -23,9 +23,6 @@ const createReviewersService = () => {
   };
 
   const createReviewerGroup = async (data) => {
-    if (_areOrdersDuplicated(data.reviewers)) {
-      throw ApiError.badRequest('Orders are duplicated.');
-    }
     return await ReviewerGroup.create(data);
   };
 

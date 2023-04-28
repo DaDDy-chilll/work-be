@@ -14,8 +14,6 @@ function createDocumentReviewersController() {
   });
 
   const createReviewerGroup = catchAsync(async (req, res, next) => {
-    // TODO: Check if reviewers are valid
-
     const group = await reviewerGroupService.createReviewerGroup(req.body);
     sendSuccessResponse({
       res,

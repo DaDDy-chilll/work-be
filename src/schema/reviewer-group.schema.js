@@ -2,6 +2,7 @@ const { isObjectIdOrHexString } = require('mongoose');
 const { z, ZodIssueCode } = require('zod');
 const _ = require('lodash');
 const checkParamsId = require('./checkParamsId.schema');
+const { DEPARTMENTS } = require('../constants/user');
 
 const BASE_GROUP = z.object({
   body: z.object({
@@ -13,50 +14,96 @@ const BASE_GROUP = z.object({
             .number({ invalid_type_error: 'Order must start from zero.' })
             .int()
             .nonnegative('Order must not be negative.'),
-          reviewer: z
+          user: z
             .string({ required_error: 'Reviewer ID is required.' })
             .refine(isObjectIdOrHexString),
+          department: z.enum(Object.values(DEPARTMENTS), {
+            errorMap: (_issue, _ctx) => ({
+              message: 'Invalid department.',
+            }),
+          }),
+          canEdit: z
+            .boolean({ invalid_type_error: '`canEdit` is invalid' })
+            .optional()
+            .default(false),
+          canPrepare: z
+            .boolean({ invalid_type_error: '`canPrepare` is invalid' })
+            .optional()
+            .default(false),
+          canApprove: z
+            .boolean({ invalid_type_error: '`canApprove` is invalid' })
+            .optional()
+            .default(false),
         })
       )
       // Validate uniqueness
       .refine((reviewers) => {
-        const uniqueReviewers = _.uniq(reviewers);
+        const uniqueReviewers = _.uniqBy(reviewers, function (elem) {
+          // `department + order` makes reviewers order unique in each dept
+          return [elem.department, elem.order].join('_');
+        });
 
         if (uniqueReviewers.length !== reviewers.length) {
           return false;
         }
         return true;
-      }, 'Orders cannot be duplicated.')
+      }, 'Reviewers are duplicated.')
       // validate if reviewers are incrementally ordered (thus +1)
       // and transform the array to be sorted by order
       .transform((reviewers, ctx) => {
-        const sortedReviewers = _.sortBy(reviewers, ['order']);
+        const groupedReviewers = _.groupBy(reviewers, 'department');
 
-        if (sortedReviewers[0]?.order !== 0) {
-          ctx.addIssue({
-            code: ZodIssueCode.custom,
-            message: "Reviewers' order should start from zero",
-          });
-        }
+        const finalReviewers = [];
 
-        // sortedReviewers.length - 1 because we want
-        // to avoid last element
-        for (let i = 0; i < sortedReviewers.length - 1; i++) {
-          const curr = sortedReviewers[i];
-          const next = sortedReviewers[i + 1];
+        _.each(groupedReviewers, (reviewers, group) => {
+          const sortedReviewers = _.sortBy(reviewers, ['order']);
 
-          const diff = next.order - curr.order;
-
-          if (diff !== 1) {
+          if (sortedReviewers[0]?.order !== 0) {
             ctx.addIssue({
               code: ZodIssueCode.custom,
-              message: 'Reviewers are not incrementally ordered.',
+              message: `${group} reviewers' orders should start from zero`,
             });
-            break;
           }
-        }
 
-        return sortedReviewers;
+          // sortedReviewers.length - 1 because we want
+          // to avoid last element
+          for (let i = 0; i < sortedReviewers.length - 1; i++) {
+            const curr = sortedReviewers[i];
+            const next = sortedReviewers[i + 1];
+
+            const diff = next.order - curr.order;
+
+            if (diff !== 1) {
+              ctx.addIssue({
+                code: ZodIssueCode.custom,
+                message: 'Reviewers are not incrementally ordered.',
+              });
+              break;
+            }
+          }
+
+          const [last, ...rest] = [...sortedReviewers].reverse();
+
+          // Verbose `returns` for "readability"
+          if (!last.canApprove) {
+            return ctx.addIssue({
+              code: ZodIssueCode.custom,
+              message: `Last reviewer in ${last.department} must have approval privilege.`,
+            });
+          }
+
+          if (rest.some(({ canApprove }) => canApprove)) {
+            return ctx.addIssue({
+              code: ZodIssueCode.custom,
+              message: `More than one reviewr has approval privilege.`,
+            });
+          }
+
+          // Ungroup the grouped arrays
+          finalReviewers.push(...sortedReviewers);
+        });
+
+        return finalReviewers;
       }),
   }),
 });
