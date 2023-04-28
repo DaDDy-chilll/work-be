@@ -19,7 +19,7 @@ const reviewerGroupSchema = new Schema(
         },
       },
     ],
-    groupName: String,
+    name: String,
   },
   {
     timestamps: true,
