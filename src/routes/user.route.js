@@ -3,9 +3,8 @@ const userController = require('../controllers/user.controller');
 const authenticate = require('../middlewares/authenticate');
 const authorize = require('../middlewares/authorize');
 const validate = require('../middlewares/validate');
-const checkApprovalEligibilitySchema = require('../schema/checkApprovalEligibility.schema');
 const checkParamsId = require('../schema/checkParamsId.schema');
-const updateUserSchema = require('../schema/updateUser.schema');
+const { UPDATE_USER } = require('../schema/user.schema');
 
 const router = require('express').Router();
 
@@ -39,7 +38,7 @@ router.patch(
   '/:id',
   authenticate,
   authorize([userRoles.superadmin]),
-  validate(updateUserSchema),
+  validate(UPDATE_USER),
   userController.updateUserById
 );
 
