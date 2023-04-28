@@ -49,9 +49,22 @@ const UPDATE_PASSWORD = z
   })
   .merge(checkParamsId);
 
+const GET_USERS = z.object({
+  query: z
+    .object({
+      sort: z.string().default('-createdAt'),
+      limit: z.coerce.number().int().positive().default(10),
+      name: z.string(),
+      department: z.string(),
+      page: z.coerce.number().int().positive().default(1),
+    })
+    .partial(),
+});
+
 module.exports = {
   REGISTER_USER,
   LOGIN,
   UPDATE_USER,
   UPDATE_PASSWORD,
+  GET_USERS,
 };

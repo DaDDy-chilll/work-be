@@ -4,17 +4,11 @@ const authenticate = require('../middlewares/authenticate');
 const authorize = require('../middlewares/authorize');
 const validate = require('../middlewares/validate');
 const checkParamsId = require('../schema/checkParamsId.schema');
-const { UPDATE_USER } = require('../schema/user.schema');
+const { UPDATE_USER, GET_USERS } = require('../schema/user.schema');
 
 const router = require('express').Router();
 
-router.get(
-  '/',
-  authenticate,
-  // temporarily disabled for custom reviewers
-  // authorize([userRoles.superadmin]),
-  userController.getAllUsers
-);
+router.get('/', authenticate, validate(GET_USERS), userController.getAllUsers);
 
 router.get('/me', authenticate, userController.getMe);
 

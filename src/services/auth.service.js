@@ -1,10 +1,6 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-
 const ApiError = require('../helpers/apiError');
 const User = require('../models/user.model');
-const { JWT_TOKEN_SECRET } = require('../constants');
-const { verifyPassword, signToken } = require('./helpers/auth.helper');
+const { verifyPassword, signToken } = require('./utils/auth.utils');
 
 const createAuthService = () => {
   const _noUserError = ApiError.badRequest('User does not exist.');
