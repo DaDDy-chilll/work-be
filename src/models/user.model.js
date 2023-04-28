@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const createCustomIdMiddleware = require('../helpers/model-customId-middleware.helper');
-const { USER_ROLES } = require('../constants/user');
+const { USER_ROLES, DEPARTMENTS } = require('../constants/user');
 
 const Schema = mongoose.Schema;
 
@@ -67,10 +67,12 @@ const userSchema = new Schema(
       select: false,
     },
     role: {
+      // deprecated
       type: String,
       enum: Object.values(USER_ROLES),
+      default: USER_ROLES.normal,
     },
-    permissions,
+    permissions, // deprecated
     jobLabel: {
       type: String,
       required: true,
@@ -78,6 +80,15 @@ const userSchema = new Schema(
     approvalAmount: {
       type: Number,
       default: 0,
+    },
+    isSuperadmin: {
+      type: Boolean,
+      default: false,
+    },
+    department: {
+      type: String,
+      enum: Object.values(DEPARTMENTS),
+      default: DEPARTMENTS.OTHER,
     },
   },
   {
