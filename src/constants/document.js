@@ -1,21 +1,24 @@
 module.exports = {
-  PAYMENT_TYPES: Object.freeze({
-    normal: 'normal',
-    advanced: 'advanced',
+  DOCUMENT_TYPES: Object.freeze({
+    EXPENSE: 'EXPENSE',
+    ADVANCE: 'ADVANCE',
   }),
   DOCUMENT_ACTIONS: Object.freeze({
-    verify: 'verify',
-    approve: 'approve',
-    reject: 'reject',
-    acknowledge: 'acknowledge',
-    comment: 'comment',
+    VERIFIED: 'VERIFIED',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+    ACKNOWLEDGED: 'ACKNOWLEDGED',
+    PREPARED: 'PREPARED',
+    EDITED: 'EDITED',
+    SUBMITTED: 'SUBMITTED',
+    REVERSED: 'REVERSED', // Higher level department requests for more info
   }),
   DOCUMENT_STATUSES: Object.freeze({
-    pending: 'pending',
-    approved: 'approved',
-    rejected: 'rejected',
-    verified: 'verified',
-    acknowledged: 'acknowledged',
+    PENDING: 'PENDING',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+    VERIFIED: 'VERIFIED',
+    ACKNOWLEDGED: 'ACKNOWLEDGE',
   }),
   STATUS_ACTION_MAP: Object.freeze({
     pending: 'pending',
