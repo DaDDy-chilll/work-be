@@ -10,11 +10,11 @@ const reviewerGroupSchema = new Schema(
     groupId: { type: String, required: true, unique: true },
     reviewers: [
       {
-        order: {
+        index: {
           type: Number,
           required: true,
         },
-        user: {
+        reviewer: {
           type: Schema.Types.ObjectId,
           ref: 'User',
         },

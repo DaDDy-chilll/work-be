@@ -10,11 +10,11 @@ const BASE_GROUP = z.object({
     reviewers: z
       .array(
         z.object({
-          order: z.coerce
+          index: z.coerce
             .number({ invalid_type_error: 'Order must start from zero.' })
             .int()
             .nonnegative('Order must not be negative.'),
-          user: z
+          reviewer: z
             .string({ required_error: 'Reviewer ID is required.' })
             .refine(isObjectIdOrHexString),
           department: z.enum(Object.values(DEPARTMENTS), {
@@ -39,8 +39,8 @@ const BASE_GROUP = z.object({
       // Validate uniqueness
       .refine((reviewers) => {
         const uniqueReviewers = _.uniqBy(reviewers, function (elem) {
-          // `department + order` makes reviewers order unique in each dept
-          return [elem.department, elem.order].join('_');
+          // `department + index` makes reviewers order unique in each dept
+          return [elem.department, elem.index].join('_');
         });
 
         if (uniqueReviewers.length !== reviewers.length) {
@@ -49,14 +49,14 @@ const BASE_GROUP = z.object({
         return true;
       }, 'Reviewers are duplicated.')
       // validate if reviewers are incrementally ordered (thus +1)
-      // and transform the array to be sorted by order
+      // and transform the array to be sorted by index
       .transform((reviewers, ctx) => {
         const groupedReviewers = _.groupBy(reviewers, 'department');
 
         const finalReviewers = [];
 
         _.each(groupedReviewers, (reviewers, group) => {
-          const sortedReviewers = _.sortBy(reviewers, ['order']);
+          const sortedReviewers = _.sortBy(reviewers, ['index']);
 
           if (sortedReviewers[0]?.order !== 0) {
             ctx.addIssue({
@@ -71,7 +71,7 @@ const BASE_GROUP = z.object({
             const curr = sortedReviewers[i];
             const next = sortedReviewers[i + 1];
 
-            const diff = next.order - curr.order;
+            const diff = next.index - curr.index;
 
             if (diff !== 1) {
               ctx.addIssue({
