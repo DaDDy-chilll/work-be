@@ -87,8 +87,7 @@ const userSchema = new Schema(
     },
     department: {
       type: String,
-      enum: Object.values(DEPARTMENTS),
-      default: DEPARTMENTS.OTHER,
+      required: true,
     },
   },
   {

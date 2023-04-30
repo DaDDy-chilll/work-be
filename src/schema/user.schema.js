@@ -1,5 +1,4 @@
 const { z } = require('zod');
-const { DEPARTMENTS } = require('../constants/user');
 const checkParamsId = require('./checkParamsId.schema');
 
 const BASE_USER = z.object({
@@ -14,11 +13,7 @@ const BASE_USER = z.object({
       .min(8, 'Password must have at least 8 characters.')
       .max(16, 'Password exceeds a maximum of 16 characters.'),
     jobLabel: z.string({ required_error: 'Job label is required.' }),
-    department: z
-      .enum(Object.values(DEPARTMENTS), {
-        errorMap: (_issue, _ctx) => ({ message: 'Invalid department.' }),
-      })
-      .default(DEPARTMENTS.OTHER),
+    department: z.string({ required_error: 'Department is required.' }),
   }),
 });
 

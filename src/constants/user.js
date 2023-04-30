@@ -10,8 +10,7 @@ module.exports = {
     adminSection: ['approve', 'verify', 'reject'],
     fadSection: ['approve', 'reject', 'verify', 'acknowledge'],
   }),
-  DEPARTMENTS: Object.freeze({
-    OTHER: 'OTHER',
+  AUTHORIZED_DEPARTMENTS: Object.freeze({
     OFFICE_ADMIN: 'OFFICE_ADMIN',
     CLINICAL_ADMIN: 'CLINICAL_ADMIN',
     BOM: 'BOM',

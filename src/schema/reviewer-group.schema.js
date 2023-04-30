@@ -2,7 +2,7 @@ const { isObjectIdOrHexString } = require('mongoose');
 const { z, ZodIssueCode } = require('zod');
 const _ = require('lodash');
 const checkParamsId = require('./checkParamsId.schema');
-const { DEPARTMENTS } = require('../constants/user');
+const { AUTHORIZED_DEPARTMENTS: DEPARTMENTS } = require('../constants/user');
 
 const BASE_GROUP = z.object({
   body: z.object({
