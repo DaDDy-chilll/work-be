@@ -1,10 +1,6 @@
 const { z } = require('zod');
 const xss = require('xss');
-const {
-  DOCUMENT_STATUSES,
-  DOCUMENT_SECTIONS,
-  DOCUMENT_TYPES,
-} = require('../constants/document');
+const { DOCUMENT_STATUSES, DOCUMENT_TYPES } = require('../constants/document');
 const { isObjectIdOrHexString } = require('mongoose');
 const checkParamsId = require('./checkParamsId.schema');
 

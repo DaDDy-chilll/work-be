@@ -107,6 +107,11 @@ const documentSchema = new Schema(
         type: Number,
         default: 0,
       },
+      currentDepartment: {
+        type: String,
+        enum: Object.values(AUTHORIZED_DEPARTMENTS),
+        default: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+      },
       list: [
         {
           reviewer: {

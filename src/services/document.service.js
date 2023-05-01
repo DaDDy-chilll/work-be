@@ -101,20 +101,11 @@ const createDocumentService = () => {
   };
 
   const createRequisitionDocument = async (data) => {
-    const sortedReviewersByOrder = data.adminReviewers.sort(
-      (a, b) => a.order - b.order
-    );
+    const document = new Document(data);
 
-    return await Document.create({
-      ...data,
-      state: {
-        status: DOCUMENT_STATUSES.pending,
-        section: DOCUMENT_SECTIONS.admin,
-        // Set the first reviewer in the list
-        // as the current reviewer
-        currentReviewer: sortedReviewersByOrder[0].user,
-      },
-    });
+    await document.save();
+
+    return document;
   };
 
   const approveDocument = async ({ id, user, remark, dept }) => {

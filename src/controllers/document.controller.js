@@ -8,6 +8,8 @@ const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const documentService = require('../services/document.service');
 const userService = require('../services/user.service');
+const historyService = require('../services/history.service');
+const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
 const helpers = {
   extractReviewerIdList: (reviewers) => {
@@ -91,12 +93,27 @@ const createDocumentController = () => {
       );
     }
 
+    const { users: officeAdmins } = await userService.getAllUsers({
+      filter: {
+        department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+      },
+    });
+
     const attachments = await documentService.uploadAttachments(req.files);
     const document = await documentService.createRequisitionDocument({
       ...req.body,
-      requestedBy: req.user._id,
+      requester: req.user._id,
       attachments,
     });
+
+    const history = await historyService.createHistory({
+      actor: req.user._id,
+      department: req.user.department,
+      action: DOCUMENT_ACTIONS.SUBMITTED,
+      document: document._id,
+    });
+
+    document.histories.push(history);
 
     sendSuccessResponse({
       res,
