@@ -44,6 +44,8 @@ router.post(
   documentController.createDocument
 );
 
+router.post('/:id/prepare', authenticate, documentController.prepareDocument);
+
 // TODO: Refactor the routes to be more dynamic
 router.patch(
   '/:id/admin-approve',

@@ -2,6 +2,7 @@ const { isObjectIdOrHexString } = require('mongoose');
 const {
   DOCUMENT_SECTIONS,
   DOCUMENT_ACTIONS,
+  DOCUMENT_STATUSES,
 } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 const catchAsync = require('../helpers/catchAsync');
@@ -78,21 +79,6 @@ const createDocumentController = () => {
   const { extractReviewerIdList } = helpers;
 
   const createDocument = catchAsync(async (req, res, next) => {
-    const adminReviewerIdList = extractReviewerIdList(req.body.adminReviewers);
-
-    const invalidReviewer = await userService.getInvalidReviewer(
-      adminReviewerIdList,
-      DOCUMENT_SECTIONS.admin
-    );
-
-    if (invalidReviewer) {
-      return next(
-        ApiError.badRequest(
-          `${invalidReviewer.name} is not eligible to be an admin approval reviewer.`
-        )
-      );
-    }
-
     const { users: officeAdmins } = await userService.getAllUsers({
       filter: {
         department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
@@ -108,6 +94,7 @@ const createDocumentController = () => {
       ...req.body,
       requester: req.user._id,
       attachments,
+      status: DOCUMENT_STATUSES.PENDING,
       reviewers: {
         list: [
           {
@@ -124,7 +111,7 @@ const createDocumentController = () => {
             department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
             canPrepare: false,
             canEdit: false,
-            canApprove: false,
+            canApprove: true,
           },
         ],
       },
@@ -144,6 +131,31 @@ const createDocumentController = () => {
       code: 201,
       data: document,
       message: 'Document successfully created.',
+    });
+  });
+
+  const prepareDocument = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const document = await documentService.prepareDocument({
+      data: req.body,
+      reviewerId: req.user._id,
+      documentId: id,
+    });
+
+    const history = await historyService.createHistory({
+      actor: req.user._id,
+      action: DOCUMENT_ACTIONS.PREPARED,
+      department: req.user.department,
+      document: document.id,
+    });
+
+    document.histories.push(history);
+
+    sendSuccessResponse({
+      res,
+      code: 201,
+      data: document,
+      message: 'Prepared the document.',
     });
   });
 
@@ -418,6 +430,7 @@ const createDocumentController = () => {
     getDocumentsInFADSection,
     getDocumentsInAdminSection,
     getAdminApprovedDocuments,
+    prepareDocument,
   };
 };
 

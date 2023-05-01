@@ -108,6 +108,44 @@ const createDocumentService = () => {
     return document;
   };
 
+  const prepareDocument = async ({ data, reviewerId, documentId, remark }) => {
+    const document = await Document.findById(documentId);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    const reviewer = document.reviewers.list.find(
+      (item) =>
+        item.reviewer.equals(reviewerId) &&
+        item.index === document.reviewers.currentReviewerIndex &&
+        item.department === document.reviewers.currentDepartment
+    );
+
+    if (!reviewer?.canPrepare) {
+      throw ApiError.badRequest('Cannot prepare the document.');
+    }
+
+    await document.updateOne(
+      {
+        ...data,
+        $inc: {
+          'reviewers.currentReviewerIndex': 1,
+        },
+        $push: {
+          remarks: {
+            ...(remark && { content: remark }),
+            remarker: reviewerId,
+            action: DOCUMENT_ACTIONS.PREPARED,
+          },
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    return document;
+  };
+
   const approveDocument = async ({ id, user, remark, dept }) => {
     const reviewerFieldName =
       dept === 'admin' ? 'adminReviewers' : 'fadReviewers';
@@ -531,6 +569,7 @@ const createDocumentService = () => {
 
   return {
     createRequisitionDocument,
+    prepareDocument,
     getDocumentById,
     getAllDocuments,
     updateDocument,
