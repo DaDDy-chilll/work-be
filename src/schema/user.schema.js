@@ -14,6 +14,12 @@ const BASE_USER = z.object({
       .max(16, 'Password exceeds a maximum of 16 characters.'),
     jobLabel: z.string({ required_error: 'Job label is required.' }),
     department: z.string({ required_error: 'Department is required.' }),
+    permissions: z.object({
+      canApprove: z.boolean().optional().default(true),
+
+      canEdit: z.boolean().optional().default(true),
+      canPrepare: z.boolean().optional().default(true),
+    }),
   }),
 });
 

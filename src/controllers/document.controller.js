@@ -99,11 +99,35 @@ const createDocumentController = () => {
       },
     });
 
+    if (officeAdmins.length < 2) {
+      return next(ApiError.badRequest());
+    }
+
     const attachments = await documentService.uploadAttachments(req.files);
     const document = await documentService.createRequisitionDocument({
       ...req.body,
       requester: req.user._id,
       attachments,
+      reviewers: {
+        list: [
+          {
+            reviewer: officeAdmins[0]._id,
+            index: 0,
+            department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+            canPrepare: true,
+            canEdit: true,
+            canApprove: false,
+          },
+          {
+            reviewer: officeAdmins[1]._id,
+            index: 1,
+            department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+            canPrepare: false,
+            canEdit: false,
+            canApprove: false,
+          },
+        ],
+      },
     });
 
     const history = await historyService.createHistory({
@@ -121,14 +145,6 @@ const createDocumentController = () => {
       data: document,
       message: 'Document successfully created.',
     });
-  });
-
-  const invokeAction = catchAsync(async (req, res, next) => {
-    const { id, dept, action } = req.params;
-
-    // TODO: Add action for both admin & fad
-
-    return;
   });
 
   const adminApproveDocument = catchAsync(async (req, res, next) => {
