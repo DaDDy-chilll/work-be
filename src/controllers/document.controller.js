@@ -187,112 +187,6 @@ const createDocumentController = () => {
     });
   });
 
-  const adminApproveDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.adminApproveDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document approved.',
-    });
-  });
-
-  const adminVerifyDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.adminApproveDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-      action: DOCUMENT_ACTIONS.verify,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document verified.',
-    });
-  });
-
-  const adminRejectDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.adminRejectDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({ res, data: document });
-  });
-
-  const submitDocumentToFAD = catchAsync(async (req, res, next) => {
-    const fadReviewerIdList = extractReviewerIdList(req.body.fadReviewers);
-
-    const invalidReviewer = await userService.getInvalidReviewer(
-      fadReviewerIdList,
-      DOCUMENT_SECTIONS.fad
-    );
-
-    if (invalidReviewer) {
-      return next(
-        ApiError.badRequest(
-          `${invalidReviewer.name} is not eligible to be an FAD approval reviewer.`
-        )
-      );
-    }
-    const document = await documentService.submitToFAD({
-      id: req.params.id,
-      user: req.user,
-      reviewers: req.body.fadReviewers,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Submitted to FAD',
-    });
-  });
-
-  const fadApproveDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.fadApproveDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document approved.',
-    });
-  });
-
-  const fadVerifyDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.fadApproveDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-      action: DOCUMENT_ACTIONS.verify,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document verified.',
-    });
-  });
-
-  const fadRejectDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.fadRejectDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({ res, data: document, message: 'Document rejected.' });
-  });
-
   const commentOnDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.commentOnDocument({
       id: req.params.id,
@@ -443,14 +337,7 @@ const createDocumentController = () => {
     createDocument,
     prepareDocument,
     verifyDocument,
-    adminApproveDocument,
-    adminVerifyDocument,
-    adminRejectDocument,
-    fadApproveDocument,
-    fadVerifyDocument,
-    fadRejectDocument,
     commentOnDocument,
-    submitDocumentToFAD,
     getRequestedDocuments,
     getMyDocuments,
     getAllDocuments,

@@ -2,48 +2,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const createCustomIdMiddleware = require('../helpers/model-customId-middleware.helper');
-const { USER_ROLES, AUTHORIZED_DEPARTMENTS } = require('../constants/user');
+const { USER_ROLES } = require('../constants/user');
 
 const Schema = mongoose.Schema;
-
-const permissions = {
-  admin: {
-    approve: {
-      type: Boolean,
-      default: false,
-    },
-    reject: {
-      type: Boolean,
-      default: false,
-    },
-    verify: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  fad: {
-    approve: {
-      type: Boolean,
-      default: false,
-    },
-    reject: {
-      type: Boolean,
-      default: false,
-    },
-    verify: {
-      type: Boolean,
-      default: false,
-    },
-    acknowledge: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  canSubmit: {
-    type: Boolean,
-    default: true,
-  },
-};
 
 const userSchema = new Schema(
   {
