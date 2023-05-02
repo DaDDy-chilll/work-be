@@ -25,15 +25,19 @@ const BASE_GROUP = z.object({
           canEdit: z
             .boolean({ invalid_type_error: '`canEdit` is invalid' })
             .optional()
-            .default(false),
+            .default(true),
           canPrepare: z
             .boolean({ invalid_type_error: '`canPrepare` is invalid' })
             .optional()
-            .default(false),
+            .default(true),
           canApprove: z
             .boolean({ invalid_type_error: '`canApprove` is invalid' })
             .optional()
             .default(false),
+          canVerify: z
+            .boolean({ invalid_type_error: '`canVerify` is invalid' })
+            .optional()
+            .default(true),
         })
       )
       // Validate uniqueness
@@ -62,6 +66,13 @@ const BASE_GROUP = z.object({
             ctx.addIssue({
               code: ZodIssueCode.custom,
               message: `${group} reviewers' orders should start from zero`,
+            });
+          }
+
+          if (sortedReviewers.length < 2) {
+            ctx.addIssue({
+              code: ZodIssueCode.custom,
+              message: `${group} reviewers must have at least two reviewer.`,
             });
           }
 
@@ -114,7 +125,7 @@ const CREATE_GROUP = z.object({
 
 const UPDATE_GROUP = z
   .object({
-    body: BASE_GROUP.shape.body.strict(),
+    body: BASE_GROUP.shape.body.strict().partial(),
   })
   .merge(checkParamsId);
 

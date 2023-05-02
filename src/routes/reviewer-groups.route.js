@@ -4,10 +4,11 @@ const reviewerGroupsController = require('../controllers/reviewer-groups.control
 const authenticate = require('../middlewares/authenticate');
 const validate = require('../middlewares/validate');
 const checkParamsId = require('../schema/checkParamsId.schema');
-const createReviewerSchema = require('../schema/createReviewerGroup');
-const updateReviewerGroupSchema = require('../schema/updateReviewerGroupSchema');
 const isSuperadmin = require('../middlewares/is-superadmin');
-const { CREATE_GROUP } = require('../schema/reviewer-group.schema');
+const {
+  CREATE_GROUP,
+  UPDATE_GROUP,
+} = require('../schema/reviewer-group.schema');
 
 router.post(
   '/',
@@ -36,7 +37,7 @@ router.patch(
   '/:id',
   authenticate,
   isSuperadmin,
-  validate(updateReviewerGroupSchema),
+  validate(UPDATE_GROUP),
   reviewerGroupsController.updateReviewerGroup
 );
 

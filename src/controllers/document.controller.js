@@ -77,8 +77,6 @@ const helpers = {
 };
 
 const createDocumentController = () => {
-  const { extractReviewerIdList } = helpers;
-
   const createDocument = catchAsync(async (req, res, next) => {
     const { users: officeAdmins } = await userService.getAllUsers({
       filter: {
@@ -105,6 +103,7 @@ const createDocumentController = () => {
             canPrepare: true,
             canEdit: true,
             canApprove: false,
+            canVerify: true,
           },
           {
             reviewer: officeAdmins[1]._id,
@@ -113,6 +112,7 @@ const createDocumentController = () => {
             canPrepare: false,
             canEdit: false,
             canApprove: true,
+            canVerify: false,
           },
         ],
       },

@@ -172,17 +172,6 @@ const createDocumentService = () => {
     return document;
   };
 
-  const assignReviewerGroup = async ({ documentId, list }) => {
-    const document = await Document.findById(documentId);
-
-    document.reviewers.currentReviewerIndex = 0;
-    document.reviewers.list.push([...list]);
-
-    await document.save();
-
-    return document;
-  };
-
   const approveDocument = async ({
     reviewerId,
     document,
