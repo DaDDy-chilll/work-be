@@ -20,6 +20,7 @@ const BASE_USER = z.object({
 
         canEdit: z.boolean().optional().default(true),
         canPrepare: z.boolean().optional().default(true),
+        canVerify: z.boolean().optional().default(true),
       })
       .optional(),
   }),

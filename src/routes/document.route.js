@@ -26,6 +26,7 @@ const {
 } = require('../schema/document.schema');
 const checkParamsId = require('../schema/checkParamsId.schema');
 const parseDocumentPayload = require('../middlewares/parseDocumentPayload');
+const checkDocumentAction = require('../middlewares/check-document-action');
 
 router.get(
   '/',
@@ -44,7 +45,13 @@ router.post(
   documentController.createDocument
 );
 
-router.post('/:id/prepare', authenticate, documentController.prepareDocument);
+router.post(
+  '/:id/prepare',
+  authenticate,
+  validate(checkParamsId),
+  checkDocumentAction,
+  documentController.prepareDocument
+);
 
 // TODO: Refactor the routes to be more dynamic
 router.patch(

@@ -102,6 +102,10 @@ const userSchema = new Schema(
         type: Boolean,
         default: true,
       },
+      canVerify: {
+        type: Boolean,
+        default: true,
+      },
     },
   },
   {

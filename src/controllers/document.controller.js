@@ -135,11 +135,13 @@ const createDocumentController = () => {
   });
 
   const prepareDocument = catchAsync(async (req, res, next) => {
-    const { id } = req.params;
+    const { remark = 'No remark', ...data } = req.body;
     const document = await documentService.prepareDocument({
-      data: req.body,
+      data,
       reviewerId: req.user._id,
-      documentId: id,
+      document: req.document,
+      remark,
+      reviewerPermissions: req.reviewerPermissions,
     });
 
     const history = await historyService.createHistory({
@@ -156,6 +158,32 @@ const createDocumentController = () => {
       code: 201,
       data: document,
       message: 'Prepared the document.',
+    });
+  });
+
+  const verifyDocument = catchAsync(async (req, res, next) => {
+    const { remark } = req.body;
+
+    const document = await documentService.verifyDocument({
+      reviewerId: req.user._id,
+      document: req.document,
+      remark,
+      reviewerPermissions: req.reviewerPermissions,
+    });
+
+    const history = await historyService.createHistory({
+      actor: req.user._id,
+      action: DOCUMENT_ACTIONS.VERIFIED,
+      department: req.user.department,
+      document: document.id,
+    });
+
+    document.histories.push(history);
+
+    sendSuccessResponse({
+      res,
+      data: document,
+      message: 'Verified the document.',
     });
   });
 
@@ -413,6 +441,8 @@ const createDocumentController = () => {
 
   return {
     createDocument,
+    prepareDocument,
+    verifyDocument,
     adminApproveDocument,
     adminVerifyDocument,
     adminRejectDocument,
@@ -430,7 +460,6 @@ const createDocumentController = () => {
     getDocumentsInFADSection,
     getDocumentsInAdminSection,
     getAdminApprovedDocuments,
-    prepareDocument,
   };
 };
 

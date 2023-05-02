@@ -34,6 +34,10 @@ const reviewerGroupSchema = new Schema(
           type: Boolean,
           default: false,
         },
+        canVerify: {
+          type: Boolean,
+          default: true,
+        },
       },
     ],
     name: String,

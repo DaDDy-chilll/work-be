@@ -15,6 +15,7 @@ const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const { uploadFile } = require('../lib/s3');
 const Document = require('../models/document.model');
+const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
 const createDocumentService = () => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
@@ -108,21 +109,14 @@ const createDocumentService = () => {
     return document;
   };
 
-  const prepareDocument = async ({ data, reviewerId, documentId, remark }) => {
-    const document = await Document.findById(documentId);
-
-    if (!document) {
-      throw ApiError.badRequest('Document does not exist.');
-    }
-
-    const reviewer = document.reviewers.list.find(
-      (item) =>
-        item.reviewer.equals(reviewerId) &&
-        item.index === document.reviewers.currentReviewerIndex &&
-        item.department === document.reviewers.currentDepartment
-    );
-
-    if (!reviewer?.canPrepare) {
+  const prepareDocument = async ({
+    data,
+    reviewerId,
+    document,
+    remark,
+    reviewerPermissions,
+  }) => {
+    if (!reviewerPermissions.canPrepare) {
       throw ApiError.badRequest('Cannot prepare the document.');
     }
 
@@ -146,7 +140,76 @@ const createDocumentService = () => {
     return document;
   };
 
-  const approveDocument = async ({ id, user, remark, dept }) => {
+  const verifyDocument = async ({
+    reviewerId,
+    document,
+    remark,
+    reviewerPermissions,
+  }) => {
+    if (!reviewerPermissions.canVerify) {
+      throw ApiError.badRequest('Cannot verify the document.');
+    }
+
+    await document.updateOne(
+      {
+        $inc: {
+          'reviewers.currentReviewerIndex': 1,
+        },
+        $push: {
+          remarks: {
+            ...(remark && { content: remark }),
+            remarker: reviewerId,
+            action: DOCUMENT_ACTIONS.VERIFIED,
+          },
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    return document;
+  };
+
+  const approveDocument = async ({ reviewerId, documentId, remark }) => {
+    const document = await Document.findById(documentId);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    const reviewer = document.reviewers.list.find(
+      (item) =>
+        item.reviewer.equals(reviewerId) &&
+        item.index === document.reviewers.currentReviewerIndex &&
+        item.department === document.reviewers.currentDepartment
+    );
+
+    if (!reviewer?.canApprove) {
+      throw ApiError.badRequest('Cannot approve the document.');
+    }
+
+    if (document.reviewers.currentDepartment === AUTHORIZED_DEPARTMENTS.FAD) {
+      await document.updateOne({
+        status: DOCUMENT_STATUSES.APPROVED,
+      });
+    }
+
+    await document.updateOne(
+      {
+        'reviewers.currentReviewerIndex': 0,
+        'reviewers.currentDepartment': 'jfkds',
+        $push: {
+          remarks: {
+            ...(remark && { content: remark }),
+            remarker: reviewerId,
+            action: DOCUMENT_ACTIONS.APPROVED,
+          },
+        },
+      },
+      { new: true, runValidators: true }
+    );
+  };
+
+  const _approveDocument = async ({ id, user, remark, dept }) => {
     const reviewerFieldName =
       dept === 'admin' ? 'adminReviewers' : 'fadReviewers';
 
@@ -570,6 +633,7 @@ const createDocumentService = () => {
   return {
     createRequisitionDocument,
     prepareDocument,
+    verifyDocument,
     getDocumentById,
     getAllDocuments,
     updateDocument,

@@ -16,4 +16,10 @@ module.exports = {
     BOM: 'BOM',
     FAD: 'FAD',
   }),
+  DEPARTMENT_LEVES: Object.freeze({
+    OFFICE_ADMIN: 0,
+    CLINICAL_ADMIN: 1,
+    BOM: 2,
+    FAD: 3,
+  }),
 };
