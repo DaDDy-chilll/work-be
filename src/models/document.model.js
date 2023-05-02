@@ -135,6 +135,31 @@ const documentSchema = new Schema(
         },
       ],
     },
+    reversals: [
+      {
+        isActive: Boolean,
+        reversedBy: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        reversedByDepartment: String,
+        reviewer: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        acknowledgements: [
+          {
+            user: {
+              type: Schema.Types.ObjectId,
+              hasAcknowledged: {
+                type: Boolean,
+                default: false,
+              },
+            },
+          },
+        ],
+      },
+    ],
 
     adminReviewers: [reviewerSchema], // deprecated
     fadReviewers: [reviewerSchema], // deprecated
