@@ -5,12 +5,11 @@ const documentController = require('../controllers/document.controller');
 const validate = require('../middlewares/validate');
 const authenticate = require('../middlewares/authenticate');
 const authorize = require('../middlewares/authorize');
-const checkPermissions = require('../middlewares/checkFormPermissions');
+const isSuperadmin = require('../middlewares/is-superadmin');
 
 const { upload } = require('../lib/multer');
 
 const {
-  DOCUMENT_ACTIONS,
   DOCUMENT_STATUSES,
   DOCUMENT_SECTIONS,
 } = require('../constants/document');
@@ -20,17 +19,17 @@ const {
   GET_DOCUMENTS,
   CREATE_DOCUMENT,
   DOCUMENT_ACTION,
-  SUBMIT_TO_FAD,
   UPDATE_DOCUMENT,
   DELETE_DOCUMENT,
 } = require('../schema/document.schema');
 const checkParamsId = require('../schema/checkParamsId.schema');
 const parseDocumentPayload = require('../middlewares/parseDocumentPayload');
+const checkDocumentAction = require('../middlewares/check-document-action');
 
 router.get(
   '/',
   authenticate,
-  authorize([USER_ROLES.superadmin]),
+  isSuperadmin,
   validate(GET_DOCUMENTS),
   documentController.getAllDocuments
 );
@@ -44,59 +43,28 @@ router.post(
   documentController.createDocument
 );
 
-// TODO: Refactor the routes to be more dynamic
-router.patch(
-  '/:id/admin-approve',
+router.post(
+  '/:id/prepare',
   authenticate,
-  authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.admin]),
-  validate(DOCUMENT_ACTION),
-  checkPermissions(DOCUMENT_ACTIONS.approve),
-  documentController.adminApproveDocument
+  validate(checkParamsId),
+  checkDocumentAction,
+  documentController.prepareDocument
 );
 
-router.patch(
-  '/:id/admin-reject',
+router.post(
+  '/:id/verify',
   authenticate,
-  authorize([USER_ROLES.admin, USER_ROLES.executive]),
-  validate(DOCUMENT_ACTION),
-  checkPermissions(DOCUMENT_ACTIONS.verify),
-  documentController.adminVerifyDocument
+  validate(checkParamsId),
+  checkDocumentAction,
+  documentController.verifyDocument
 );
 
-router.patch(
-  '/:id/admin-verify',
+router.post(
+  '/:id/approve',
   authenticate,
-  authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.admin]),
-  validate(DOCUMENT_ACTION),
-  checkPermissions(DOCUMENT_ACTIONS.reject),
-  documentController.adminRejectDocument
-);
-
-router.patch(
-  '/:id/fad-approve',
-  authenticate,
-  authorize([USER_ROLES.executive, USER_ROLES.fad]),
-  validate(DOCUMENT_ACTION),
-  checkPermissions(DOCUMENT_ACTIONS.approve),
-  documentController.fadApproveDocument
-);
-
-router.patch(
-  '/:id/fad-verify',
-  authenticate,
-  authorize([USER_ROLES.executive, USER_ROLES.superadmin, USER_ROLES.fad]),
-  validate(DOCUMENT_ACTION),
-  checkPermissions(DOCUMENT_ACTIONS.reject),
-  documentController.fadVerifyDocument
-);
-
-router.patch(
-  '/:id/fad-reject',
-  authenticate,
-  authorize([USER_ROLES.executive, USER_ROLES.fad]),
-  validate(DOCUMENT_ACTION),
-  checkPermissions(DOCUMENT_ACTIONS.reject),
-  documentController.fadRejectDocument
+  // validate(checkParamsId),
+  checkDocumentAction,
+  documentController.approveDocument
 );
 
 router.patch(
@@ -105,15 +73,6 @@ router.patch(
   authorize([USER_ROLES.executive, USER_ROLES.admin, USER_ROLES.fad]),
   validate(DOCUMENT_ACTION),
   documentController.commentOnDocument
-);
-
-router.post(
-  '/fad/:id',
-  authenticate,
-  upload.none(),
-  parseDocumentPayload,
-  validate(SUBMIT_TO_FAD),
-  documentController.submitDocumentToFAD
 );
 
 router.get(

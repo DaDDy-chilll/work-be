@@ -1,10 +1,6 @@
 const { z } = require('zod');
 const xss = require('xss');
-const {
-  DOCUMENT_STATUSES,
-  DOCUMENT_SECTIONS,
-  DOCUMENT_TYPES,
-} = require('../constants/document');
+const { DOCUMENT_STATUSES, DOCUMENT_TYPES } = require('../constants/document');
 const { isObjectIdOrHexString } = require('mongoose');
 const checkParamsId = require('./checkParamsId.schema');
 
@@ -22,9 +18,6 @@ const BASE_DOCUMENT = z.object({
     .default(DOCUMENT_TYPES.EXPENSE),
   amount: z.coerce.number().positive('Invalid amount'),
   description: z.string().transform(xss).optional(),
-  status: z.enum(DOCUMENT_STATUSES, {
-    errorMap: (_issue, _ctx) => ({ message: 'Invalid document status' }),
-  }),
 });
 
 const GET_DOCUMENTS = z.object({

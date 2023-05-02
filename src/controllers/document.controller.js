@@ -2,12 +2,16 @@ const { isObjectIdOrHexString } = require('mongoose');
 const {
   DOCUMENT_SECTIONS,
   DOCUMENT_ACTIONS,
+  DOCUMENT_STATUSES,
 } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const documentService = require('../services/document.service');
 const userService = require('../services/user.service');
+const historyService = require('../services/history.service');
+const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
+const reviewerGroupsService = require('../services/reviewer-groups.service');
 
 const helpers = {
   extractReviewerIdList: (reviewers) => {
@@ -73,30 +77,55 @@ const helpers = {
 };
 
 const createDocumentController = () => {
-  const { extractReviewerIdList } = helpers;
-
   const createDocument = catchAsync(async (req, res, next) => {
-    const adminReviewerIdList = extractReviewerIdList(req.body.adminReviewers);
+    const { users: officeAdmins } = await userService.getAllUsers({
+      filter: {
+        department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+      },
+    });
 
-    const invalidReviewer = await userService.getInvalidReviewer(
-      adminReviewerIdList,
-      DOCUMENT_SECTIONS.admin
-    );
-
-    if (invalidReviewer) {
-      return next(
-        ApiError.badRequest(
-          `${invalidReviewer.name} is not eligible to be an admin approval reviewer.`
-        )
-      );
+    if (officeAdmins.length < 2) {
+      return next(ApiError.badRequest());
     }
 
     const attachments = await documentService.uploadAttachments(req.files);
     const document = await documentService.createRequisitionDocument({
       ...req.body,
-      requestedBy: req.user._id,
+      requester: req.user._id,
       attachments,
+      status: DOCUMENT_STATUSES.PENDING,
+      reviewers: {
+        list: [
+          {
+            reviewer: officeAdmins[0]._id,
+            index: 0,
+            department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+            canPrepare: true,
+            canEdit: true,
+            canApprove: false,
+            canVerify: true,
+          },
+          {
+            reviewer: officeAdmins[1]._id,
+            index: 1,
+            department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+            canPrepare: false,
+            canEdit: false,
+            canApprove: true,
+            canVerify: false,
+          },
+        ],
+      },
     });
+
+    const history = await historyService.createHistory({
+      actor: req.user._id,
+      department: req.user.department,
+      action: DOCUMENT_ACTIONS.SUBMITTED,
+      document: document._id,
+    });
+
+    document.histories.push(history);
 
     sendSuccessResponse({
       res,
@@ -106,118 +135,101 @@ const createDocumentController = () => {
     });
   });
 
-  const invokeAction = catchAsync(async (req, res, next) => {
-    const { id, dept, action } = req.params;
+  const prepareDocument = catchAsync(async (req, res, next) => {
+    const { remark = 'No remark', ...data } = req.body;
+    const document = await documentService.prepareDocument({
+      data,
+      reviewerId: req.user._id,
+      document: req.document,
+      remark,
+      reviewerPermissions: req.reviewerPermissions,
+    });
 
-    // TODO: Add action for both admin & fad
+    const history = await historyService.createHistory({
+      actor: req.user._id,
+      action: DOCUMENT_ACTIONS.PREPARED,
+      department: req.user.department,
+      document: document.id,
+      content: remark,
+    });
 
-    return;
+    document.histories.push(history);
+
+    sendSuccessResponse({
+      res,
+      code: 201,
+      data: document,
+      message: 'Prepared the document.',
+    });
   });
 
-  const adminApproveDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.adminApproveDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
+  const verifyDocument = catchAsync(async (req, res, next) => {
+    const { remark } = req.body;
+
+    const document = await documentService.verifyDocument({
+      reviewerId: req.user._id,
+      document: req.document,
+      remark,
+      reviewerPermissions: req.reviewerPermissions,
     });
+
+    const history = await historyService.createHistory({
+      actor: req.user._id,
+      action: DOCUMENT_ACTIONS.VERIFIED,
+      department: req.user.department,
+      document: document.id,
+      content: remark,
+    });
+
+    document.histories.push(history);
 
     sendSuccessResponse({
       res,
       data: document,
-      message: 'Document approved.',
+      message: 'Verified the document.',
     });
   });
 
-  const adminVerifyDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.adminApproveDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-      action: DOCUMENT_ACTIONS.verify,
-    });
+  const approveDocument = catchAsync(async (req, res, next) => {
+    const { remark, groupId } = req.body;
+    console.log(req.body);
 
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document verified.',
-    });
-  });
+    // office admin must assign a reviewer group in approval
+    let group;
+    if (
+      req.document.reviewers.currentDepartment ===
+      AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN
+    ) {
+      group = await reviewerGroupsService.getReviewerGroupById(groupId);
 
-  const adminRejectDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.adminRejectDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({ res, data: document });
-  });
-
-  const submitDocumentToFAD = catchAsync(async (req, res, next) => {
-    const fadReviewerIdList = extractReviewerIdList(req.body.fadReviewers);
-
-    const invalidReviewer = await userService.getInvalidReviewer(
-      fadReviewerIdList,
-      DOCUMENT_SECTIONS.fad
-    );
-
-    if (invalidReviewer) {
-      return next(
-        ApiError.badRequest(
-          `${invalidReviewer.name} is not eligible to be an FAD approval reviewer.`
-        )
-      );
+      if (!group) {
+        return next(ApiError.badRequest('Group not found.'));
+      }
     }
-    const document = await documentService.submitToFAD({
-      id: req.params.id,
-      user: req.user,
-      reviewers: req.body.fadReviewers,
+
+    const document = await documentService.approveDocument({
+      reviewerId: req.user._id,
+      document: req.document,
+      remark,
+      reviewerPermissions: req.reviewerPermissions,
+      group,
     });
+
+    const history = await historyService.createHistory({
+      actor: req.user._id,
+      action: DOCUMENT_ACTIONS.APPROVED,
+      department: req.user.department,
+      document: document.id,
+      content: remark,
+    });
+
+    document.histories.push(history);
 
     sendSuccessResponse({
       res,
       data: document,
-      message: 'Submitted to FAD',
+      message: 'Approved the document',
     });
-  });
-
-  const fadApproveDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.fadApproveDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document approved.',
-    });
-  });
-
-  const fadVerifyDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.fadApproveDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-      action: DOCUMENT_ACTIONS.verify,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document verified.',
-    });
-  });
-
-  const fadRejectDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.fadRejectDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({ res, data: document, message: 'Document rejected.' });
   });
 
   const commentOnDocument = catchAsync(async (req, res, next) => {
@@ -368,14 +380,10 @@ const createDocumentController = () => {
 
   return {
     createDocument,
-    adminApproveDocument,
-    adminVerifyDocument,
-    adminRejectDocument,
-    fadApproveDocument,
-    fadVerifyDocument,
-    fadRejectDocument,
+    prepareDocument,
+    verifyDocument,
+    approveDocument,
     commentOnDocument,
-    submitDocumentToFAD,
     getRequestedDocuments,
     getMyDocuments,
     getAllDocuments,
