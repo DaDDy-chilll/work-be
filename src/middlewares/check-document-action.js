@@ -27,6 +27,7 @@ module.exports = catchAsync(async (req, res, next) => {
     canApprove: reviewer.canApprove,
     canEdit: reviewer.canEdit,
     canPrepare: reviewer.canPrepare,
+    canVerify: reviewer.canVerify,
   };
 
   next();

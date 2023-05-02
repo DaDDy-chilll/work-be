@@ -18,7 +18,10 @@ module.exports = {
     APPROVED: 'APPROVED',
     REJECTED: 'REJECTED',
     VERIFIED: 'VERIFIED',
-    ACKNOWLEDGED: 'ACKNOWLEDGE',
+    REVERSED: 'REVERSED',
+    ACKNOWLEDGED: 'ACKNOWLEDGED',
+    EDITED: 'EDITED',
+    PREPARED: 'PREPARED',
   }),
   STATUS_ACTION_MAP: Object.freeze({
     pending: 'pending',

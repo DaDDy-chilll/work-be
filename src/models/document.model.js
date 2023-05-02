@@ -131,6 +131,7 @@ const documentSchema = new Schema(
           canPrepare: Boolean,
           canEdit: Boolean,
           canApprove: Boolean,
+          canVerify: Boolean,
         },
       ],
     },

@@ -5,6 +5,7 @@ const documentController = require('../controllers/document.controller');
 const validate = require('../middlewares/validate');
 const authenticate = require('../middlewares/authenticate');
 const authorize = require('../middlewares/authorize');
+const isSuperadmin = require('../middlewares/is-superadmin');
 
 const { upload } = require('../lib/multer');
 
@@ -28,7 +29,7 @@ const checkDocumentAction = require('../middlewares/check-document-action');
 router.get(
   '/',
   authenticate,
-  authorize([USER_ROLES.superadmin]),
+  isSuperadmin,
   validate(GET_DOCUMENTS),
   documentController.getAllDocuments
 );
@@ -56,6 +57,14 @@ router.post(
   validate(checkParamsId),
   checkDocumentAction,
   documentController.verifyDocument
+);
+
+router.post(
+  '/:id/approve',
+  authenticate,
+  // validate(checkParamsId),
+  checkDocumentAction,
+  documentController.approveDocument
 );
 
 router.patch(

@@ -58,7 +58,7 @@ const BASE_GROUP = z.object({
         _.each(groupedReviewers, (reviewers, group) => {
           const sortedReviewers = _.sortBy(reviewers, ['index']);
 
-          if (sortedReviewers[0]?.order !== 0) {
+          if (sortedReviewers[0]?.index !== 0) {
             ctx.addIssue({
               code: ZodIssueCode.custom,
               message: `${group} reviewers' orders should start from zero`,

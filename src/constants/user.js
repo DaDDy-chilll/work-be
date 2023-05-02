@@ -16,10 +16,14 @@ module.exports = {
     BOM: 'BOM',
     FAD: 'FAD',
   }),
-  DEPARTMENT_LEVES: Object.freeze({
+  DEPARTMENT_LEVELS: Object.freeze({
     OFFICE_ADMIN: 0,
     CLINICAL_ADMIN: 1,
     BOM: 2,
     FAD: 3,
+    0: 'OFFICE_ADMIN',
+    1: 'CLINICAL_ADMIN',
+    2: 'BOM',
+    3: 'FAD',
   }),
 };
