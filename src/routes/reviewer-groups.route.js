@@ -1,20 +1,20 @@
 const router = require('express').Router();
 
-const { userRoles } = require('../constants');
-const { USER_ROLES } = require('../constants/user');
 const reviewerGroupsController = require('../controllers/reviewer-groups.controller');
 const authenticate = require('../middlewares/authenticate');
-const authorize = require('../middlewares/authorize');
 const validate = require('../middlewares/validate');
 const checkParamsId = require('../schema/checkParamsId.schema');
-const createReviewerSchema = require('../schema/createReviewerGroup');
-const updateReviewerGroupSchema = require('../schema/updateReviewerGroupSchema');
+const isSuperadmin = require('../middlewares/is-superadmin');
+const {
+  CREATE_GROUP,
+  UPDATE_GROUP,
+} = require('../schema/reviewer-group.schema');
 
 router.post(
   '/',
   authenticate,
-  authorize([userRoles.superadmin]),
-  validate(createReviewerSchema),
+  isSuperadmin,
+  validate(CREATE_GROUP),
   reviewerGroupsController.createReviewerGroup
 );
 
@@ -36,8 +36,8 @@ router.get(
 router.patch(
   '/:id',
   authenticate,
-  authorize([USER_ROLES.superadmin]),
-  validate(updateReviewerGroupSchema),
+  isSuperadmin,
+  validate(UPDATE_GROUP),
   reviewerGroupsController.updateReviewerGroup
 );
 

@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const createCustomIdMiddlware = require('../helpers/model-customId-middleware.helper');
 
 const {
-  DOCUMENT_SECTIONS,
-  PAYMENT_TYPES,
+  DOCUMENT_TYPES,
   DOCUMENT_STATUSES,
   DOCUMENT_ACTIONS,
 } = require('../constants/document');
+const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
 const Schema = mongoose.Schema;
 
@@ -38,10 +38,10 @@ const documentSchema = new Schema(
       type: String,
       required: true,
     },
-    paymentType: {
+    type: {
       type: String,
       required: true,
-      enum: Object.values(PAYMENT_TYPES),
+      enum: Object.values(DOCUMENT_TYPES),
     },
     amount: {
       type: Number,
@@ -59,6 +59,11 @@ const documentSchema = new Schema(
       type: String,
       required: true,
     },
+    isCaseClosed: {
+      type: Boolean,
+      default: false,
+    },
+
     remarks: [
       {
         content: {
@@ -74,41 +79,65 @@ const documentSchema = new Schema(
           required: true,
           enum: Object.values(DOCUMENT_ACTIONS),
         },
-        section: {
-          type: String,
-          required: true,
-          enum: Object.values(DOCUMENT_SECTIONS),
-        },
         date: {
           type: Date,
           default: Date.now(),
         },
       },
     ],
-    state: {
-      status: {
-        type: String,
-        required: true,
-        enum: Object.values(DOCUMENT_STATUSES),
-        default: DOCUMENT_STATUSES.pending,
-      },
-      section: {
-        type: String,
-        enum: Object.values(DOCUMENT_SECTIONS),
-      },
-      currentReviewer: {
+    histories: [
+      {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'History',
       },
+    ],
+    status: {
+      type: String,
+      enum: Object.values(DOCUMENT_STATUSES),
+      default: DOCUMENT_STATUSES.PENDING,
     },
-    requestedBy: {
+    requester: {
       type: mongoose.Types.ObjectId,
       ref: 'User',
       required: true,
     },
 
-    adminReviewers: [reviewerSchema],
-    fadReviewers: [reviewerSchema],
+    reviewers: {
+      currentReviewerIndex: {
+        type: Number,
+        default: 0,
+      },
+      currentDepartment: {
+        type: String,
+        enum: Object.values(AUTHORIZED_DEPARTMENTS),
+        default: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+      },
+      list: [
+        {
+          reviewer: {
+            type: Schema.Types.ObjectId,
+            required: true,
+            ref: 'User',
+          },
+          index: {
+            type: Number,
+            required: true,
+          },
+          department: {
+            type: String,
+            required: true,
+            enum: Object.values(AUTHORIZED_DEPARTMENTS),
+          },
+          canPrepare: Boolean,
+          canEdit: Boolean,
+          canApprove: Boolean,
+          canVerify: Boolean,
+        },
+      ],
+    },
+
+    adminReviewers: [reviewerSchema], // deprecated
+    fadReviewers: [reviewerSchema], // deprecated
   },
   {
     timestamps: true,

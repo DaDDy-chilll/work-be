@@ -15,6 +15,10 @@ const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const { uploadFile } = require('../lib/s3');
 const Document = require('../models/document.model');
+const {
+  AUTHORIZED_DEPARTMENTS,
+  DEPARTMENT_LEVELS,
+} = require('../constants/user');
 
 const createDocumentService = () => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
@@ -101,154 +105,124 @@ const createDocumentService = () => {
   };
 
   const createRequisitionDocument = async (data) => {
-    const sortedReviewersByOrder = data.adminReviewers.sort(
-      (a, b) => a.order - b.order
-    );
+    const document = new Document(data);
 
-    return await Document.create({
-      ...data,
-      state: {
-        status: DOCUMENT_STATUSES.pending,
-        section: DOCUMENT_SECTIONS.admin,
-        // Set the first reviewer in the list
-        // as the current reviewer
-        currentReviewer: sortedReviewersByOrder[0].user,
-      },
-    });
+    await document.save();
+
+    return document;
   };
 
-  const approveDocument = async ({ id, user, remark, dept }) => {
-    const reviewerFieldName =
-      dept === 'admin' ? 'adminReviewers' : 'fadReviewers';
-
-    const document = await Document.findById(id);
-
-    if (document.state.status !== DOCUMENT_STATUSES.pending) {
-      throw ApiError.badRequest(
-        'Document has already been approved or verified.'
-      );
-    }
-
-    if (!document.state.currentReviewer.equals(user._id)) {
-      throw ApiError.badRequest('Not allowed to approve/verify this document.');
-    }
-
-    const currentReviewerOrder = document[reviewerFieldName].find((reviewer) =>
-      reviewer.user.equals(document.state.currentReviewer)
-    )?.order;
-
-    if (typeof currentReviewerOrder === 'undefined') {
-      throw ApiError.badRequest('Current reviewer does not exist.');
-    }
-
-    const nextReviewer = document.adminReviewers.find(
-      (reviewer) => reviewer.order === currentReviewerOrder + 1
-    );
-
-    const nextStatus = DOCUMENT_STATUSES.approved;
-
-    const newDocument = await Document.findOneAndUpdate(
-      {
-        _id: id,
-        [`${reviewerFieldName}.user`]: user._id,
-      },
-      {
-        // if there is no reviewer left,
-        // consider the document to be 100% approved
-        // by admin dept
-        'state.status': nextReviewer ? DOCUMENT_STATUSES.pending : nextStatus,
-        'state.currentReviewer': nextReviewer?.user || null,
-        $push: {
-          remarks: {
-            remarker: user._id,
-            content: remark,
-            action: DOCUMENT_ACTIONS.approve,
-            section: document.state.section,
-          },
-        },
-        $set: {
-          'adminReviewers.$.action': STATUS_ACTION_MAP.approve,
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
-    return newDocument;
-  };
-
-  /**
-   * - Update state.nextReviewer with next reviewer user id
-   * by checking orders
-   * - update current reviewer's hasApproved in adminReviewers
-   * - If there is no next reviewer, update the doc state to
-   * admin approved.
-   */
-  const adminApproveDocument = async ({
-    id,
-    user,
+  const prepareDocument = async ({
+    data,
+    reviewerId,
+    document,
     remark,
-    action = DOCUMENT_ACTIONS.approve,
+    reviewerPermissions,
   }) => {
-    const document = await Document.findById(id);
-
-    if (document.state.status !== DOCUMENT_STATUSES.pending) {
-      throw ApiError.badRequest('Document has already been approved.');
+    if (!reviewerPermissions.canPrepare) {
+      throw ApiError.badRequest('Cannot prepare the document.');
     }
 
-    if (!document.state.currentReviewer.equals(user._id)) {
-      throw ApiError.badRequest('Not allowed to approve this document.');
-    }
-
-    const currentReviewerOrder = document.adminReviewers.find((reviewer) =>
-      reviewer.user.equals(document.state.currentReviewer)
-    )?.order;
-
-    if (typeof currentReviewerOrder === 'undefined') {
-      throw ApiError.badRequest('Current reviewer does not exist.');
-    }
-
-    const nextReviewer = document.adminReviewers.find(
-      (reviewer) => reviewer.order === currentReviewerOrder + 1
-    );
-
-    const nextStatus =
-      action === DOCUMENT_ACTIONS.approve
-        ? DOCUMENT_STATUSES.approved
-        : DOCUMENT_STATUSES.verified;
-
-    const newDocument = await Document.findOneAndUpdate(
+    await document.updateOne(
       {
-        _id: id,
-        'adminReviewers.user': user._id,
-      },
-      {
-        // if there is no reviewer left,
-        // consider the document to be 100% approved
-        // by admin dept
-        'state.status': nextReviewer ? DOCUMENT_STATUSES.pending : nextStatus,
-        'state.currentReviewer': nextReviewer?.user || null,
+        ...data,
+        $inc: {
+          'reviewers.currentReviewerIndex': 1,
+        },
         $push: {
           remarks: {
-            remarker: user._id,
-            content: remark,
-            action: action,
-            section: document.state.section,
+            ...(remark && { content: remark }),
+            remarker: reviewerId,
+            action: DOCUMENT_ACTIONS.PREPARED,
           },
         },
-        $set: {
-          'adminReviewers.$.action': STATUS_ACTION_MAP[action],
-        },
       },
-      {
-        new: true,
-        runValidators: true,
-      }
+      { new: true, runValidators: true }
     );
 
-    return newDocument;
+    return document;
+  };
+
+  const verifyDocument = async ({
+    reviewerId,
+    document,
+    remark,
+    reviewerPermissions,
+  }) => {
+    if (!reviewerPermissions.canVerify) {
+      throw ApiError.badRequest('Cannot verify the document.');
+    }
+
+    await document.updateOne(
+      {
+        $inc: {
+          'reviewers.currentReviewerIndex': 1,
+        },
+        $push: {
+          remarks: {
+            ...(remark && { content: remark }),
+            remarker: reviewerId,
+            action: DOCUMENT_ACTIONS.VERIFIED,
+          },
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    return document;
+  };
+
+  const approveDocument = async ({
+    reviewerId,
+    document,
+    remark,
+    reviewerPermissions,
+    group,
+  }) => {
+    if (!reviewerPermissions.canApprove) {
+      throw ApiError.badRequest('Cannot approve the document.');
+    }
+
+    const isCurrentFAD =
+      document.reviewers.currentDepartment === AUTHORIZED_DEPARTMENTS.FAD;
+
+    let nextDepartment;
+
+    if (!isCurrentFAD) {
+      const currentLevel =
+        DEPARTMENT_LEVELS[document.reviewers.currentDepartment];
+
+      nextDepartment = DEPARTMENT_LEVELS[currentLevel + 1];
+    }
+
+    await document.updateOne(
+      {
+        ...(!isCurrentFAD && {
+          'reviewers.currentDepartment': nextDepartment,
+          'reviewers.currentReviewerIndex': 0,
+        }),
+        ...(isCurrentFAD && {
+          status: DOCUMENT_STATUSES.APPROVED,
+        }),
+        $push: {
+          remarks: {
+            ...(remark && { content: remark }),
+            remarker: reviewerId,
+            action: DOCUMENT_ACTIONS.APPROVED,
+          },
+        },
+        ...(group && {
+          $push: {
+            'reviewers.list': {
+              $each: group.reviewers,
+            },
+          },
+        }),
+      },
+      { new: true, runValidators: true }
+    );
+
+    return document;
   };
 
   const adminRejectDocument = async ({ id, user, remark }) => {
@@ -477,8 +451,7 @@ const createDocumentService = () => {
       .sort(sort)
       .skip(skip)
       .limit(limit)
-      .populate('requestedBy')
-      .populate('remarks.remarker');
+      .populate('requester');
 
     return { total, documents };
   };
@@ -540,6 +513,9 @@ const createDocumentService = () => {
 
   return {
     createRequisitionDocument,
+    prepareDocument,
+    verifyDocument,
+    approveDocument,
     getDocumentById,
     getAllDocuments,
     updateDocument,
@@ -547,7 +523,6 @@ const createDocumentService = () => {
     submitToFAD,
     getAdminApprovedDocuments,
     uploadAttachments,
-    adminApproveDocument,
     adminRejectDocument,
     fadApproveDocument,
     fadRejectDocument,

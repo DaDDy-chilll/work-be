@@ -1,12 +1,24 @@
 const { z } = require('zod');
 const xss = require('xss');
-const {
-  DOCUMENT_STATUSES,
-  DOCUMENT_SECTIONS,
-  PAYMENT_TYPES,
-} = require('../constants/document');
+const { DOCUMENT_STATUSES, DOCUMENT_TYPES } = require('../constants/document');
 const { isObjectIdOrHexString } = require('mongoose');
 const checkParamsId = require('./checkParamsId.schema');
+
+const BASE_DOCUMENT = z.object({
+  name: z
+    .string()
+    .min(2, 'Name must have at least 2 characters.')
+    .max(50, 'Name must have at most 50 characters.'),
+  type: z
+    .enum(Object.values(DOCUMENT_TYPES), {
+      errorMap: (_issue, _ctx) => {
+        return { message: 'Invalid document type.' };
+      },
+    })
+    .default(DOCUMENT_TYPES.EXPENSE),
+  amount: z.coerce.number().positive('Invalid amount'),
+  description: z.string().transform(xss).optional(),
+});
 
 const GET_DOCUMENTS = z.object({
   query: z
@@ -20,7 +32,6 @@ const GET_DOCUMENTS = z.object({
       status: z
         .enum(Object.values(DOCUMENT_STATUSES))
         .or(z.array(z.enum(Object.values(DOCUMENT_STATUSES)))),
-      section: z.enum(Object.values(DOCUMENT_SECTIONS)),
       amount: z.coerce.number().nonnegative(),
       amountMin: z.coerce.number().nonnegative(),
       amountMax: z.coerce.number().nonnegative(),
@@ -38,43 +49,7 @@ const GET_DOCUMENTS = z.object({
 });
 
 const CREATE_DOCUMENT = z.object({
-  body: z.object({
-    name: z
-      .string()
-      .min(2, 'Name must have at least 2 characters.')
-      .max(50, 'Name must have at most 50 characters.'),
-    paymentType: z
-      .enum(Object.values(PAYMENT_TYPES), {
-        errorMap: (_issue, _ctx) => {
-          return { message: 'Invalid document type.' };
-        },
-      })
-      .default(PAYMENT_TYPES.normal),
-    amount: z.coerce.number().positive('Invalid amount'),
-    description: z.string().transform(xss).optional(),
-    state: z
-      .object({
-        status: z
-          .enum(Object.values(DOCUMENT_STATUSES), {
-            errorMap: (_issue, _ctx) => ({
-              message: 'Invalid document status.',
-            }),
-          })
-          .default(DOCUMENT_STATUSES.pending),
-        section: z
-          .enum(Object.values(DOCUMENT_SECTIONS), {
-            errorMap: (_issue, _ctx) => ({ message: 'Invalid section.' }),
-          })
-          .default(DOCUMENT_SECTIONS.admin),
-      })
-      .optional(),
-    adminReviewers: z
-      .object({
-        user: z.string().refine(isObjectIdOrHexString, 'Invalid user ID.'),
-        order: z.coerce.number().int().nonnegative('Must be a positive order.'),
-      })
-      .array(),
-  }),
+  body: BASE_DOCUMENT.strict(),
 });
 
 const DELETE_DOCUMENT = checkParamsId;
@@ -112,14 +87,7 @@ const SUBMIT_TO_FAD = z.object({
 
 const UPDATE_DOCUMENT = z
   .object({
-    body: CREATE_DOCUMENT.shape.body
-      .pick({
-        name: true,
-        description: true,
-        amount: true,
-      })
-      .strict()
-      .partial(),
+    body: BASE_DOCUMENT.omit({ status: true }).partial(),
   })
   .merge(checkParamsId);
 

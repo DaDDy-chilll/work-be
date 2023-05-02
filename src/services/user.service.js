@@ -1,33 +1,11 @@
 const { userRoles } = require('../constants');
 const ApiError = require('../helpers/apiError');
-const getQuery = require('../helpers/getQuery');
 const User = require('../models/user.model');
 
 const createUserService = () => {
   const _noUserError = ApiError.badRequest('User does not exist.');
 
-  const _getFilterForGetAllUsers = ({ queryFilter }) => {
-    const filter = {};
-
-    if (queryFilter.name) {
-      filter.name = {
-        $regex: queryFilter.name,
-        $options: 'i',
-      };
-    }
-
-    if (queryFilter.role) {
-      filter.role = queryFilter.role;
-    }
-
-    return filter;
-  };
-
-  const getAllUsers = async ({ query }) => {
-    const { skip, limit, sort, queryFilter } = getQuery(query);
-
-    const filter = _getFilterForGetAllUsers({ queryFilter });
-
+  const getAllUsers = async ({ filter, sort, skip, limit }) => {
     const total = await User.count(filter);
 
     const users = await User.find(filter).sort(sort).skip(skip).limit(limit);

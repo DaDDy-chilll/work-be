@@ -2,28 +2,29 @@ const router = require('express').Router();
 
 const validate = require('../middlewares/validate');
 const authController = require('../controllers/auth.controller');
-const registerUserSchema = require('../schema/registerUser.schema');
-const loginUserSchema = require('../schema/loginUser.schema');
 const authenticate = require('../middlewares/authenticate');
-const authorize = require('../middlewares/authorize');
-const { userRoles } = require('../constants');
-const updatePasswordSchema = require('../schema/updatePassword.schema');
+const {
+  REGISTER_USER,
+  LOGIN,
+  UPDATE_PASSWORD,
+} = require('../schema/user.schema');
+const isSuperadmin = require('../middlewares/is-superadmin');
 
 router.post(
   '/register',
   authenticate,
-  authorize([userRoles.superadmin]),
-  validate(registerUserSchema),
+  isSuperadmin,
+  validate(REGISTER_USER),
   authController.register
 );
 
-router.post('/login', validate(loginUserSchema), authController.login);
+router.post('/login', validate(LOGIN), authController.login);
 
 router.patch(
   '/password/:id',
   authenticate,
-  authorize([userRoles.superadmin]),
-  validate(updatePasswordSchema),
+  isSuperadmin,
+  validate(UPDATE_PASSWORD),
   authController.updatePassword
 );
 

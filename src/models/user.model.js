@@ -6,45 +6,6 @@ const { USER_ROLES } = require('../constants/user');
 
 const Schema = mongoose.Schema;
 
-const permissions = {
-  admin: {
-    approve: {
-      type: Boolean,
-      default: false,
-    },
-    reject: {
-      type: Boolean,
-      default: false,
-    },
-    verify: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  fad: {
-    approve: {
-      type: Boolean,
-      default: false,
-    },
-    reject: {
-      type: Boolean,
-      default: false,
-    },
-    verify: {
-      type: Boolean,
-      default: false,
-    },
-    acknowledge: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  canSubmit: {
-    type: Boolean,
-    default: true,
-  },
-};
-
 const userSchema = new Schema(
   {
     email: {
@@ -67,10 +28,12 @@ const userSchema = new Schema(
       select: false,
     },
     role: {
+      // deprecated
       type: String,
       enum: Object.values(USER_ROLES),
+      default: USER_ROLES.normal,
     },
-    permissions,
+    // permissions, // deprecated
     jobLabel: {
       type: String,
       required: true,
@@ -78,6 +41,32 @@ const userSchema = new Schema(
     approvalAmount: {
       type: Number,
       default: 0,
+    },
+    isSuperadmin: {
+      type: Boolean,
+      default: false,
+    },
+    department: {
+      type: String,
+      required: true,
+    },
+    permissions: {
+      canApprove: {
+        type: Boolean,
+        default: false,
+      },
+      canEdit: {
+        type: Boolean,
+        default: true,
+      },
+      canPrepare: {
+        type: Boolean,
+        default: true,
+      },
+      canVerify: {
+        type: Boolean,
+        default: true,
+      },
     },
   },
   {
