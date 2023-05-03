@@ -12,6 +12,7 @@ const userService = require('../services/user.service');
 const historyService = require('../services/history.service');
 const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const reviewerGroupsService = require('../services/reviewer-groups.service');
+const revisionService = require('../services/revision.service');
 
 const helpers = {
   extractReviewerIdList: (reviewers) => {
@@ -192,7 +193,6 @@ const createDocumentController = () => {
 
   const approveDocument = catchAsync(async (req, res, next) => {
     const { remark, groupId } = req.body;
-    console.log(req.body);
 
     // office admin must assign a reviewer group in approval
     let group;
@@ -229,6 +229,46 @@ const createDocumentController = () => {
       res,
       data: document,
       message: 'Approved the document',
+    });
+  });
+
+  const requestRevision = catchAsync(async (req, res, next) => {
+    // Department to revis
+    const { department, remark } = req.body;
+
+    const document = await documentService.requestRevision({
+      document: req.document,
+      reviewer: req.user,
+    });
+
+    const history = await historyService.createHistory({
+      actor: req.user.id,
+      action: DOCUMENT_ACTIONS.REQUSTED_REVISION,
+      department: req.user.department,
+      document: document.id,
+      content: remark,
+    });
+
+    const revisor = document.reviewers.list.find(
+      (item) => item.canEdit && item.department === department
+    )?.reviewer;
+
+    if (!revisor) {
+      return next(
+        ApiError.badRequest(`No person available to revise in ${department}`)
+      );
+    }
+
+    await revisionService.createRevision({
+      documentId: document.id,
+      requester: req.user.id,
+      reviewer: revisor,
+      historyId: history.id,
+    });
+
+    sendSuccessResponse({
+      code: 201,
+      message: 'Successfully requested revision.',
     });
   });
 
@@ -383,6 +423,7 @@ const createDocumentController = () => {
     prepareDocument,
     verifyDocument,
     approveDocument,
+    requestRevision,
     commentOnDocument,
     getRequestedDocuments,
     getMyDocuments,

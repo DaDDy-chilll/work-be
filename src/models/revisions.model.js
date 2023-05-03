@@ -2,32 +2,37 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const reversalSchema = new Schema(
+const revisionSchema = new Schema(
   {
     document: {
       type: Schema.Types.ObjectId,
       ref: 'Document',
       required: true,
     },
-    isActive: Boolean,
-    reversedBy: {
+    requester: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
-    reversedByDepartment: String,
+    requestedByDepartment: String,
     reviewer: {
       type: Schema.Types.ObjectId,
       ref: 'User',
+    },
+    reviewDepartment: {
+      type: String,
+      required: true,
     },
     acknowledgements: [
       {
         user: {
           type: Schema.Types.ObjectId,
-          hasAcknowledged: {
-            type: Boolean,
-            default: false,
-          },
+          ref: 'User',
+          required: true,
+        },
+        hasAcknowledged: {
+          type: Boolean,
+          default: false,
         },
       },
     ],
@@ -41,6 +46,6 @@ const reversalSchema = new Schema(
   }
 );
 
-const Reversal = mongoose.model('Reversal', reversalSchema);
+const Revision = mongoose.model('Revision', revisionSchema);
 
-module.exports = Reversal;
+module.exports = Revision;

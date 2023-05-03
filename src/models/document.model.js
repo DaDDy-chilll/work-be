@@ -135,29 +135,10 @@ const documentSchema = new Schema(
         },
       ],
     },
-    reversals: [
+    revisions: [
       {
-        isActive: Boolean,
-        reversedBy: {
-          type: Schema.Types.ObjectId,
-          ref: 'User',
-        },
-        reversedByDepartment: String,
-        reviewer: {
-          type: Schema.Types.ObjectId,
-          ref: 'User',
-        },
-        acknowledgements: [
-          {
-            user: {
-              type: Schema.Types.ObjectId,
-              hasAcknowledged: {
-                type: Boolean,
-                default: false,
-              },
-            },
-          },
-        ],
+        type: Schema.Types.ObjectId,
+        ref: 'Revision',
       },
     ],
 

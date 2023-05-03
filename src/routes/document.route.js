@@ -67,6 +67,10 @@ router.post(
   documentController.approveDocument
 );
 
+router.post('/:id/reverse', authenticate, checkDocumentAction, (req, res) => {
+  res.send('Reverse the document.');
+});
+
 router.patch(
   '/:id/comment',
   authenticate,
