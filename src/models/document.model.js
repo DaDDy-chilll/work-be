@@ -135,6 +135,12 @@ const documentSchema = new Schema(
         },
       ],
     },
+    revisions: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Revision',
+      },
+    ],
 
     adminReviewers: [reviewerSchema], // deprecated
     fadReviewers: [reviewerSchema], // deprecated

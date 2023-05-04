@@ -11,14 +11,16 @@ module.exports = {
     PREPARED: 'PREPARED',
     EDITED: 'EDITED',
     SUBMITTED: 'SUBMITTED',
-    REVERSED: 'REVERSED', // Higher level department requests for more info
+    REQUSTED_REVISION: 'REQUESTED_REVISION', // Higher level department requests for more info
+    REVISED: 'REVISED',
   }),
   DOCUMENT_STATUSES: Object.freeze({
     PENDING: 'PENDING',
     APPROVED: 'APPROVED',
     REJECTED: 'REJECTED',
     VERIFIED: 'VERIFIED',
-    REVERSED: 'REVERSED',
+    REQUESTED_REVISION: 'REQUESTED_REVISION',
+    REVISED: 'REVISED',
     ACKNOWLEDGED: 'ACKNOWLEDGED',
     EDITED: 'EDITED',
     PREPARED: 'PREPARED',

@@ -17,7 +17,6 @@ module.exports = catchAsync(async (req, res, next) => {
       item.index === document.reviewers.currentReviewerIndex &&
       item.department === document.reviewers.currentDepartment
   );
-  console.log(document.reviewers.currentDepartment);
 
   if (!reviewer) {
     throw ApiError.badRequest('Cannot perform this action.');

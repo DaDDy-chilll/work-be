@@ -225,6 +225,26 @@ const createDocumentService = () => {
     return document;
   };
 
+  const requestRevision = async ({ document, reviewer }) => {
+    if (document.status === DOCUMENT_STATUSES.APPROVED) {
+      throw ApiError.badRequest('Document has already been approved.');
+    }
+
+    if (document.status === DOCUMENT_STATUSES.REQUESTED_REVISION) {
+      throw ApiError.badRequest('Document is already being revised.');
+    }
+
+    // basically OA won't request a revision
+    if (reviewer.department === AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN) {
+      throw ApiError.badRequest();
+    }
+
+    document.status = DOCUMENT_STATUSES.REQUESTED_REVISION;
+    await document.save();
+
+    return document;
+  };
+
   const adminRejectDocument = async ({ id, user, remark }) => {
     const document = await Document.findById(id);
 
@@ -424,12 +444,7 @@ const createDocumentService = () => {
   };
 
   const getDocumentById = async ({ id }) => {
-    const document = await Document.findById(id)
-      .populate('requestedBy')
-      .populate('remarks.remarker')
-      .populate('adminReviewers.user')
-      .populate('fadReviewers.user')
-      .populate('state.currentReviewer');
+    const document = await Document.findById(id).populate('requester');
 
     if (!document) {
       throw _noDocumentError;
@@ -465,19 +480,23 @@ const createDocumentService = () => {
     return { documents, total: documents.length };
   };
 
-  const updateDocument = async ({ id, attachments, user, data = {} }) => {
+  const updateDocument = async ({
+    id,
+    attachments,
+    data = {},
+    isRevisedDoc = false,
+  }) => {
     const document = await Document.findById(id);
 
     if (!document) {
       throw _noDocumentError;
     }
 
-    if (!_canUserUpdateOrDelete({ document, user })) {
-      throw ApiError.notAuthorized();
-    }
+    const status = isRevisedDoc ? DOCUMENT_STATUSES.REVISED : document.status;
 
     await document.updateOne({
       ...data,
+      status,
       $push: {
         attachments: {
           $each: attachments,
@@ -516,6 +535,7 @@ const createDocumentService = () => {
     prepareDocument,
     verifyDocument,
     approveDocument,
+    requestRevision,
     getDocumentById,
     getAllDocuments,
     updateDocument,

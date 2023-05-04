@@ -87,7 +87,7 @@ const SUBMIT_TO_FAD = z.object({
 
 const UPDATE_DOCUMENT = z
   .object({
-    body: BASE_DOCUMENT.omit({ status: true }).partial(),
+    body: BASE_DOCUMENT.partial(),
   })
   .merge(checkParamsId);
 
