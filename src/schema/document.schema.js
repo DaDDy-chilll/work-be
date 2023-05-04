@@ -54,14 +54,6 @@ const CREATE_DOCUMENT = z.object({
 
 const DELETE_DOCUMENT = checkParamsId;
 
-const DOCUMENT_ACTION = z
-  .object({
-    body: z.object({
-      remark: z.string().default('No remark'),
-    }),
-  })
-  .merge(checkParamsId);
-
 const SUBMIT_TO_FAD = z.object({
   body: CREATE_DOCUMENT.shape.body
     .pick({
@@ -90,6 +82,21 @@ const UPDATE_DOCUMENT = z
     body: BASE_DOCUMENT.partial(),
   })
   .merge(checkParamsId);
+
+const DOCUMENT_ACTION = z.object({
+  body: z
+    .object({
+      groupId: z.string().refine(isObjectIdOrHexString, 'Invalid Group ID.'),
+    })
+    .merge(BASE_DOCUMENT.pick({ name: true, amount: true, description: true }))
+    .partial(),
+  params: z.object({
+    id: z.string().refine(isObjectIdOrHexString, 'Invalid ID.'),
+    action: z.enum(['prepare', 'verify', 'approve'], {
+      errorMap: () => ({ message: 'Invalid action.' }),
+    }),
+  }),
+});
 
 module.exports = {
   GET_DOCUMENTS,

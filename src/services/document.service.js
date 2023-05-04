@@ -15,23 +15,18 @@ const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const { uploadFile } = require('../lib/s3');
 const Document = require('../models/document.model');
+const userService = require('../services/user.service');
 const {
   AUTHORIZED_DEPARTMENTS,
   DEPARTMENT_LEVELS,
 } = require('../constants/user');
-
-// temp
-const getReviewerId = (document) => {
-  const currentReviewer = document.reviewers.list.find(
-    (item) =>
-      item.department === document.reviewers.currentDepartment &&
-      item.index === document.reviewers.currentReviewerIndex + 1
-  );
-};
+const historyService = require('./history.service');
+const ReviewerGroup = require('../models/reviewer-group.model');
 
 const createDocumentService = () => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
+  // Private methods
   const _canUserUpdateOrDelete = ({ document, user }) => {
     return (
       document.requestedBy.equals(user._id) ||
@@ -113,10 +108,187 @@ const createDocumentService = () => {
     return [];
   };
 
-  const createRequisitionDocument = async (data) => {
-    const document = new Document(data);
+  const prepareUpdater = ({ body }) => {
+    return {
+      ...body,
+      $inc: {
+        'reviewers.currentReviewerIndex': 1,
+      },
+    };
+  };
+
+  const verifyUpdater = () => {
+    return {
+      $inc: {
+        'reviewers.currentReviewerIndex': 1,
+      },
+    };
+  };
+
+  const approveUpdater = async ({ document, groupId }) => {
+    const group = await ReviewerGroup.findById(groupId);
+    if (!group) {
+      throw ApiError.badRequest('Group does not exist.');
+    }
+
+    const isCurrentFAD =
+      document.reviewers.currentDepartment === AUTHORIZED_DEPARTMENTS.FAD;
+
+    let nextDepartment;
+
+    if (!isCurrentFAD) {
+      const currentLevel =
+        DEPARTMENT_LEVELS[document.reviewers.currentDepartment];
+
+      nextDepartment = DEPARTMENT_LEVELS[currentLevel + 1];
+    }
+
+    return {
+      ...(!isCurrentFAD && {
+        'reviewers.currentDepartment': nextDepartment,
+        'reviewers.currentReviewerIndex': 0,
+      }),
+      ...(isCurrentFAD && {
+        status: DOCUMENT_STATUSES.APPROVED,
+      }),
+      ...(group && {
+        $push: {
+          'reviewers.list': {
+            $each: group.reviewers,
+          },
+        },
+      }),
+    };
+  };
+
+  // Public Methods
+  const createRequisitionDocument = async ({ body, requester, files }) => {
+    const { users: officeAdmins } = await userService.getAllUsers({
+      filter: {
+        department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+      },
+    });
+
+    if (officeAdmins.length < 2) {
+      throw ApiError.badRequest();
+    }
+
+    const attachments = await uploadAttachments(files);
+
+    const document = new Document({
+      ...body,
+      attachments,
+      requester: requester.id,
+      status: DOCUMENT_STATUSES.PENDING,
+      reviewers: {
+        currentReviewerId: officeAdmins[0].id,
+        list: [
+          {
+            reviewer: officeAdmins[0]._id,
+            index: 0,
+            department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+            canPrepare: true,
+            canEdit: true,
+            canApprove: false,
+            canVerify: true,
+          },
+          {
+            reviewer: officeAdmins[1]._id,
+            index: 1,
+            department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+            canPrepare: false,
+            canEdit: false,
+            canApprove: true,
+            canVerify: false,
+          },
+        ],
+      },
+    });
 
     await document.save();
+
+    await historyService.createHistory({
+      actor: requester.id,
+      department: requester.department,
+      action: DOCUMENT_ACTIONS.SUBMITTED,
+      document: document.id,
+    });
+
+    return document;
+  };
+
+  const invokeDocumentAction = async ({
+    action,
+    body,
+    reviewer,
+    documentId,
+    remark,
+  }) => {
+    const document = await Document.findById(documentId);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    const mapping = {
+      prepare: DOCUMENT_ACTIONS.PREPARED,
+      verify: DOCUMENT_ACTIONS.VERIFIED,
+      approve: DOCUMENT_ACTIONS.APPROVED,
+    };
+
+    // Check if it's reviewer's turn
+    const currentIndex = document.reviewers.currentReviewerIndex;
+    const currentDepartment = document.reviewers.currentDepartment;
+    const reviewerItem = document.reviewers.list.find(
+      ({ reviewer, index, department }) => {
+        return (
+          reviewer.equals(reviewer._id) &&
+          index === currentIndex &&
+          department === currentDepartment
+        );
+      }
+    );
+
+    if (!reviewerItem) {
+      throw ApiError.notAuthorized(`Cannot perform ${action}.`);
+    }
+
+    let nextReviewer = document.reviewers.list.find(
+      ({ index, department }) =>
+        index === currentIndex + 1 && department === currentDepartment
+    );
+    let updater;
+    if (action === 'prepare' && reviewerItem.canPrepare) {
+      updater = prepareUpdater({ body });
+    } else if (action === 'verify' && reviewerItem.canVerify) {
+      updater = verifyUpdater();
+    } else if (action === 'approve' && reviewerItem.canApprove) {
+      updater = await approveUpdater({ document, groupId: body.groupId });
+    } else {
+      throw ApiError.notAuthorized('Not allowed to perform this action.');
+    }
+
+    if (action === 'approve') {
+      const currentDeptLevel = DEPARTMENT_LEVELS[currentDepartment];
+      const nextDept = DEPARTMENT_LEVELS[currentDeptLevel];
+
+      nextReviewer = document.reviewers.list.find(
+        ({ department, index }) => department === nextDept && index === 0
+      );
+    }
+
+    await document.updateOne(
+      { ...updater, currentReviewer: nextReviewer.reviewer },
+      { new: true, runValidators: true }
+    );
+
+    await historyService.createHistory({
+      actor: reviewer.id,
+      action: mapping[action],
+      department: reviewer.department,
+      document: document.id,
+      content: remark,
+    });
 
     return document;
   };
@@ -566,6 +738,7 @@ const createDocumentService = () => {
     fadApproveDocument,
     fadRejectDocument,
     commentOnDocument,
+    invokeDocumentAction,
   };
 };
 

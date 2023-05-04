@@ -107,10 +107,6 @@ const documentSchema = new Schema(
         type: Number,
         default: 0,
       },
-      currentReviewerId: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-      },
       currentDepartment: {
         type: String,
         enum: Object.values(AUTHORIZED_DEPARTMENTS),
@@ -145,6 +141,10 @@ const documentSchema = new Schema(
         ref: 'Revision',
       },
     ],
+    currentReviewer: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
 
     adminReviewers: [reviewerSchema], // deprecated
     fadReviewers: [reviewerSchema], // deprecated
@@ -168,21 +168,6 @@ documentSchema.pre(
     fieldName: 'documentId',
   })
 );
-
-function setReviewerId() {
-  console.log(this.id);
-  const currentReviewer = this.reviewers.list.find(
-    (item) =>
-      item.department === this.reviewers.currentDepartment &&
-      item.index === this.reviewers.currentReviewerIndex
-  );
-  this.reviewers.currentReviewerId = currentReviewer.reviewer;
-}
-
-documentSchema.post('validate', setReviewerId);
-// documentSchema.post('update', setReviewerId);
-// documentSchema.post('updateOne', setReviewerId);
-// documentSchema.post('findOneAndUpdate', setReviewerId);
 
 const Document = mongoose.model('Document', documentSchema);
 
