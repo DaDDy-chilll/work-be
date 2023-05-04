@@ -480,19 +480,23 @@ const createDocumentService = () => {
     return { documents, total: documents.length };
   };
 
-  const updateDocument = async ({ id, attachments, user, data = {} }) => {
+  const updateDocument = async ({
+    id,
+    attachments,
+    data = {},
+    isRevisedDoc = false,
+  }) => {
     const document = await Document.findById(id);
 
     if (!document) {
       throw _noDocumentError;
     }
 
-    if (!_canUserUpdateOrDelete({ document, user })) {
-      throw ApiError.notAuthorized();
-    }
+    const status = isRevisedDoc ? DOCUMENT_STATUSES.REVISED : document.status;
 
     await document.updateOne({
       ...data,
+      status,
       $push: {
         attachments: {
           $each: attachments,

@@ -10,7 +10,10 @@ const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const documentService = require('../services/document.service');
 const userService = require('../services/user.service');
 const historyService = require('../services/history.service');
-const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
+const {
+  AUTHORIZED_DEPARTMENTS,
+  DEPARTMENT_LEVELS,
+} = require('../constants/user');
 const reviewerGroupsService = require('../services/reviewer-groups.service');
 const revisionService = require('../services/revision.service');
 
@@ -75,9 +78,25 @@ const helpers = {
 
     return { sort, limit, filter };
   },
+  getPeopleToAcknowledge: (document) => {
+    // Requester + people who's already approved/verified/prepared
+
+    const requester = document.requester;
+
+    const peopleThatHaveDoneActions = document.reviewers.list
+      .filter(
+        (reviewer) =>
+          DEPARTMENT_LEVELS[reviewer.department] <
+          DEPARTMENT_LEVELS[document.reviewers.currentDepartment]
+      )
+      .map(({ reviewer }) => reviewer);
+
+    return [requester, ...peopleThatHaveDoneActions];
+  },
 };
 
 const createDocumentController = () => {
+  const { getPeopleToAcknowledge } = helpers;
   const createDocument = catchAsync(async (req, res, next) => {
     const { users: officeAdmins } = await userService.getAllUsers({
       filter: {
@@ -236,6 +255,16 @@ const createDocumentController = () => {
     // Department to revis
     const { department, remark } = req.body;
 
+    const revisor = req.document.reviewers.list.find(
+      (item) => item.canEdit && item.department === department
+    );
+
+    if (!revisor) {
+      return next(
+        ApiError.badRequest(`No person available to revise in ${department}`)
+      );
+    }
+
     const document = await documentService.requestRevision({
       document: req.document,
       reviewer: req.user,
@@ -249,26 +278,64 @@ const createDocumentController = () => {
       content: remark,
     });
 
-    const revisor = document.reviewers.list.find(
-      (item) => item.canEdit && item.department === department
-    )?.reviewer;
-
-    if (!revisor) {
-      return next(
-        ApiError.badRequest(`No person available to revise in ${department}`)
-      );
-    }
-
     await revisionService.createRevision({
       documentId: document.id,
-      requester: req.user.id,
+      requester: req.user,
       reviewer: revisor,
       historyId: history.id,
     });
 
     sendSuccessResponse({
+      res,
       code: 201,
       message: 'Successfully requested revision.',
+    });
+  });
+
+  const reviseDocument = catchAsync(async (req, res, next) => {
+    const { id: documentId } = req.params.id;
+    const user = req.user;
+    const { remark, ...data } = req.body;
+
+    const revision = await revisionService.getActiveRevision({
+      documentId,
+    });
+
+    if (!revision) {
+      return next(ApiError.badRequest('No revision found.'));
+    }
+
+    if (!revision.reviewer.equals(user.id)) {
+      return next(ApiError.notAuthorized('Not allowed to edit revision.'));
+    }
+
+    const attachments = await documentService.uploadAttachments(req.files);
+    const updatedDocument = await documentService.updateDocument({
+      id: documentId,
+      attachments,
+      user,
+      data,
+      isRevisedDoc: true,
+    });
+
+    const users = getPeopleToAcknowledge(updatedDocument);
+
+    await revisionService.assignAcknowledgements({
+      revisionId: revision.id,
+      users,
+    });
+
+    await historyService.createHistory({
+      actor: user.id,
+      action: DOCUMENT_ACTIONS.REVISED,
+      department: user.department,
+      document: documentId,
+      content: remark,
+    });
+
+    sendSuccessResponse({
+      data: updatedDocument,
+      res,
     });
   });
 
@@ -424,6 +491,7 @@ const createDocumentController = () => {
     verifyDocument,
     approveDocument,
     requestRevision,
+    reviseDocument,
     commentOnDocument,
     getRequestedDocuments,
     getMyDocuments,

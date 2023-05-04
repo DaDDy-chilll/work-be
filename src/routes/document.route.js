@@ -46,7 +46,7 @@ router.post(
 router.post(
   '/:id/prepare',
   authenticate,
-  validate(checkParamsId),
+  validate(UPDATE_DOCUMENT),
   checkDocumentAction,
   documentController.prepareDocument
 );
@@ -67,9 +67,20 @@ router.post(
   documentController.approveDocument
 );
 
-router.post('/:id/reverse', authenticate, checkDocumentAction, (req, res) => {
-  res.send('Reverse the document.');
-});
+router.post(
+  '/:id/revisions',
+  authenticate,
+  checkDocumentAction,
+  documentController.requestRevision
+);
+
+router.patch(
+  '/:id/revisions',
+  authenticate,
+  validate(UPDATE_DOCUMENT),
+  checkDocumentAction,
+  documentController.reviseDocument
+);
 
 router.patch(
   '/:id/comment',
