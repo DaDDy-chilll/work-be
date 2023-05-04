@@ -115,6 +115,7 @@ const createDocumentController = () => {
       attachments,
       status: DOCUMENT_STATUSES.PENDING,
       reviewers: {
+        currentReviewerId: officeAdmins[0]._id,
         list: [
           {
             reviewer: officeAdmins[0]._id,
@@ -382,6 +383,18 @@ const createDocumentController = () => {
     });
   });
 
+  const getDocumentsToCheck = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getDocumentsToCheck({
+      user: req.user,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
   const getRequestedDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
       query: {
@@ -492,6 +505,7 @@ const createDocumentController = () => {
     approveDocument,
     requestRevision,
     reviseDocument,
+    getDocumentsToCheck,
     commentOnDocument,
     getRequestedDocuments,
     getMyDocuments,

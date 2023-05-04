@@ -20,6 +20,15 @@ const {
   DEPARTMENT_LEVELS,
 } = require('../constants/user');
 
+// temp
+const getReviewerId = (document) => {
+  const currentReviewer = document.reviewers.list.find(
+    (item) =>
+      item.department === document.reviewers.currentDepartment &&
+      item.index === document.reviewers.currentReviewerIndex + 1
+  );
+};
+
 const createDocumentService = () => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -123,7 +132,8 @@ const createDocumentService = () => {
       throw ApiError.badRequest('Cannot prepare the document.');
     }
 
-    await document.updateOne(
+    const newDocument = await Document.findByIdAndUpdate(
+      document.id,
       {
         ...data,
         $inc: {
@@ -140,7 +150,7 @@ const createDocumentService = () => {
       { new: true, runValidators: true }
     );
 
-    return document;
+    return newDocument;
   };
 
   const verifyDocument = async ({
@@ -243,6 +253,14 @@ const createDocumentService = () => {
     await document.save();
 
     return document;
+  };
+
+  const getDocumentsToCheck = async ({ user }) => {
+    const documents = await Document.find({
+      'reviewers.currentReviewerId': user.id,
+    });
+
+    return { documents, total: 0 };
   };
 
   const adminRejectDocument = async ({ id, user, remark }) => {
@@ -538,6 +556,7 @@ const createDocumentService = () => {
     requestRevision,
     getDocumentById,
     getAllDocuments,
+    getDocumentsToCheck,
     updateDocument,
     deleteDocument,
     submitToFAD,

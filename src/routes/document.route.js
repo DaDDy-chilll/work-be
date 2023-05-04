@@ -90,6 +90,8 @@ router.patch(
   documentController.commentOnDocument
 );
 
+router.get('/to-check', authenticate, documentController.getDocumentsToCheck);
+
 router.get(
   '/me',
   authenticate,
