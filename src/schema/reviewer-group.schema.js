@@ -2,7 +2,10 @@ const { isObjectIdOrHexString } = require('mongoose');
 const { z, ZodIssueCode } = require('zod');
 const _ = require('lodash');
 const checkParamsId = require('./checkParamsId.schema');
-const { AUTHORIZED_DEPARTMENTS: DEPARTMENTS } = require('../constants/user');
+const {
+  DEPARTMENT_LEVELS,
+  AUTHORIZED_DEPARTMENTS,
+} = require('../constants/user');
 
 const BASE_GROUP = z.object({
   body: z.object({
@@ -17,7 +20,7 @@ const BASE_GROUP = z.object({
           reviewer: z
             .string({ required_error: 'Reviewer ID is required.' })
             .refine(isObjectIdOrHexString),
-          department: z.enum(Object.values(DEPARTMENTS), {
+          department: z.enum(Object.values(AUTHORIZED_DEPARTMENTS), {
             errorMap: (_issue, _ctx) => ({
               message: 'Invalid department.',
             }),
@@ -41,80 +44,68 @@ const BASE_GROUP = z.object({
         })
       )
       // Validate uniqueness
-      .refine((reviewers) => {
-        const uniqueReviewers = _.uniqBy(reviewers, function (elem) {
-          // `department + index` makes reviewers order unique in each dept
-          return [elem.department, elem.index].join('_');
-        });
+      .superRefine((reviewers, ctx) => {
+        const sortedReviewersByIdx = _.sortBy(reviewers, 'index');
 
-        if (uniqueReviewers.length !== reviewers.length) {
-          return false;
-        }
-        return true;
-      }, 'Reviewers are duplicated.')
-      // validate if reviewers are incrementally ordered (thus +1)
-      // and transform the array to be sorted by index
-      .transform((reviewers, ctx) => {
-        const groupedReviewers = _.groupBy(reviewers, 'department');
+        let departments = [];
 
-        const finalReviewers = [];
+        for (let i = 0; i < sortedReviewersByIdx.length; i++) {
+          const curr = sortedReviewersByIdx[i];
+          const next = sortedReviewersByIdx[i + 1];
 
-        _.each(groupedReviewers, (reviewers, group) => {
-          const sortedReviewers = _.sortBy(reviewers, ['index']);
+          departments.push(curr.department);
 
-          if (sortedReviewers[0]?.index !== 0) {
+          // index should start from zero
+          // and be incrementally order
+          // Checks by comparing with iterator
+          if (i !== curr.index) {
             ctx.addIssue({
               code: ZodIssueCode.custom,
-              message: `${group} reviewers' orders should start from zero`,
+              message: 'Indexes must be incrementally ordered.',
             });
           }
 
-          if (sortedReviewers.length < 2) {
-            ctx.addIssue({
-              code: ZodIssueCode.custom,
-              message: `${group} reviewers must have at least two reviewer.`,
-            });
+          if (!next) {
+            break;
           }
 
-          // sortedReviewers.length - 1 because we want
-          // to avoid last element
-          for (let i = 0; i < sortedReviewers.length - 1; i++) {
-            const curr = sortedReviewers[i];
-            const next = sortedReviewers[i + 1];
+          if (curr.department !== next.department) {
+            const diff =
+              DEPARTMENT_LEVELS[next.department] -
+              DEPARTMENT_LEVELS[curr.department];
 
-            const diff = next.index - curr.index;
-
+            // Checks correct dept order
             if (diff !== 1) {
               ctx.addIssue({
                 code: ZodIssueCode.custom,
-                message: 'Reviewers are not incrementally ordered.',
+                message: `Wrong department order: ${curr.department} & ${next.department}`,
               });
-              break;
+            }
+
+            if (!curr.canApprove) {
+              ctx.addIssue({
+                code: ZodIssueCode.custom,
+                message: `Last person in ${curr.department} must have approve privilege.`,
+              });
+            }
+          } else {
+            if (curr.canApprove) {
+              ctx.addIssue({
+                code: ZodIssueCode.custom,
+                message: `Only last person in ${curr.department} can have approve privilege.`,
+              });
             }
           }
+        }
 
-          const [last, ...rest] = [...sortedReviewers].reverse();
+        departments = [...new Set([...departments])];
 
-          // Verbose `returns` for "readability"
-          if (!last.canApprove) {
-            return ctx.addIssue({
-              code: ZodIssueCode.custom,
-              message: `Last reviewer in ${last.department} must have approval privilege.`,
-            });
-          }
-
-          if (rest.some(({ canApprove }) => canApprove)) {
-            return ctx.addIssue({
-              code: ZodIssueCode.custom,
-              message: `More than one reviewr has approval privilege.`,
-            });
-          }
-
-          // Ungroup the grouped arrays
-          finalReviewers.push(...sortedReviewers);
-        });
-
-        return finalReviewers;
+        if (departments.length !== AUTHORIZED_DEPARTMENTS.length) {
+          ctx.addIssue({
+            code: ZodIssueCode.custom,
+            message: 'Missing department(s)',
+          });
+        }
       }),
   }),
 });
