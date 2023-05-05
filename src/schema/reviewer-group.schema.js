@@ -20,11 +20,16 @@ const BASE_GROUP = z.object({
           reviewer: z
             .string({ required_error: 'Reviewer ID is required.' })
             .refine(isObjectIdOrHexString),
-          department: z.enum(Object.values(AUTHORIZED_DEPARTMENTS), {
-            errorMap: (_issue, _ctx) => ({
-              message: 'Invalid department.',
-            }),
-          }),
+          department: z.enum(
+            Object.values(AUTHORIZED_DEPARTMENTS).filter(
+              (d) => d !== 'OFFICE_ADMIN'
+            ),
+            {
+              errorMap: (_issue, _ctx) => ({
+                message: 'Invalid department.',
+              }),
+            }
+          ),
           canEdit: z
             .boolean({ invalid_type_error: '`canEdit` is invalid' })
             .optional()
@@ -100,7 +105,12 @@ const BASE_GROUP = z.object({
 
         departments = [...new Set([...departments])];
 
-        if (departments.length !== AUTHORIZED_DEPARTMENTS.length) {
+        if (
+          departments.length !==
+          Object.values(AUTHORIZED_DEPARTMENTS).filter(
+            (d) => d !== 'OFFICE_ADMIN'
+          ).length
+        ) {
           ctx.addIssue({
             code: ZodIssueCode.custom,
             message: 'Missing department(s)',
