@@ -2,13 +2,11 @@ const { isObjectIdOrHexString } = require('mongoose');
 const {
   DOCUMENT_SECTIONS,
   DOCUMENT_ACTIONS,
-  DOCUMENT_STATUSES,
 } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const documentService = require('../services/document.service');
-const userService = require('../services/user.service');
 const historyService = require('../services/history.service');
 const {
   AUTHORIZED_DEPARTMENTS,
@@ -97,55 +95,13 @@ const helpers = {
 
 const createDocumentController = () => {
   const { getPeopleToAcknowledge } = helpers;
+
   const createDocument = catchAsync(async (req, res, next) => {
-    const { users: officeAdmins } = await userService.getAllUsers({
-      filter: {
-        department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
-      },
+    const document = documentService.createRequisitionDocument({
+      body: req.body,
+      requester: req.user,
+      files: req.files,
     });
-
-    if (officeAdmins.length < 2) {
-      return next(ApiError.badRequest());
-    }
-
-    const attachments = await documentService.uploadAttachments(req.files);
-    const document = await documentService.createRequisitionDocument({
-      ...req.body,
-      requester: req.user._id,
-      attachments,
-      status: DOCUMENT_STATUSES.PENDING,
-      reviewers: {
-        list: [
-          {
-            reviewer: officeAdmins[0]._id,
-            index: 0,
-            department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
-            canPrepare: true,
-            canEdit: true,
-            canApprove: false,
-            canVerify: true,
-          },
-          {
-            reviewer: officeAdmins[1]._id,
-            index: 1,
-            department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
-            canPrepare: false,
-            canEdit: false,
-            canApprove: true,
-            canVerify: false,
-          },
-        ],
-      },
-    });
-
-    const history = await historyService.createHistory({
-      actor: req.user._id,
-      department: req.user.department,
-      action: DOCUMENT_ACTIONS.SUBMITTED,
-      document: document._id,
-    });
-
-    document.histories.push(history);
 
     sendSuccessResponse({
       res,
@@ -153,6 +109,21 @@ const createDocumentController = () => {
       data: document,
       message: 'Document successfully created.',
     });
+  });
+
+  const invokeDocumentAction = catchAsync(async (req, res, next) => {
+    const { action, id } = req.params;
+    const { remark, ...body } = req.body;
+
+    const document = await documentService.invokeDocumentAction({
+      action,
+      body,
+      documentId: id,
+      remark,
+      reviewer: req.user,
+    });
+
+    sendSuccessResponse({ res, code: 200, data: document });
   });
 
   const prepareDocument = catchAsync(async (req, res, next) => {
@@ -382,6 +353,18 @@ const createDocumentController = () => {
     });
   });
 
+  const getDocumentsToCheck = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getDocumentsToCheck({
+      user: req.user,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
   const getRequestedDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
       query: {
@@ -492,6 +475,7 @@ const createDocumentController = () => {
     approveDocument,
     requestRevision,
     reviseDocument,
+    getDocumentsToCheck,
     commentOnDocument,
     getRequestedDocuments,
     getMyDocuments,
@@ -502,6 +486,7 @@ const createDocumentController = () => {
     getDocumentsInFADSection,
     getDocumentsInAdminSection,
     getAdminApprovedDocuments,
+    invokeDocumentAction,
   };
 };
 

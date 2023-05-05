@@ -44,6 +44,13 @@ router.post(
 );
 
 router.post(
+  '/:id/actions/:action',
+  authenticate,
+  validate(DOCUMENT_ACTION),
+  documentController.invokeDocumentAction
+);
+
+router.post(
   '/:id/prepare',
   authenticate,
   validate(UPDATE_DOCUMENT),
@@ -89,6 +96,8 @@ router.patch(
   validate(DOCUMENT_ACTION),
   documentController.commentOnDocument
 );
+
+router.get('/to-check', authenticate, documentController.getDocumentsToCheck);
 
 router.get(
   '/me',
