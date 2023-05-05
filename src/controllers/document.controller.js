@@ -285,7 +285,7 @@ const createDocumentController = () => {
 
   const getMyDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      query: { ...req.query, requestedBy: req.user._id },
+      query: { ...req.query, requester: req.user._id },
     });
 
     sendSuccessResponse({

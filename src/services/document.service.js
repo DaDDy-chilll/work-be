@@ -61,8 +61,8 @@ const createDocumentService = () => {
       };
     }
 
-    if (queryFilter.requestedBy) {
-      filter.requestedBy = queryFilter.requestedBy;
+    if (queryFilter.requester) {
+      filter.requester = queryFilter.requester;
     }
 
     if (queryFilter.history) {
