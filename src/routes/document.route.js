@@ -18,7 +18,6 @@ const {
   DELETE_DOCUMENT,
 } = require('../schema/document.schema');
 const checkParamsId = require('../schema/checkParamsId.schema');
-const parseDocumentPayload = require('../middlewares/parseDocumentPayload');
 const checkDocumentAction = require('../middlewares/check-document-action');
 
 router.get(

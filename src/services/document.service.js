@@ -17,6 +17,7 @@ const userService = require('../services/user.service');
 const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const historyService = require('./history.service');
 const ReviewerGroup = require('../models/reviewer-group.model');
+const revisionService = require('./revision.service');
 
 const createDocumentService = () => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
@@ -268,7 +269,13 @@ const createDocumentService = () => {
     return document;
   };
 
-  const requestRevision = async ({ document, reviewer }) => {
+  const requestRevision = async ({
+    reviewer,
+    documentId,
+    department,
+    remark,
+  }) => {
+    const document = Document.findById(documentId);
     if (document.status === DOCUMENT_STATUSES.APPROVED) {
       throw ApiError.badRequest('Document has already been approved.');
     }
@@ -282,8 +289,40 @@ const createDocumentService = () => {
       throw ApiError.badRequest();
     }
 
+    if (!reviewer.id.equals(document.currentReviewer)) {
+      throw ApiError.notAuthorized();
+    }
+
+    const revisorItem = document.reviewers.list.find(
+      (item) => item.department === department && item.canEdit
+    );
+
+    if (!revisorItem) {
+      throw ApiError.badRequest(
+        `No person in ${department} eligible to revise.`
+      );
+    }
+
     document.status = DOCUMENT_STATUSES.REQUESTED_REVISION;
-    await document.save();
+    document.currentReviewer = revisorItem.id;
+
+    const saveDocument = document.save();
+    const saveHistory = historyService.createHistory({
+      actor: reviewer.id,
+      action: DOCUMENT_ACTIONS.REQUSTED_REVISION,
+      department: department,
+      document: document.id,
+      content: remark,
+    });
+
+    const [, history] = await Promise.all([saveDocument, saveHistory]);
+
+    await revisionService.createRevision({
+      documentId: document.id,
+      requester: reviewer.id,
+      reviewer: revisorItem.reviewer,
+      historyId: history.id,
+    });
 
     return document;
   };

@@ -125,40 +125,19 @@ const createDocumentController = () => {
   const requestRevision = catchAsync(async (req, res, next) => {
     // Department to revis
     const { department, remark } = req.body;
-
-    const revisor = req.document.reviewers.list.find(
-      (item) => item.canEdit && item.department === department
-    );
-
-    if (!revisor) {
-      return next(
-        ApiError.badRequest(`No person available to revise in ${department}`)
-      );
-    }
+    const { id } = req.params;
 
     const document = await documentService.requestRevision({
-      document: req.document,
       reviewer: req.user,
-    });
-
-    const history = await historyService.createHistory({
-      actor: req.user.id,
-      action: DOCUMENT_ACTIONS.REQUSTED_REVISION,
-      department: req.user.department,
-      document: document.id,
-      content: remark,
-    });
-
-    await revisionService.createRevision({
-      documentId: document.id,
-      requester: req.user,
-      reviewer: revisor,
-      historyId: history.id,
+      documentId: id,
+      department,
+      remark,
     });
 
     sendSuccessResponse({
       res,
       code: 201,
+      data: document,
       message: 'Successfully requested revision.',
     });
   });
