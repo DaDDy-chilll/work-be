@@ -126,35 +126,32 @@ const createDocumentService = () => {
   };
 
   const approveUpdater = async ({ document, groupId }) => {
-    const group = await ReviewerGroup.findById(groupId);
-    if (!group) {
-      throw ApiError.badRequest('Group does not exist.');
-    }
+    let group;
 
     const isCurrentFAD =
       document.reviewers.currentDepartment === AUTHORIZED_DEPARTMENTS.FAD;
 
-    let nextDepartment;
-
-    if (!isCurrentFAD) {
-      const currentLevel =
-        DEPARTMENT_LEVELS[document.reviewers.currentDepartment];
-
-      nextDepartment = DEPARTMENT_LEVELS[currentLevel + 1];
+    if (
+      document.reviewers.currentDepartment ===
+      AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN
+    ) {
+      group = await ReviewerGroup.findById(groupId);
+      if (!group) {
+        throw ApiError.badRequest('Group does not exist.');
+      }
     }
 
     return {
-      ...(!isCurrentFAD && {
-        'reviewers.currentDepartment': nextDepartment,
-        'reviewers.currentReviewerIndex': 0,
-      }),
       ...(isCurrentFAD && {
         status: DOCUMENT_STATUSES.APPROVED,
       }),
       ...(group && {
         $push: {
           'reviewers.list': {
-            $each: group.reviewers,
+            $each: group.reviewers.map((item) => ({
+              ...item,
+              index: item.index + document.reviewers.list.length,
+            })),
           },
         },
       }),
@@ -238,47 +235,36 @@ const createDocumentService = () => {
 
     // Check if it's reviewer's turn
     const currentIndex = document.reviewers.currentReviewerIndex;
-    const currentDepartment = document.reviewers.currentDepartment;
-    const reviewerItem = document.reviewers.list.find(
-      ({ reviewer, index, department }) => {
-        return (
-          reviewer.equals(reviewer._id) &&
-          index === currentIndex &&
-          department === currentDepartment
-        );
-      }
+    const currentReviewerItem = document.reviewers.list.find(
+      ({ reviewer: reviewerId, index }) =>
+        index === currentIndex && reviewerId.equals(reviewer.id)
     );
 
-    if (!reviewerItem) {
+    if (!currentReviewerItem) {
       throw ApiError.notAuthorized(`Cannot perform ${action}.`);
     }
 
-    let nextReviewer = document.reviewers.list.find(
-      ({ index, department }) =>
-        index === currentIndex + 1 && department === currentDepartment
+    let nextReviewerItem = document.reviewers.list.find(
+      ({ index }) => index === currentIndex + 1
     );
     let updater;
-    if (action === 'prepare' && reviewerItem.canPrepare) {
+    if (action === 'prepare' && currentReviewerItem.canPrepare) {
       updater = prepareUpdater({ body });
-    } else if (action === 'verify' && reviewerItem.canVerify) {
+    } else if (action === 'verify' && currentReviewerItem.canVerify) {
       updater = verifyUpdater();
-    } else if (action === 'approve' && reviewerItem.canApprove) {
+    } else if (action === 'approve' && currentReviewerItem.canApprove) {
       updater = await approveUpdater({ document, groupId: body.groupId });
     } else {
       throw ApiError.notAuthorized('Not allowed to perform this action.');
     }
 
-    if (action === 'approve') {
-      const currentDeptLevel = DEPARTMENT_LEVELS[currentDepartment];
-      const nextDept = DEPARTMENT_LEVELS[currentDeptLevel];
-
-      nextReviewer = document.reviewers.list.find(
-        ({ department, index }) => department === nextDept && index === 0
-      );
-    }
-
     await document.updateOne(
-      { ...updater, currentReviewer: nextReviewer.reviewer },
+      {
+        ...updater,
+        currentReviewer: nextReviewerItem.reviewer,
+        'reviewers.currentReviewerIndex': nextReviewerItem?.index,
+        'reviewers.currentDepartment': nextReviewerItem?.department,
+      },
       { new: true, runValidators: true }
     );
 
