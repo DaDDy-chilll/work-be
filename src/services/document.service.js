@@ -111,18 +111,12 @@ const createDocumentService = () => {
   const prepareUpdater = ({ body }) => {
     return {
       ...body,
-      $inc: {
-        'reviewers.currentReviewerIndex': 1,
-      },
     };
   };
 
+  // Currently empty
   const verifyUpdater = () => {
-    return {
-      $inc: {
-        'reviewers.currentReviewerIndex': 1,
-      },
-    };
+    return {};
   };
 
   const approveUpdater = async ({ document, groupId }) => {
