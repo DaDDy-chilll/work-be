@@ -51,30 +51,6 @@ router.post(
 );
 
 router.post(
-  '/:id/prepare',
-  authenticate,
-  validate(UPDATE_DOCUMENT),
-  checkDocumentAction,
-  documentController.prepareDocument
-);
-
-router.post(
-  '/:id/verify',
-  authenticate,
-  validate(checkParamsId),
-  checkDocumentAction,
-  documentController.verifyDocument
-);
-
-router.post(
-  '/:id/approve',
-  authenticate,
-  // validate(checkParamsId),
-  checkDocumentAction,
-  documentController.approveDocument
-);
-
-router.post(
   '/:id/revisions',
   authenticate,
   checkDocumentAction,

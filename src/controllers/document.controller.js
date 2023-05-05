@@ -8,11 +8,7 @@ const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 const documentService = require('../services/document.service');
 const historyService = require('../services/history.service');
-const {
-  AUTHORIZED_DEPARTMENTS,
-  DEPARTMENT_LEVELS,
-} = require('../constants/user');
-const reviewerGroupsService = require('../services/reviewer-groups.service');
+const { DEPARTMENT_LEVELS } = require('../constants/user');
 const revisionService = require('../services/revision.service');
 
 const helpers = {
@@ -124,102 +120,6 @@ const createDocumentController = () => {
     });
 
     sendSuccessResponse({ res, code: 200, data: document });
-  });
-
-  const prepareDocument = catchAsync(async (req, res, next) => {
-    const { remark = 'No remark', ...data } = req.body;
-    const document = await documentService.prepareDocument({
-      data,
-      reviewerId: req.user._id,
-      document: req.document,
-      remark,
-      reviewerPermissions: req.reviewerPermissions,
-    });
-
-    const history = await historyService.createHistory({
-      actor: req.user._id,
-      action: DOCUMENT_ACTIONS.PREPARED,
-      department: req.user.department,
-      document: document.id,
-      content: remark,
-    });
-
-    document.histories.push(history);
-
-    sendSuccessResponse({
-      res,
-      code: 201,
-      data: document,
-      message: 'Prepared the document.',
-    });
-  });
-
-  const verifyDocument = catchAsync(async (req, res, next) => {
-    const { remark } = req.body;
-
-    const document = await documentService.verifyDocument({
-      reviewerId: req.user._id,
-      document: req.document,
-      remark,
-      reviewerPermissions: req.reviewerPermissions,
-    });
-
-    const history = await historyService.createHistory({
-      actor: req.user._id,
-      action: DOCUMENT_ACTIONS.VERIFIED,
-      department: req.user.department,
-      document: document.id,
-      content: remark,
-    });
-
-    document.histories.push(history);
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Verified the document.',
-    });
-  });
-
-  const approveDocument = catchAsync(async (req, res, next) => {
-    const { remark, groupId } = req.body;
-
-    // office admin must assign a reviewer group in approval
-    let group;
-    if (
-      req.document.reviewers.currentDepartment ===
-      AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN
-    ) {
-      group = await reviewerGroupsService.getReviewerGroupById(groupId);
-
-      if (!group) {
-        return next(ApiError.badRequest('Group not found.'));
-      }
-    }
-
-    const document = await documentService.approveDocument({
-      reviewerId: req.user._id,
-      document: req.document,
-      remark,
-      reviewerPermissions: req.reviewerPermissions,
-      group,
-    });
-
-    const history = await historyService.createHistory({
-      actor: req.user._id,
-      action: DOCUMENT_ACTIONS.APPROVED,
-      department: req.user.department,
-      document: document.id,
-      content: remark,
-    });
-
-    document.histories.push(history);
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Approved the document',
-    });
   });
 
   const requestRevision = catchAsync(async (req, res, next) => {
@@ -354,8 +254,11 @@ const createDocumentController = () => {
   });
 
   const getDocumentsToCheck = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getDocumentsToCheck({
-      user: req.user,
+    const { documents, total } = await documentService.getAllDocuments({
+      query: {
+        ...req.query,
+        currentReviewer: req.user.id,
+      },
     });
 
     sendSuccessResponse({
@@ -470,9 +373,6 @@ const createDocumentController = () => {
 
   return {
     createDocument,
-    prepareDocument,
-    verifyDocument,
-    approveDocument,
     requestRevision,
     reviseDocument,
     getDocumentsToCheck,

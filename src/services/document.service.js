@@ -7,19 +7,14 @@ const {
 } = require('../constants');
 const {
   DOCUMENT_STATUSES,
-  DOCUMENT_SECTIONS,
   DOCUMENT_ACTIONS,
-  STATUS_ACTION_MAP,
 } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const { uploadFile } = require('../lib/s3');
 const Document = require('../models/document.model');
 const userService = require('../services/user.service');
-const {
-  AUTHORIZED_DEPARTMENTS,
-  DEPARTMENT_LEVELS,
-} = require('../constants/user');
+const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const historyService = require('./history.service');
 const ReviewerGroup = require('../models/reviewer-group.model');
 
@@ -81,7 +76,7 @@ const createDocumentService = () => {
       queryFilter.currentReviewer &&
       isObjectIdOrHexString(queryFilter.currentReviewer)
     ) {
-      filter['state.currentReviewer'] = queryFilter.currentReviewer;
+      filter.currentReviewer = queryFilter.currentReviewer;
     }
 
     return filter;
@@ -172,7 +167,6 @@ const createDocumentService = () => {
       requester: requester.id,
       status: DOCUMENT_STATUSES.PENDING,
       reviewers: {
-        currentReviewerId: officeAdmins[0].id,
         list: [
           {
             reviewer: officeAdmins[0]._id,
@@ -194,6 +188,7 @@ const createDocumentService = () => {
           },
         ],
       },
+      currentReviewer: officeAdmins[0].id,
     });
 
     await document.save();
@@ -273,120 +268,6 @@ const createDocumentService = () => {
     return document;
   };
 
-  const prepareDocument = async ({
-    data,
-    reviewerId,
-    document,
-    remark,
-    reviewerPermissions,
-  }) => {
-    if (!reviewerPermissions.canPrepare) {
-      throw ApiError.badRequest('Cannot prepare the document.');
-    }
-
-    const newDocument = await Document.findByIdAndUpdate(
-      document.id,
-      {
-        ...data,
-        $inc: {
-          'reviewers.currentReviewerIndex': 1,
-        },
-        $push: {
-          remarks: {
-            ...(remark && { content: remark }),
-            remarker: reviewerId,
-            action: DOCUMENT_ACTIONS.PREPARED,
-          },
-        },
-      },
-      { new: true, runValidators: true }
-    );
-
-    return newDocument;
-  };
-
-  const verifyDocument = async ({
-    reviewerId,
-    document,
-    remark,
-    reviewerPermissions,
-  }) => {
-    if (!reviewerPermissions.canVerify) {
-      throw ApiError.badRequest('Cannot verify the document.');
-    }
-
-    await document.updateOne(
-      {
-        $inc: {
-          'reviewers.currentReviewerIndex': 1,
-        },
-        $push: {
-          remarks: {
-            ...(remark && { content: remark }),
-            remarker: reviewerId,
-            action: DOCUMENT_ACTIONS.VERIFIED,
-          },
-        },
-      },
-      { new: true, runValidators: true }
-    );
-
-    return document;
-  };
-
-  const approveDocument = async ({
-    reviewerId,
-    document,
-    remark,
-    reviewerPermissions,
-    group,
-  }) => {
-    if (!reviewerPermissions.canApprove) {
-      throw ApiError.badRequest('Cannot approve the document.');
-    }
-
-    const isCurrentFAD =
-      document.reviewers.currentDepartment === AUTHORIZED_DEPARTMENTS.FAD;
-
-    let nextDepartment;
-
-    if (!isCurrentFAD) {
-      const currentLevel =
-        DEPARTMENT_LEVELS[document.reviewers.currentDepartment];
-
-      nextDepartment = DEPARTMENT_LEVELS[currentLevel + 1];
-    }
-
-    await document.updateOne(
-      {
-        ...(!isCurrentFAD && {
-          'reviewers.currentDepartment': nextDepartment,
-          'reviewers.currentReviewerIndex': 0,
-        }),
-        ...(isCurrentFAD && {
-          status: DOCUMENT_STATUSES.APPROVED,
-        }),
-        $push: {
-          remarks: {
-            ...(remark && { content: remark }),
-            remarker: reviewerId,
-            action: DOCUMENT_ACTIONS.APPROVED,
-          },
-        },
-        ...(group && {
-          $push: {
-            'reviewers.list': {
-              $each: group.reviewers,
-            },
-          },
-        }),
-      },
-      { new: true, runValidators: true }
-    );
-
-    return document;
-  };
-
   const requestRevision = async ({ document, reviewer }) => {
     if (document.status === DOCUMENT_STATUSES.APPROVED) {
       throw ApiError.badRequest('Document has already been approved.');
@@ -413,181 +294,6 @@ const createDocumentService = () => {
     });
 
     return { documents, total: 0 };
-  };
-
-  const adminRejectDocument = async ({ id, user, remark }) => {
-    const document = await Document.findById(id);
-
-    if (document.state.status !== DOCUMENT_STATUSES.pending) {
-      throw ApiError.badRequest('Cannot reject the document.');
-    }
-
-    if (!document.state.currentReviewer.equals(user._id)) {
-      throw ApiError.badRequest('Cannot reject the document.');
-    }
-
-    const newDocument = await Document.findByIdAndUpdate(
-      id,
-      {
-        'state.status': DOCUMENT_STATUSES.rejected,
-        $push: {
-          remarks: {
-            remarker: user._id,
-            content: remark,
-            action: DOCUMENT_ACTIONS.reject,
-            section: document.state.section,
-          },
-        },
-        $set: {
-          'adminReviewers.$.action': 'rejected',
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
-    return newDocument;
-  };
-
-  const submitToFAD = async ({ id, user, reviewers }) => {
-    const document = await Document.findById(id);
-
-    if (!document) {
-      throw _noDocumentError;
-    }
-
-    if (!document.requestedBy.equals(user._id)) {
-      throw ApiError.notAuthorized();
-    }
-
-    if (
-      !(
-        document.state.status === documentStatus.approved &&
-        document.state.section === documentSections.admin
-      )
-    ) {
-      throw ApiError.badRequest('Cannot submit to FAD yet.');
-    }
-
-    const sortedReviewersByOrder = reviewers.sort((a, b) => a.order - b.order);
-
-    const submittedDocument = await Document.findByIdAndUpdate(
-      id,
-      {
-        state: {
-          status: DOCUMENT_STATUSES.pending,
-          section: DOCUMENT_SECTIONS.fad,
-          currentReviewer: sortedReviewersByOrder[0].user,
-        },
-        fadReviewers: sortedReviewersByOrder,
-      },
-      { new: true, runValidators: true }
-    );
-
-    return submittedDocument;
-  };
-
-  const fadApproveDocument = async ({
-    id,
-    user,
-    remark,
-    action = DOCUMENT_ACTIONS.approve,
-  }) => {
-    const document = await Document.findById(id);
-
-    if (document.state.status !== DOCUMENT_STATUSES.pending) {
-      throw ApiError.badRequest('Document has already been approved.');
-    }
-
-    if (!document.state.currentReviewer.equals(user._id)) {
-      throw ApiError.badRequest('Not allowed to approve this document.');
-    }
-
-    const currentReviewerOrder = document.fadReviewers.find((reviewer) =>
-      reviewer.user.equals(document.state.currentReviewer)
-    )?.order;
-
-    if (typeof currentReviewerOrder === 'undefined') {
-      throw ApiError.badRequest('Current reviewer does not exist.');
-    }
-
-    const nextReviewer = document.fadReviewers.find(
-      (reviewer) => reviewer.order === currentReviewerOrder + 1
-    );
-
-    const nextStatus =
-      action === DOCUMENT_ACTIONS.approve
-        ? DOCUMENT_STATUSES.approved
-        : DOCUMENT_STATUSES.verified;
-
-    const newDocument = await Document.findOneAndUpdate(
-      {
-        _id: id,
-        'fadReviewers.user': user._id,
-      },
-      {
-        // if there is no reviewer left,
-        // consider the document to be 100% approved
-        // by fad dept
-        'state.status': nextReviewer ? DOCUMENT_STATUSES.pending : nextStatus,
-        'state.currentReviewer': nextReviewer?.user || null,
-        $push: {
-          remarks: {
-            remarker: user._id,
-            content: remark,
-            action: DOCUMENT_ACTIONS.approve,
-            section: document.state.section,
-          },
-        },
-        $set: {
-          'fadReviewers.$.action': STATUS_ACTION_MAP[action],
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
-    return newDocument;
-  };
-
-  const fadRejectDocument = async ({ id, user, remark }) => {
-    const document = await Document.findById(id);
-
-    if (document.state.status !== DOCUMENT_STATUSES.pending) {
-      throw ApiError.badRequest('Cannot reject the document.');
-    }
-
-    if (!document.state.currentReviewer.equals(user._id)) {
-      throw ApiError.badRequest('Cannot reject the document.');
-    }
-
-    const newDocument = await Document.findByIdAndUpdate(
-      id,
-      {
-        'state.status': DOCUMENT_STATUSES.rejected,
-        $push: {
-          remarks: {
-            remarker: user._id,
-            content: remark,
-            action: DOCUMENT_ACTIONS.reject,
-            section: document.state.section,
-          },
-        },
-        $set: {
-          'fadReviewers.$.action': 'rejected',
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
-    return newDocument;
   };
 
   const commentOnDocument = async ({ id, remark, user }) => {
@@ -702,21 +408,14 @@ const createDocumentService = () => {
 
   return {
     createRequisitionDocument,
-    prepareDocument,
-    verifyDocument,
-    approveDocument,
     requestRevision,
     getDocumentById,
     getAllDocuments,
     getDocumentsToCheck,
     updateDocument,
     deleteDocument,
-    submitToFAD,
     getAdminApprovedDocuments,
     uploadAttachments,
-    adminRejectDocument,
-    fadApproveDocument,
-    fadRejectDocument,
     commentOnDocument,
     invokeDocumentAction,
   };
