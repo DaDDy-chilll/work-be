@@ -79,58 +79,7 @@ router.get(
   '/me',
   authenticate,
   validate(GET_DOCUMENTS),
-  documentController.getMyDocuments
-);
-
-router.get('/me/admin', authenticate, (req, res) => {
-  const params = new URLSearchParams({
-    ...req.query,
-    status: DOCUMENT_STATUSES.approved,
-    section: DOCUMENT_SECTIONS.admin,
-  }).toString();
-
-  res.redirect(`/api/documents/me?${params}`);
-});
-
-router.get('/me/fad', authenticate, (req, res) => {
-  const params = new URLSearchParams({
-    ...req.query,
-    status: DOCUMENT_STATUSES.approved,
-    section: DOCUMENT_SECTIONS.fad,
-  }).toString();
-
-  res.redirect(`/api/documents/me?${params}`);
-});
-
-router.get(
-  ['/requested', '/approval-requested'],
-  authenticate,
-  validate(GET_DOCUMENTS),
-  documentController.getRequestedDocuments
-);
-
-router.get(
-  '/fad',
-  authenticate,
-  authorize([USER_ROLES.superadmin, USER_ROLES.executive, USER_ROLES.fad]),
-  validate(GET_DOCUMENTS),
-  documentController.getDocumentsInFADSection
-);
-
-router.get(
-  '/admin',
-  authenticate,
-  authorize([USER_ROLES.superadmin, USER_ROLES.executive, USER_ROLES.admin]),
-  validate(GET_DOCUMENTS),
-  documentController.getDocumentsInAdminSection
-);
-
-router.get(
-  '/admin/approved',
-  authenticate,
-  authorize([USER_ROLES.superadmin, USER_ROLES.executive, USER_ROLES.admin]),
-  validate(GET_DOCUMENTS),
-  documentController.getAdminApprovedDocuments
+  documentController.getCurrentUserDocuments
 );
 
 router.get(

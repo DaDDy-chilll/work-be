@@ -268,22 +268,7 @@ const createDocumentController = () => {
     });
   });
 
-  const getRequestedDocuments = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        currentReviewer: req.user.id,
-      },
-    });
-
-    sendSuccessResponse({
-      res,
-      data: documents,
-      total,
-    });
-  });
-
-  const getMyDocuments = catchAsync(async (req, res, next) => {
+  const getCurrentUserDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
       query: { ...req.query, requester: req.user._id },
     });
@@ -307,36 +292,6 @@ const createDocumentController = () => {
     });
   });
 
-  const getDocumentsInFADSection = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        section: DOCUMENT_SECTIONS.fad,
-      },
-    });
-
-    sendSuccessResponse({
-      res,
-      data: documents,
-      total,
-    });
-  });
-
-  const getDocumentsInAdminSection = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        section: DOCUMENT_SECTIONS.admin,
-      },
-    });
-
-    sendSuccessResponse({
-      res,
-      data: documents,
-      total,
-    });
-  });
-
   const getDocumentById = catchAsync(async (req, res, next) => {
     const document = await documentService.getDocumentById({
       id: req.params.id,
@@ -348,44 +303,17 @@ const createDocumentController = () => {
     });
   });
 
-  /**
-   * This will return documents that
-   * are approved by admin section
-   * no matter the state of the documents
-   */
-  const getAdminApprovedDocuments = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        history: {
-          action: DOCUMENT_ACTIONS.approve,
-          section: DOCUMENT_SECTIONS.admin,
-        },
-      },
-    });
-
-    sendSuccessResponse({
-      res,
-      data: documents,
-      total,
-    });
-  });
-
   return {
     createDocument,
     requestRevision,
     reviseDocument,
     getDocumentsToCheck,
     commentOnDocument,
-    getRequestedDocuments,
-    getMyDocuments,
+    getCurrentUserDocuments,
     getAllDocuments,
     getDocumentById,
     updateDocument,
     deleteDocument,
-    getDocumentsInFADSection,
-    getDocumentsInAdminSection,
-    getAdminApprovedDocuments,
     invokeDocumentAction,
   };
 };

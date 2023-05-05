@@ -347,15 +347,6 @@ const createDocumentService = () => {
     return { total, documents };
   };
 
-  const getAdminApprovedDocuments = async () => {
-    const documents = await Document.find({
-      'remarks.action': documentActions.approve,
-      'remarks.section': documentSections.admin,
-    });
-
-    return { documents, total: documents.length };
-  };
-
   const updateDocument = async ({
     id,
     attachments,
@@ -414,7 +405,6 @@ const createDocumentService = () => {
     getDocumentsToCheck,
     updateDocument,
     deleteDocument,
-    getAdminApprovedDocuments,
     uploadAttachments,
     commentOnDocument,
     invokeDocumentAction,
