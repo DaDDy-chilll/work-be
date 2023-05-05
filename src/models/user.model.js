@@ -28,9 +28,8 @@ const userSchema = new Schema(
       select: false,
     },
     role: {
-      // deprecated
       type: String,
-      enum: Object.values(USER_ROLES),
+      enum: Object.values(['SUPERADMIN', 'AUTHORIZED', 'BASIC']),
       default: USER_ROLES.normal,
     },
     // permissions, // deprecated
