@@ -8,11 +8,6 @@ const authorize = require('../middlewares/authorize');
 const isSuperadmin = require('../middlewares/is-superadmin');
 
 const { upload } = require('../lib/multer');
-
-const {
-  DOCUMENT_STATUSES,
-  DOCUMENT_SECTIONS,
-} = require('../constants/document');
 const { USER_ROLES } = require('../constants/user');
 
 const {
@@ -38,7 +33,6 @@ router.post(
   '/',
   authenticate,
   upload.array('attachments'),
-  parseDocumentPayload,
   validate(CREATE_DOCUMENT),
   documentController.createDocument
 );
@@ -50,12 +44,7 @@ router.post(
   documentController.invokeDocumentAction
 );
 
-router.post(
-  '/:id/revisions',
-  authenticate,
-  checkDocumentAction,
-  documentController.requestRevision
-);
+router.post('/:id/revisions', authenticate, documentController.requestRevision);
 
 router.patch(
   '/:id/revisions',
