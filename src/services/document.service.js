@@ -14,7 +14,10 @@ const getQuery = require('../helpers/getQuery');
 const { uploadFile } = require('../lib/s3');
 const Document = require('../models/document.model');
 const userService = require('../services/user.service');
-const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
+const {
+  AUTHORIZED_DEPARTMENTS,
+  DEPARTMENT_LEVELS,
+} = require('../constants/user');
 const historyService = require('./history.service');
 const ReviewerGroup = require('../models/reviewer-group.model');
 const revisionService = require('./revision.service');
@@ -293,6 +296,15 @@ const createDocumentService = () => {
       throw ApiError.notAuthorized();
     }
 
+    const requesterDeptLevel = DEPARTMENT_LEVELS[reviewer.department];
+    const requestedDepartmentLevel = DEPARTMENT_LEVELS[department];
+
+    if (requesterDeptLevel <= requestedDepartmentLevel) {
+      throw ApiError.badRequest(
+        'Can only request revision to lower departments.'
+      );
+    }
+
     const revisorItem = document.reviewers.list.find(
       (item) => item.department === department && item.canEdit
     );
@@ -327,7 +339,7 @@ const createDocumentService = () => {
     return document;
   };
 
-  const reviseDocument = async ({ documentId, reviewer }) => {
+  const reviseDocument = async ({ documentId, reviewer, body, remark }) => {
     const document = await Document.findById(documentId);
 
     if (!document) {
@@ -338,7 +350,40 @@ const createDocumentService = () => {
       throw ApiError.notAuthorized();
     }
 
-    document.status = DOCUMENT_STATUSES.REVISED;
+    const usersToAcknowledge = document.reviewers.list
+      .filter(
+        (item) =>
+          item.index < document.reviewers.currentReviewerIndex &&
+          !item.reviewer.equals(reviewer.id) &&
+          item.department !== document.reviewers.currentDepartment
+      )
+      .map((item) => item.reviewer);
+
+    const revision = await revisionService.getActiveRevision({
+      documentId: document.id,
+    });
+
+    const assignAcknowledgements = revisionService.assignAcknowledgements({
+      revisionId: revision.id,
+      users: [...usersToAcknowledge, document.requester],
+    });
+
+    const saveHistory = historyService.createHistory({
+      actor: reviewer.id,
+      action: DOCUMENT_ACTIONS.REVISED,
+      department: document.reviewers.currentDepartment,
+      document: document.id,
+      content: remark,
+    });
+
+    const saveDocument = document.updateOne({
+      ...body,
+      status: DOCUMENT_STATUSES.REVISED,
+    });
+
+    await Promise.all([assignAcknowledgements, saveHistory, saveDocument]);
+
+    return document;
   };
 
   const getDocumentsToCheck = async ({ user }) => {
