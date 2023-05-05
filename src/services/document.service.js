@@ -327,6 +327,20 @@ const createDocumentService = () => {
     return document;
   };
 
+  const reviseDocument = async ({ documentId, reviewer }) => {
+    const document = await Document.findById(documentId);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    if (!document.currentReviewer.equals(reviewer.id)) {
+      throw ApiError.notAuthorized();
+    }
+
+    document.status = DOCUMENT_STATUSES.REVISED;
+  };
+
   const getDocumentsToCheck = async ({ user }) => {
     const documents = await Document.find({
       'reviewers.currentReviewerId': user.id,
