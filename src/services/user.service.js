@@ -99,4 +99,4 @@ const createUserService = () => {
   };
 };
 
-module.exports = createUserService();
+module.exports = createUserService;

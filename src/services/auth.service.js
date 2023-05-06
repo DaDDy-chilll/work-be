@@ -65,4 +65,4 @@ const createAuthService = () => {
   };
 };
 
-module.exports = createAuthService();
+module.exports = createAuthService;

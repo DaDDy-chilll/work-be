@@ -18,11 +18,9 @@ const {
   AUTHORIZED_DEPARTMENTS,
   DEPARTMENT_LEVELS,
 } = require('../constants/user');
-const historyService = require('./history.service');
 const ReviewerGroup = require('../models/reviewer-group.model');
-const revisionService = require('./revision.service');
 
-const createDocumentService = () => {
+const createDocumentService = ({ historyService, revisionService }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
   // Private methods
@@ -339,7 +337,13 @@ const createDocumentService = () => {
     return document;
   };
 
-  const reviseDocument = async ({ documentId, reviewer, body, remark }) => {
+  const reviseDocument = async ({
+    documentId,
+    reviewer,
+    body,
+    remark,
+    files,
+  }) => {
     const document = await Document.findById(documentId);
 
     if (!document) {
@@ -363,6 +367,8 @@ const createDocumentService = () => {
       documentId: document.id,
     });
 
+    const attachments = await uploadAttachments(files);
+
     const assignAcknowledgements = revisionService.assignAcknowledgements({
       revisionId: revision.id,
       users: [...usersToAcknowledge, document.requester],
@@ -378,6 +384,7 @@ const createDocumentService = () => {
 
     const saveDocument = document.updateOne({
       ...body,
+      attachments,
       status: DOCUMENT_STATUSES.REVISED,
     });
 
@@ -506,7 +513,8 @@ const createDocumentService = () => {
     uploadAttachments,
     commentOnDocument,
     invokeDocumentAction,
+    reviseDocument,
   };
 };
 
-module.exports = createDocumentService();
+module.exports = createDocumentService;

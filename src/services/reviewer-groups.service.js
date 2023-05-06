@@ -39,4 +39,4 @@ const createReviewersService = () => {
   };
 };
 
-module.exports = createReviewersService();
+module.exports = createReviewersService;

@@ -1,8 +1,9 @@
 const catchAsync = require('../helpers/catchAsync');
-const reviewerGroupService = require('../services/reviewer-groups.service');
+const createReviewerGroupService = require('../services/reviewer-groups.service');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 
 function createDocumentReviewersController() {
+  const reviewerGroupService = createReviewerGroupService();
   const getReviewersGroup = catchAsync(async (req, res, next) => {
     const { groups, total } = await reviewerGroupService.getReviewersGroup();
 

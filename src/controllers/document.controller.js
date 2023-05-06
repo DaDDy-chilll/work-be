@@ -3,13 +3,12 @@ const {
   DOCUMENT_SECTIONS,
   DOCUMENT_ACTIONS,
 } = require('../constants/document');
-const ApiError = require('../helpers/apiError');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
-const documentService = require('../services/document.service');
-const historyService = require('../services/history.service');
 const { DEPARTMENT_LEVELS } = require('../constants/user');
-const revisionService = require('../services/revision.service');
+const createDocumentService = require('../services/document.service');
+const createHistoryService = require('../services/history.service');
+const createRevisionService = require('../services/revision.service');
 
 const helpers = {
   extractReviewerIdList: (reviewers) => {
@@ -90,7 +89,10 @@ const helpers = {
 };
 
 const createDocumentController = () => {
-  const { getPeopleToAcknowledge } = helpers;
+  const documentService = createDocumentService({
+    historyService: createHistoryService(),
+    revisionService: createRevisionService(),
+  });
 
   const createDocument = catchAsync(async (req, res, next) => {
     const document = documentService.createRequisitionDocument({
@@ -147,44 +149,16 @@ const createDocumentController = () => {
     const user = req.user;
     const { remark, ...data } = req.body;
 
-    const revision = await revisionService.getActiveRevision({
+    const document = await documentService.reviseDocument({
+      body: data,
       documentId,
-    });
-
-    if (!revision) {
-      return next(ApiError.badRequest('No revision found.'));
-    }
-
-    if (!revision.reviewer.equals(user.id)) {
-      return next(ApiError.notAuthorized('Not allowed to edit revision.'));
-    }
-
-    const attachments = await documentService.uploadAttachments(req.files);
-    const updatedDocument = await documentService.updateDocument({
-      id: documentId,
-      attachments,
-      user,
-      data,
-      isRevisedDoc: true,
-    });
-
-    const users = getPeopleToAcknowledge(updatedDocument);
-
-    await revisionService.assignAcknowledgements({
-      revisionId: revision.id,
-      users,
-    });
-
-    await historyService.createHistory({
-      actor: user.id,
-      action: DOCUMENT_ACTIONS.REVISED,
-      department: user.department,
-      document: documentId,
-      content: remark,
+      files: req.files,
+      remark,
+      reviewer: user,
     });
 
     sendSuccessResponse({
-      data: updatedDocument,
+      data: document,
       res,
     });
   });

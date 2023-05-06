@@ -12,4 +12,4 @@ const createHistoryService = () => {
   return { createHistory };
 };
 
-module.exports = createHistoryService();
+module.exports = createHistoryService;

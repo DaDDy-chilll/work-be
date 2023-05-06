@@ -43,4 +43,4 @@ const createRevisionService = () => {
   return { createRevision, getActiveRevision, assignAcknowledgements };
 };
 
-module.exports = createRevisionService();
+module.exports = createRevisionService;
