@@ -1,24 +1,28 @@
-const { userRoles } = require('../constants');
-const userController = require('../controllers/user.controller');
+const router = require('express').Router();
+
+const { container } = require('../container');
+
 const authenticate = require('../middlewares/authenticate');
-const authorize = require('../middlewares/authorize');
 const validate = require('../middlewares/validate');
 const checkParamsId = require('../schema/checkParamsId.schema');
 const { UPDATE_USER, GET_USERS } = require('../schema/user.schema');
 const isSuperadmin = require('../middlewares/is-superadmin');
 
-const router = require('express').Router();
+router.get(
+  '/',
+  authenticate,
+  validate(GET_USERS),
+  container.resolve('userController').getAllUsers
+);
 
-router.get('/', authenticate, validate(GET_USERS), userController.getAllUsers);
-
-router.get('/me', authenticate, userController.getMe);
+router.get('/me', authenticate, container.resolve('userController').getMe);
 
 router.get(
   '/:id',
   authenticate,
   isSuperadmin,
   validate(checkParamsId),
-  userController.getUserById
+  container.resolve('userController').getUserById
 );
 
 router.delete(
@@ -26,7 +30,7 @@ router.delete(
   authenticate,
   isSuperadmin,
   validate(checkParamsId),
-  userController.deleteUserById
+  container.resolve('userController').deleteUserById
 );
 
 router.patch(
@@ -34,20 +38,20 @@ router.patch(
   authenticate,
   isSuperadmin,
   validate(UPDATE_USER),
-  userController.updateUserById
+  container.resolve('userController').updateUserById
 );
 
 router.get(
   '/approval-eligibility/:dept',
   authenticate,
-  userController.getValidReviewers
+  container.resolve('userController').getValidReviewers
 );
 
 router.post(
   '/approval-eligibility/:dept',
   authenticate,
   // validate(checkApprovalEligibilitySchema),
-  userController.checkApprovalEligibilityForUsers
+  container.resolve('userController').checkApprovalEligibilityForUsers
 );
 
 module.exports = router;

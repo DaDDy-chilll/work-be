@@ -1,10 +1,8 @@
 const catchAsync = require('../helpers/catchAsync');
-const createAuthService = require('../services/auth.service');
 const ApiError = require('../helpers/apiError');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 
-const createAuthController = () => {
-  const authService = createAuthService();
+module.exports = ({ authService }) => {
   return {
     login: catchAsync(async (req, res, next) => {
       const data = await authService.login(req.body);
@@ -46,5 +44,3 @@ const createAuthController = () => {
     }),
   };
 };
-
-module.exports = createAuthController();

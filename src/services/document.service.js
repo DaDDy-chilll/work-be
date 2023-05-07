@@ -12,15 +12,18 @@ const {
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const { uploadFile } = require('../lib/s3');
-const Document = require('../models/document.model');
 const userService = require('../services/user.service');
 const {
   AUTHORIZED_DEPARTMENTS,
   DEPARTMENT_LEVELS,
 } = require('../constants/user');
-const ReviewerGroup = require('../models/reviewer-group.model');
 
-const createDocumentService = ({ historyService, revisionService }) => {
+module.exports = ({
+  historyService,
+  revisionService,
+  Document,
+  ReviewerGroup,
+}) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
   // Private methods
@@ -516,5 +519,3 @@ const createDocumentService = ({ historyService, revisionService }) => {
     reviseDocument,
   };
 };
-
-module.exports = createDocumentService;

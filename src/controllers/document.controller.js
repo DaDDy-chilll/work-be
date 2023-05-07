@@ -1,99 +1,7 @@
-const { isObjectIdOrHexString } = require('mongoose');
-const {
-  DOCUMENT_SECTIONS,
-  DOCUMENT_ACTIONS,
-} = require('../constants/document');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
-const { DEPARTMENT_LEVELS } = require('../constants/user');
-const createDocumentService = require('../services/document.service');
-const createHistoryService = require('../services/history.service');
-const createRevisionService = require('../services/revision.service');
 
-const helpers = {
-  extractReviewerIdList: (reviewers) => {
-    return reviewers.map((reviewer) => reviewer.user);
-  },
-  extractFilter: (query) => {
-    let { sort, limit, ...params } = query;
-
-    sort = sort || '-createdAt';
-    limit = limit ? parseInt(limit, 10) : 10;
-
-    const filter = {};
-
-    if (params.status) {
-      if (Array.isArray(params.status)) {
-        filter.$or = params.status.map((value) => ({
-          'state.status': value,
-        }));
-      } else {
-        filter['state.status'] = params.status;
-      }
-    }
-
-    if (params.section) {
-      filter['state.section'] = params.section;
-    }
-
-    if (params.amount) {
-      filter.amount = parseInt(params.amount, 10);
-    }
-
-    if (params.amountMin || params.amountMax) {
-      filter.amount = {
-        ...(params.amountMin && {
-          $gte: parseInt(params.amountMin, 10),
-        }),
-        ...(params.amountMax && {
-          $lte: parseInt(params.amountMax, 10),
-        }),
-      };
-    }
-
-    if (params.requestedBy) {
-      filter.requestedBy = params.requestedBy;
-    }
-
-    if (params.history) {
-      filter['remarks.action'] =
-        params.history.action || DOCUMENT_ACTIONS.approve;
-      filter['remarks.section'] =
-        params.history.section || DOCUMENT_SECTIONS.admin;
-    }
-
-    if (
-      params.currentReviewer &&
-      isObjectIdOrHexString(params.currentReviewer)
-    ) {
-      filter['state.currentReviewer'] = params.currentReviewer;
-    }
-
-    return { sort, limit, filter };
-  },
-  getPeopleToAcknowledge: (document) => {
-    // Requester + people who's already approved/verified/prepared
-
-    const requester = document.requester;
-
-    const peopleThatHaveDoneActions = document.reviewers.list
-      .filter(
-        (reviewer) =>
-          DEPARTMENT_LEVELS[reviewer.department] <
-          DEPARTMENT_LEVELS[document.reviewers.currentDepartment]
-      )
-      .map(({ reviewer }) => reviewer);
-
-    return [requester, ...peopleThatHaveDoneActions];
-  },
-};
-
-const createDocumentController = () => {
-  const documentService = createDocumentService({
-    historyService: createHistoryService(),
-    revisionService: createRevisionService(),
-  });
-
+module.exports = ({ documentService }) => {
   const createDocument = catchAsync(async (req, res, next) => {
     const document = documentService.createRequisitionDocument({
       body: req.body,
@@ -270,5 +178,3 @@ const createDocumentController = () => {
     invokeDocumentAction,
   };
 };
-
-module.exports = createDocumentController();

@@ -1,8 +1,7 @@
 const { userRoles } = require('../constants');
 const ApiError = require('../helpers/apiError');
-const User = require('../models/user.model');
 
-const createUserService = () => {
+module.exports = ({ User }) => {
   const _noUserError = ApiError.badRequest('User does not exist.');
 
   const getAllUsers = async ({ filter, sort, skip, limit }) => {
@@ -98,5 +97,3 @@ const createUserService = () => {
     getValidReviewers,
   };
 };
-
-module.exports = createUserService;

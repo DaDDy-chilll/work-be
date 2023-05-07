@@ -1,6 +1,7 @@
 const router = require('express').Router();
 
-const reviewerGroupsController = require('../controllers/reviewer-groups.controller');
+const { container } = require('../container');
+
 const authenticate = require('../middlewares/authenticate');
 const validate = require('../middlewares/validate');
 const checkParamsId = require('../schema/checkParamsId.schema');
@@ -15,22 +16,26 @@ router.post(
   authenticate,
   isSuperadmin,
   validate(CREATE_GROUP),
-  reviewerGroupsController.createReviewerGroup
+  container.resolve('reviewerGroupController').createReviewerGroup
 );
 
-router.get('/', authenticate, reviewerGroupsController.getReviewersGroup);
+router.get(
+  '/',
+  authenticate,
+  container.resolve('reviewerGroupController').getReviewersGroup
+);
 
 router.get(
   '/approval-eligibility/:dept',
   authenticate,
-  reviewerGroupsController.getValidReviewerGroups
+  container.resolve('reviewerGroupController').getValidReviewerGroups
 );
 
 router.get(
   '/:id',
   authenticate,
   validate(checkParamsId),
-  reviewerGroupsController.getGroupById
+  container.resolve('reviewerGroupController').getGroupById
 );
 
 router.patch(
@@ -38,7 +43,7 @@ router.patch(
   authenticate,
   isSuperadmin,
   validate(UPDATE_GROUP),
-  reviewerGroupsController.updateReviewerGroup
+  container.resolve('reviewerGroupController').updateReviewerGroup
 );
 
 module.exports = router;

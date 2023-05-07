@@ -1,6 +1,6 @@
 const router = require('express').Router();
 
-const documentController = require('../controllers/document.controller');
+const { container } = require('../container');
 
 const validate = require('../middlewares/validate');
 const authenticate = require('../middlewares/authenticate');
@@ -25,7 +25,7 @@ router.get(
   authenticate,
   isSuperadmin,
   validate(GET_DOCUMENTS),
-  documentController.getAllDocuments
+  container.resolve('documentController').getAllDocuments
 );
 
 router.post(
@@ -33,24 +33,28 @@ router.post(
   authenticate,
   upload.array('attachments'),
   validate(CREATE_DOCUMENT),
-  documentController.createDocument
+  container.resolve('documentController').createDocument
 );
 
 router.post(
   '/:id/actions/:action',
   authenticate,
   validate(DOCUMENT_ACTION),
-  documentController.invokeDocumentAction
+  container.resolve('documentController').invokeDocumentAction
 );
 
-router.post('/:id/revisions', authenticate, documentController.requestRevision);
+router.post(
+  '/:id/revisions',
+  authenticate,
+  container.resolve('documentController').requestRevision
+);
 
 router.patch(
   '/:id/revisions',
   authenticate,
   validate(UPDATE_DOCUMENT),
   checkDocumentAction,
-  documentController.reviseDocument
+  container.resolve('documentController').reviseDocument
 );
 
 router.patch(
@@ -58,37 +62,41 @@ router.patch(
   authenticate,
   authorize([USER_ROLES.executive, USER_ROLES.admin, USER_ROLES.fad]),
   validate(DOCUMENT_ACTION),
-  documentController.commentOnDocument
+  container.resolve('documentController').commentOnDocument
 );
 
-router.get('/to-check', authenticate, documentController.getDocumentsToCheck);
+router.get(
+  '/to-check',
+  authenticate,
+  container.resolve('documentController').getDocumentsToCheck
+);
 
 router.get(
   '/me',
   authenticate,
   validate(GET_DOCUMENTS),
-  documentController.getCurrentUserDocuments
+  container.resolve('documentController').getCurrentUserDocuments
 );
 
 router.get(
   '/:id',
   validate(checkParamsId),
   authenticate,
-  documentController.getDocumentById
+  container.resolve('documentController').getDocumentById
 );
 
 router.patch(
   '/:id',
   authenticate,
   validate(UPDATE_DOCUMENT),
-  documentController.updateDocument
+  container.resolve('documentController').updateDocument
 );
 
 router.delete(
   '/:id',
   authenticate,
   validate(DELETE_DOCUMENT),
-  documentController.deleteDocument
+  container.resolve('documentController').deleteDocument
 );
 
 module.exports = router;

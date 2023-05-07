@@ -7,6 +7,10 @@ const { NODE_ENV } = require('./constants');
 const errorHandler = require('./middlewares/errorHandler');
 const ApiError = require('./helpers/apiError');
 
+const { loadContainer } = require('./container');
+// load container before the routes load
+loadContainer();
+
 const router = require('./routes');
 const { getFileStream } = require('./lib/s3');
 

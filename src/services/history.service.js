@@ -1,6 +1,4 @@
-const History = require('../models/history.model');
-
-const createHistoryService = () => {
+module.exports = ({ History }) => {
   const createHistory = async (data) => {
     const history = new History(data);
 
@@ -11,5 +9,3 @@ const createHistoryService = () => {
 
   return { createHistory };
 };
-
-module.exports = createHistoryService;

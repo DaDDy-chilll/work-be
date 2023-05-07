@@ -1,7 +1,6 @@
 const ApiError = require('../helpers/apiError');
-const ReviewerGroup = require('../models/reviewer-group.model');
 
-const createReviewersService = () => {
+module.exports = ({ ReviewerGroup }) => {
   const getReviewersGroup = async () => {
     const groups = await ReviewerGroup.find().populate('reviewers.reviewer');
     const total = await ReviewerGroup.count();
@@ -38,5 +37,3 @@ const createReviewersService = () => {
     updateReviewerGroup,
   };
 };
-
-module.exports = createReviewersService;

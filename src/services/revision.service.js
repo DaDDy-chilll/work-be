@@ -1,6 +1,4 @@
-const Revision = require('../models/revisions.model');
-
-const createRevisionService = () => {
+module.exports = ({ Revision }) => {
   const createRevision = async ({
     documentId,
     requester,
@@ -42,5 +40,3 @@ const createRevisionService = () => {
 
   return { createRevision, getActiveRevision, assignAcknowledgements };
 };
-
-module.exports = createRevisionService;
