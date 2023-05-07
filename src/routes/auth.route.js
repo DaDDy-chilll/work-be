@@ -1,5 +1,4 @@
 const router = require('express').Router();
-const awilix = require('awilix');
 
 const validate = require('../middlewares/validate');
 const authenticate = require('../middlewares/authenticate');
