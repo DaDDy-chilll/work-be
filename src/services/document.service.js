@@ -12,7 +12,6 @@ const {
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
 const { uploadFile } = require('../lib/s3');
-const userService = require('../services/user.service');
 const {
   AUTHORIZED_DEPARTMENTS,
   DEPARTMENT_LEVELS,
@@ -21,6 +20,8 @@ const {
 module.exports = ({
   historyService,
   revisionService,
+  notificationService,
+  userService,
   Document,
   ReviewerGroup,
 }) => {
@@ -121,6 +122,7 @@ module.exports = ({
 
   const approveUpdater = async ({ document, groupId }) => {
     let group;
+    let nextReviewerItem;
 
     const isCurrentFAD =
       document.reviewers.currentDepartment === AUTHORIZED_DEPARTMENTS.FAD;
@@ -148,6 +150,7 @@ module.exports = ({
             })),
           },
         },
+        'reviewers.currentReviewer': group,
       }),
     };
   };
@@ -237,10 +240,6 @@ module.exports = ({
     if (!currentReviewerItem) {
       throw ApiError.notAuthorized(`Cannot perform ${action}.`);
     }
-
-    let nextReviewerItem = document.reviewers.list.find(
-      ({ index }) => index === currentIndex + 1
-    );
     let updater;
     if (action === 'prepare' && currentReviewerItem.canPrepare) {
       updater = prepareUpdater({ body });
@@ -252,12 +251,16 @@ module.exports = ({
       throw ApiError.notAuthorized('Not allowed to perform this action.');
     }
 
+    let nextReviewerItem = document.reviewers.list.find(
+      ({ index }) => index === currentIndex + 1
+    );
+
     await document.updateOne(
       {
-        ...updater,
         currentReviewer: nextReviewerItem.reviewer,
         'reviewers.currentReviewerIndex': nextReviewerItem?.index,
         'reviewers.currentDepartment': nextReviewerItem?.department,
+        ...updater,
       },
       { new: true, runValidators: true }
     );
@@ -357,6 +360,9 @@ module.exports = ({
       throw ApiError.notAuthorized();
     }
 
+    // Cannot be
+    // - current reviewer
+    // - other reviewers in current reviewer's department
     const usersToAcknowledge = document.reviewers.list
       .filter(
         (item) =>
@@ -392,6 +398,10 @@ module.exports = ({
     });
 
     await Promise.all([assignAcknowledgements, saveHistory, saveDocument]);
+
+    await notificationService.createDocAcknowledgementNotification({
+      usersToSendTo: [...usersToAcknowledge, document.requester],
+    });
 
     return document;
   };
