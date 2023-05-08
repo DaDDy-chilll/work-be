@@ -283,7 +283,7 @@ module.exports = ({
       {
         currentReviewer: nextReviewerItem?.reviewer,
         'reviewers.currentReviewerIndex': nextReviewerItem?.index || 0,
-        'reviewers.currentDepartment': nextReviewerItem?.department || '',
+        'reviewers.currentDepartment': nextReviewerItem?.department,
         ...updater,
       },
       { new: true, runValidators: true }
@@ -459,6 +459,8 @@ module.exports = ({
     if (isAllAcknowledged) {
       document.status = DOCUMENT_STATUSES.PENDING;
       document.currentReviewer = nextReviewerItem.reviewer;
+      document.reviewers.currentReviewerIndex = nextReviewerItem.index;
+      document.reviewers.currentDepartment = nextReviewerItem.department;
 
       await document.save();
     }
