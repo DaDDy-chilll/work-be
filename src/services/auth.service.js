@@ -1,7 +1,7 @@
 const ApiError = require('../helpers/apiError');
 const { verifyPassword, signToken } = require('./utils/auth.utils');
 
-module.exports = ({ User }) => {
+module.exports = ({ User, userService }) => {
   const _noUserError = ApiError.badRequest('User does not exist.');
 
   const getUserByEmail = async (email) => {
@@ -11,8 +11,7 @@ module.exports = ({ User }) => {
   };
 
   const register = async (data) => {
-    const user = await User.create(data);
-    user.password = undefined;
+    const user = await userService.createUser(data);
 
     return user;
   };

@@ -1,8 +1,23 @@
 const { userRoles } = require('../constants');
+const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const ApiError = require('../helpers/apiError');
 
 module.exports = ({ User }) => {
   const _noUserError = ApiError.badRequest('User does not exist.');
+
+  const createUser = async (body) => {
+    let role;
+    if (Object.values(AUTHORIZED_DEPARTMENTS).includes(body.department)) {
+      role = 'AUTHORIZED';
+    } else {
+      role = 'BASIC';
+    }
+
+    const user = await User.create({ ...body, role });
+    user.password = undefined;
+
+    return user;
+  };
 
   const getAllUsers = async ({ filter, sort, skip, limit }) => {
     const total = await User.count(filter);
@@ -88,6 +103,7 @@ module.exports = ({ User }) => {
   };
 
   return {
+    createUser,
     getAllUsers,
     getUserById,
     deleteUserById,

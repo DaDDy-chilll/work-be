@@ -122,7 +122,7 @@ module.exports = ({
 
   const approveUpdater = async ({ document, groupId }) => {
     let group;
-    let nextReviewerItem;
+    let addedReviewers;
 
     const isCurrentFAD =
       document.reviewers.currentDepartment === AUTHORIZED_DEPARTMENTS.FAD;
@@ -135,6 +135,21 @@ module.exports = ({
       if (!group) {
         throw ApiError.badRequest('Group does not exist.');
       }
+
+      addedReviewers = group.reviewers
+        .map((item) => ({
+          ...item,
+          index: item.index + document.reviewers.list.length,
+        }))
+        .sort((a, b) => {
+          if (a.index < b.index) {
+            return -1;
+          } else if (b.index < a.index) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
     }
 
     return {
@@ -144,13 +159,12 @@ module.exports = ({
       ...(group && {
         $push: {
           'reviewers.list': {
-            $each: group.reviewers.map((item) => ({
-              ...item,
-              index: item.index + document.reviewers.list.length,
-            })),
+            $each: addedReviewers,
           },
         },
-        'reviewers.currentReviewer': group,
+        'reviewers.currentReviewerIndex': addedReviewers[0].index,
+        'reviewers.currentDeparment': addedReviewers[0].department,
+        currentReviewer: addedReviewers[0].reviewer,
       }),
     };
   };

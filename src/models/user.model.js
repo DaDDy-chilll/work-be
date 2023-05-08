@@ -30,7 +30,7 @@ const userSchema = new Schema(
     role: {
       type: String,
       enum: Object.values(['SUPERADMIN', 'AUTHORIZED', 'BASIC']),
-      default: USER_ROLES.normal,
+      default: 'BASIC',
     },
     // permissions, // deprecated
     jobLabel: {

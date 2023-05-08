@@ -1,6 +1,10 @@
 const ApiError = require('../helpers/apiError');
 
-module.exports = ({ ReviewerGroup }) => {
+module.exports = ({ ReviewerGroup, userService }) => {
+  const validateReviewerGroup = async (group) => {
+    const userIds = group.reviewers.map(({ reviewer }) => reviewer);
+    const users = await Promise.all(userService.getUserById);
+  };
   const getReviewersGroup = async () => {
     const groups = await ReviewerGroup.find().populate('reviewers.reviewer');
     const total = await ReviewerGroup.count();
