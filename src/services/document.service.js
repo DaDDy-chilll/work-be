@@ -8,6 +8,7 @@ const {
 const {
   DOCUMENT_STATUSES,
   DOCUMENT_ACTIONS,
+  DOCUMENT_TYPES,
 } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 const getQuery = require('../helpers/getQuery');
@@ -170,6 +171,10 @@ module.exports = ({
       update.currentReviewer = addedReviewers[0].reviewer;
     } else if (isCurrentFAD) {
       update.status = DOCUMENT_STATUSES.APPROVED;
+
+      if (document.type === DOCUMENT_TYPES.EXPENSE) {
+        update.isCaseClosed = true;
+      }
     }
 
     return update;
