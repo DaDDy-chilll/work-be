@@ -163,8 +163,7 @@ module.exports = ({
       };
 
       update['reviewers.currentReviewerIndex'] = addedReviewers[0].index;
-      update['reviewers.currentReviewerDepartment'] =
-        addedReviewers[0].department;
+      update['reviewers.currentDepartment'] = addedReviewers[0].department;
       update.currentReviewer = addedReviewers[0].reviewer;
     } else if (isCurrentFAD) {
       update.status = DOCUMENT_STATUSES.APPROVED;
