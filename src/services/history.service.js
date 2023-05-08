@@ -7,5 +7,9 @@ module.exports = ({ History }) => {
     return history;
   };
 
-  return { createHistory };
+  const getHistories = async ({ documentId }) => {
+    return await History.find({ document: documentId });
+  };
+
+  return { createHistory, getHistories };
 };

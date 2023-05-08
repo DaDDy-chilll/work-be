@@ -3,6 +3,7 @@ const createAuthController = require('./controllers/auth.controller');
 const createDocumentController = require('./controllers/document.controller');
 const createDocumentReviewersController = require('./controllers/reviewer-groups.controller');
 const createUserController = require('./controllers/user.controller');
+const createHistoryController = require('./controllers/history.controller');
 
 const createAuthService = require('./services/auth.service');
 const createDocumentService = require('./services/document.service');
@@ -29,6 +30,7 @@ function loadControllers() {
       createDocumentReviewersController
     ),
     userController: awilix.asFunction(createUserController),
+    historyController: awilix.asFunction(createHistoryController),
   };
 
   container.register(controllers);
