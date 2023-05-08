@@ -28,7 +28,6 @@ module.exports = ({ ReviewerGroup, userService }) => {
 
       departments.push(curr.department);
 
-      console.log(curr.department);
       // index should start from zero
       // and be incrementally order
       // Checks by comparing with iterator
@@ -71,6 +70,8 @@ module.exports = ({ ReviewerGroup, userService }) => {
         }
       }
     }
+
+    departments = [...new Set([...departments])];
 
     if (
       departments.length !==
