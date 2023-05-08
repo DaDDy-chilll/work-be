@@ -10,7 +10,7 @@ module.exports = ({ ReviewerGroup, userService }) => {
   const validateReviewerGroup = async (reviewers) => {
     let tempReviewers = await Promise.all(
       reviewers.map(async (item) => {
-        const reviewer = await userService.getUserById(item.reviewer);
+        const reviewer = await userService.getUserById({ id: item.reviewer });
         return {
           ...item,
           reviewer,
