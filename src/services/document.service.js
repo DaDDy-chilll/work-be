@@ -243,6 +243,10 @@ module.exports = ({
       throw ApiError.badRequest('Document does not exist.');
     }
 
+    if (document.status !== DOCUMENT_STATUSES.PENDING) {
+      throw ApiError.badRequest('Cannot perform this action.');
+    }
+
     const mapping = {
       prepare: DOCUMENT_ACTIONS.PREPARED,
       verify: DOCUMENT_ACTIONS.VERIFIED,
@@ -426,12 +430,40 @@ module.exports = ({
     return document;
   };
 
-  const acknowledgeDocument = async ({ documentId, userId }) => {
+  const acknowledgeDocument = async ({ documentId, userId, revisionId }) => {
     const document = await Document.findById(documentId);
 
     if (document.status !== DOCUMENT_STATUSES.REVISED) {
       throw ApiError.badRequest('Document is not in REVISED status.');
     }
+
+    const revision = await revisionService.acknowledgeRevision({
+      revisionId,
+      userId,
+      documentId,
+    });
+
+    const isAllAcknowledged = revision.acknowledgements.every(
+      ({ hasAcknowledged }) => hasAcknowledged
+    );
+
+    const nextReviewerItem = document.reviewers.list.find(
+      (reviewerItem) =>
+        reviewerItem.index === document.reviewers.currentReviewerIndex + 1
+    );
+
+    if (!nextReviewerItem) {
+      throw ApiError.badRequest('Something went wrong.');
+    }
+
+    if (isAllAcknowledged) {
+      document.status = DOCUMENT_STATUSES.PENDING;
+      document.currentReviewer = nextReviewerItem.reviewer;
+
+      await document.save();
+    }
+
+    return document;
   };
 
   const getDocumentsToCheck = async ({ user }) => {
@@ -555,5 +587,6 @@ module.exports = ({
     commentOnDocument,
     invokeDocumentAction,
     reviseDocument,
+    acknowledgeDocument,
   };
 };

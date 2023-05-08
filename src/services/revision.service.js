@@ -1,3 +1,5 @@
+const ApiError = require('../helpers/apiError');
+
 module.exports = ({ Revision }) => {
   const createRevision = async ({
     documentId,
@@ -15,6 +17,16 @@ module.exports = ({ Revision }) => {
     });
 
     return revision;
+  };
+
+  const getRevisionsByDocumentId = async ({ documentId }) => {
+    const revisions = await Revision.find({ documentId });
+
+    return revisions;
+  };
+
+  const getRevisionById = async (id) => {
+    return await Revision.findById(id);
   };
 
   const getActiveRevision = async ({ documentId }) => {
@@ -38,5 +50,34 @@ module.exports = ({ Revision }) => {
     return revision;
   };
 
-  return { createRevision, getActiveRevision, assignAcknowledgements };
+  const acknowledgeRevision = async ({ revisionId, userId, documentId }) => {
+    const revision = await Revision.findById(revisionId);
+
+    if (!revision || revision.document.equals(documentId)) {
+      throw ApiError.badRequest('Revision does not exist.');
+    }
+
+    const idx = revision.acknowledgements.findIndex(
+      (item) => item.user.equals(userId) && !item.hasAcknowledged
+    );
+
+    if (!idx === -1) {
+      throw ApiError.badRequest('Cannot acknowledge');
+    }
+
+    revision.acknowledgements[idx].hasAcknowledged = true;
+
+    await revision.save();
+
+    return revision;
+  };
+
+  return {
+    createRevision,
+    getActiveRevision,
+    assignAcknowledgements,
+    getRevisionsByDocumentId,
+    getRevisionById,
+    acknowledgeRevision,
+  };
 };
