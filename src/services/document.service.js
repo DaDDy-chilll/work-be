@@ -281,7 +281,7 @@ module.exports = ({
     // TODO: Refactor assigining next reviewer
     await document.updateOne(
       {
-        currentReviewer: nextReviewerItem.reviewer,
+        currentReviewer: nextReviewerItem?.reviewer,
         'reviewers.currentReviewerIndex': nextReviewerItem?.index || 0,
         'reviewers.currentDepartment': nextReviewerItem?.department || '',
         ...updater,
