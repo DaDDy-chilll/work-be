@@ -121,6 +121,7 @@ module.exports = ({
   };
 
   const approveUpdater = async ({ document, groupId }) => {
+    const update = {};
     let group;
     let addedReviewers;
 
@@ -131,7 +132,9 @@ module.exports = ({
       document.reviewers.currentDepartment ===
       AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN
     ) {
-      group = await ReviewerGroup.findById(groupId);
+      group = await ReviewerGroup.findById(groupId).populate(
+        'reviewers.reviewer'
+      );
       if (!group) {
         throw ApiError.badRequest('Group does not exist.');
       }
@@ -139,7 +142,9 @@ module.exports = ({
       addedReviewers = group.reviewers
         .map((item) => ({
           ...item,
+          ...item.reviewer.permissions,
           index: item.index + document.reviewers.list.length,
+          reviewer: item.reviewer.id,
         }))
         .sort((a, b) => {
           if (a.index < b.index) {
@@ -150,23 +155,21 @@ module.exports = ({
             return 0;
           }
         });
+
+      update.$push = {
+        'reviewers.list': {
+          $each: addedReviewers,
+        },
+      };
+
+      update['reviewers.currentReviewerIndex'] = addedReviewers[0].index;
+      update['reviewers.currentReviewerDepartment'] =
+        addedReviewers[0].department;
+    } else if (isCurrentFAD) {
+      update.status = DOCUMENT_STATUSES.APPROVED;
     }
 
-    return {
-      ...(isCurrentFAD && {
-        status: DOCUMENT_STATUSES.APPROVED,
-      }),
-      ...(group && {
-        $push: {
-          'reviewers.list': {
-            $each: addedReviewers,
-          },
-        },
-        'reviewers.currentReviewerIndex': addedReviewers[0].index,
-        'reviewers.currentDeparment': addedReviewers[0].department,
-        currentReviewer: addedReviewers[0].reviewer,
-      }),
-    };
+    return update;
   };
 
   // Public Methods
@@ -232,7 +235,9 @@ module.exports = ({
     documentId,
     remark,
   }) => {
-    const document = await Document.findById(documentId);
+    const document = await Document.findById(documentId).populate(
+      'reviewers.list.reviewer'
+    );
 
     if (!document) {
       throw ApiError.badRequest('Document does not exist.');
@@ -269,11 +274,12 @@ module.exports = ({
       ({ index }) => index === currentIndex + 1
     );
 
+    // TODO: Refactor assigining next reviewer
     await document.updateOne(
       {
         currentReviewer: nextReviewerItem.reviewer,
-        'reviewers.currentReviewerIndex': nextReviewerItem?.index,
-        'reviewers.currentDepartment': nextReviewerItem?.department,
+        'reviewers.currentReviewerIndex': nextReviewerItem?.index || 0,
+        'reviewers.currentDepartment': nextReviewerItem?.department || '',
         ...updater,
       },
       { new: true, runValidators: true }

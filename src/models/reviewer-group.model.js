@@ -22,22 +22,22 @@ const reviewerGroupSchema = new Schema(
           type: String,
           enum: Object.values(DEPARTMENTS),
         },
-        canPrepare: {
-          type: Boolean,
-          default: false,
-        },
-        canEdit: {
-          type: Boolean,
-          default: false,
-        },
-        canApprove: {
-          type: Boolean,
-          default: false,
-        },
-        canVerify: {
-          type: Boolean,
-          default: true,
-        },
+        // canPrepare: {
+        //   type: Boolean,
+        //   default: false,
+        // },
+        // canEdit: {
+        //   type: Boolean,
+        //   default: false,
+        // },
+        // canApprove: {
+        //   type: Boolean,
+        //   default: false,
+        // },
+        // canVerify: {
+        //   type: Boolean,
+        //   default: true,
+        // },
       },
     ],
     name: String,
