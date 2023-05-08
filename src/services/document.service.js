@@ -530,8 +530,9 @@ module.exports = ({
       .sort(sort)
       .skip(skip)
       .limit(limit)
-      .populate('requester');
-
+      .populate('requester')
+      .populate('histories', '_id')
+      .exec();
     return { total, documents };
   };
 
