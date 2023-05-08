@@ -303,12 +303,8 @@ module.exports = ({
     remark,
   }) => {
     const document = Document.findById(documentId);
-    if (document.status === DOCUMENT_STATUSES.APPROVED) {
-      throw ApiError.badRequest('Document has already been approved.');
-    }
-
-    if (document.status === DOCUMENT_STATUSES.REQUESTED_REVISION) {
-      throw ApiError.badRequest('Document is already being revised.');
+    if (document.status !== DOCUMENT_STATUSES.PENDING) {
+      throw ApiError.badRequest('Document must be in pending status.');
     }
 
     // basically OA won't request a revision
@@ -380,6 +376,10 @@ module.exports = ({
       throw ApiError.notAuthorized();
     }
 
+    if (document.status !== DOCUMENT_STATUSES.REQUESTED_REVISION) {
+      throw ApiError.badRequest();
+    }
+
     // Cannot be
     // - current reviewer
     // - other reviewers in current reviewer's department
@@ -424,6 +424,14 @@ module.exports = ({
     });
 
     return document;
+  };
+
+  const acknowledgeDocument = async ({ documentId, userId }) => {
+    const document = await Document.findById(documentId);
+
+    if (document.status !== DOCUMENT_STATUSES.REVISED) {
+      throw ApiError.badRequest('Document is not in REVISED status.');
+    }
   };
 
   const getDocumentsToCheck = async ({ user }) => {

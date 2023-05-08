@@ -22,7 +22,7 @@ module.exports = ({ ReviewerGroup, userService }) => {
 
     let departments = [];
 
-    for (let i = 0; i < sortedReviewersByIdx.length; i++) {
+    for (let i = 0; i < sortedReviewersByIdx.length - 1; i++) {
       const curr = sortedReviewersByIdx[i];
       const next = sortedReviewersByIdx[i + 1];
 
