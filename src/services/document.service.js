@@ -140,12 +140,15 @@ module.exports = ({
       }
 
       addedReviewers = group.reviewers
-        .map((item) => ({
-          ...item,
-          ...item.reviewer.permissions,
-          index: item.index + document.reviewers.list.length,
-          reviewer: item.reviewer.id,
-        }))
+        .map((item) => {
+          const index = item.index + document.reviewers.list.length;
+          return {
+            ...item.reviewer.permissions,
+            index,
+            reviewer: item.reviewer.id,
+            department: item.department,
+          };
+        })
         .sort((a, b) => {
           if (a.index < b.index) {
             return -1;
