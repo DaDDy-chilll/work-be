@@ -1,4 +1,5 @@
 const { DOCUMENT_ACTIONS } = require('../constants/document');
+const ApiError = require('../helpers/apiError');
 
 module.exports = ({ Notification }) => {
   return Object.freeze({
@@ -35,6 +36,24 @@ module.exports = ({ Notification }) => {
       ]);
 
       return { notifications, count };
+    },
+
+    openNotification: async ({ userId, notificationId }) => {
+      const notification = await Notification.findById(notificationId);
+
+      if (!notification) {
+        throw ApiError.badRequest('Notification does not exist.');
+      }
+
+      if (!notification.to.equals(userId)) {
+        throw ApiError.notAuthorized();
+      }
+
+      notification.isOpen = true;
+
+      await notification.save();
+
+      return notification;
     },
   });
 };

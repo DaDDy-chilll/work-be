@@ -19,5 +19,20 @@ module.exports = ({ notificationService }) => {
         total: count,
       });
     }),
+    openNotification: catchAsync(async (req, res, next) => {
+      const userId = req.user.id;
+
+      const { id: notificationId } = req.params;
+
+      const notification = await notificationService.openNotification({
+        userId,
+        notificationId,
+      });
+
+      sendSuccessResponse({
+        res,
+        data: notification,
+      });
+    }),
   });
 };
