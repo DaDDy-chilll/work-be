@@ -32,9 +32,7 @@ function loadControllers() {
     ),
     userController: awilix.asFunction(createUserController),
     historyController: awilix.asFunction(createHistoryController),
-    createNotificationController: awilix.asFunction(
-      createNotificationController
-    ),
+    notificationController: awilix.asFunction(createNotificationController),
   };
 
   container.register(controllers);
