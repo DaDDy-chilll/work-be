@@ -368,7 +368,7 @@ module.exports = ({
     }
 
     document.status = DOCUMENT_STATUSES.REQUESTED_REVISION;
-    document.currentReviewer = revisorItem.id;
+    document.currentReviewer = revisorItem.reviewer;
 
     const saveDocument = document.save();
     const saveHistory = historyService.createHistory({
