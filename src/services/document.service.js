@@ -589,7 +589,13 @@ module.exports = ({
       .skip(skip)
       .limit(limit)
       .populate('requester')
-      .populate('lastActivity');
+      .populate({
+        path: 'lastActivity',
+        populate: {
+          path: 'actor',
+          select: 'name',
+        },
+      });
 
     return { total, documents };
   };

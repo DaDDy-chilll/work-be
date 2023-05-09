@@ -128,6 +128,10 @@ const documentSchema = new Schema(
             required: true,
             enum: Object.values(AUTHORIZED_DEPARTMENTS),
           },
+          status: {
+            type: String,
+            default: 'PENDING',
+          },
           canPrepare: Boolean,
           canEdit: Boolean,
           canApprove: Boolean,
