@@ -23,6 +23,10 @@ const notificationSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Document',
   },
+  isOpen: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Notification = mongoose.model('Notification', notificationSchema);
