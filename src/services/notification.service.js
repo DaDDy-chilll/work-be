@@ -1,3 +1,5 @@
+const { DOCUMENT_ACTIONS } = require('../constants/document');
+
 module.exports = ({ Notification }) => {
   return Object.freeze({
     createDocAcknowledgementNotification: async ({
@@ -8,17 +10,16 @@ module.exports = ({ Notification }) => {
         usersToSendTo.map((id) =>
           Notification.create({
             to: id,
-            type: 'ACKNOWLEDGE',
+            action: DOCUMENT_ACTIONS.ACKNOWLEDGED,
             documentId,
           })
         )
       );
     },
 
-    createNotification: async ({ type, to, from, action, documentId }) => {
+    createNotification: async ({ to, from, action, documentId }) => {
       return await Notification.create({
         to,
-        type,
         from,
         action,
         documentId,

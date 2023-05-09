@@ -14,7 +14,7 @@ const notificationSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
   },
-  type: {
+  action: {
     type: String,
     enum: Object.values(DOCUMENT_ACTIONS),
     required: true,

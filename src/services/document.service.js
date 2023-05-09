@@ -233,6 +233,13 @@ module.exports = ({
       document: document.id,
     });
 
+    await notificationService.createNotification({
+      to: document.currentReviewer,
+      from: document.requester,
+      action: DOCUMENT_ACTIONS.SUBMITTED,
+      documentId: document.id,
+    });
+
     return document;
   };
 
@@ -305,6 +312,13 @@ module.exports = ({
       content: remark,
     });
 
+    await notificationService.createNotification({
+      to: document.requester,
+      from: reviewer.id,
+      action: mapping[action],
+      documentId: document.id,
+    });
+
     return document;
   };
 
@@ -368,6 +382,13 @@ module.exports = ({
         department: revisorItem.department,
       },
       historyId: history.id,
+    });
+
+    await notificationService.createNotification({
+      to: revisorItem.reviewer,
+      from: reviewer.id,
+      action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
+      documentId: document.id,
     });
 
     return document;
@@ -437,6 +458,19 @@ module.exports = ({
       usersToSendTo: [...usersToAcknowledge, document.requester],
     });
 
+    const usersToSendTo = [...usersToAcknowledge, document.requester];
+
+    await Promise.all(
+      usersToSendTo.map((id) =>
+        notificationService.createNotification({
+          to: id,
+          from: reviewer.id,
+          action: DOCUMENT_ACTIONS.REVISED,
+          documentId: document.id,
+        })
+      )
+    );
+
     return document;
   };
 
@@ -474,6 +508,20 @@ module.exports = ({
 
       await document.save();
     }
+
+    await historyService.createHistory({
+      actor: userId,
+      action: DOCUMENT_ACTIONS.ACKNOWLEDGED,
+      department: document.reviewers.currentDepartment,
+      document: document.id,
+    });
+
+    await notificationService.createNotification({
+      to: document.requester,
+      from: userId,
+      action: DOCUMENT_ACTIONS.ACKNOWLEDGED,
+      documentId: document.id,
+    });
 
     return document;
   };
