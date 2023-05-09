@@ -64,7 +64,6 @@ router.post(
 router.patch(
   '/:id/comment',
   authenticate,
-  validate(DOCUMENT_ACTION),
   container.resolve('documentController').commentOnDocument
 );
 
