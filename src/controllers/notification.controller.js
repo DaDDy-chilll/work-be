@@ -6,11 +6,12 @@ module.exports = ({ notificationService }) => {
     getCurrentUserNotifications: catchAsync(async (req, res, next) => {
       const userId = req.user.id;
 
-      const { notifications, count } = notificationService.getNotifications({
-        query: {
-          to: userId,
-        },
-      });
+      const { notifications, count } =
+        await notificationService.getNotifications({
+          query: {
+            to: userId,
+          },
+        });
 
       sendSuccessResponse({
         res,
