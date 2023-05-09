@@ -314,17 +314,16 @@ module.exports = ({
     department,
     remark,
   }) => {
-    const document = Document.findById(documentId);
+    const document = await Document.findById(documentId);
     if (document.status !== DOCUMENT_STATUSES.PENDING) {
       throw ApiError.badRequest('Document must be in pending status.');
     }
-
     // basically OA won't request a revision
     if (reviewer.department === AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN) {
       throw ApiError.badRequest();
     }
 
-    if (!reviewer.id.equals(document.currentReviewer)) {
+    if (!reviewer._id.equals(document.currentReviewer)) {
       throw ApiError.notAuthorized();
     }
 
@@ -363,8 +362,11 @@ module.exports = ({
 
     await revisionService.createRevision({
       documentId: document.id,
-      requester: reviewer.id,
-      reviewer: revisorItem.reviewer,
+      requester: reviewer,
+      reviewer: {
+        id: revisorItem.reviewer,
+        department: revisorItem.department,
+      },
       historyId: history.id,
     });
 
