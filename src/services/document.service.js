@@ -266,6 +266,7 @@ module.exports = ({
       prepare: DOCUMENT_ACTIONS.PREPARED,
       verify: DOCUMENT_ACTIONS.VERIFIED,
       approve: DOCUMENT_ACTIONS.APPROVED,
+      comment: DOCUMENT_ACTIONS.COMMENTED,
     };
 
     // Check if it's reviewer's turn
@@ -285,6 +286,12 @@ module.exports = ({
       updater = verifyUpdater();
     } else if (action === 'approve' && currentReviewerItem.canApprove) {
       updater = await approveUpdater({ document, groupId: body.groupId });
+    } else if (action === 'comment') {
+      updater = {
+        currentReviewer: currentReviewerItem.reviewer,
+        'reviewers.currentReviewerIndex': currentReviewerItem.index,
+        'reviewers.currentDepartment': currentReviewerItem.department,
+      };
     } else {
       throw ApiError.notAuthorized('Not allowed to perform this action.');
     }

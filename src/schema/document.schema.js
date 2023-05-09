@@ -92,7 +92,7 @@ const DOCUMENT_ACTION = z.object({
     .partial(),
   params: z.object({
     id: z.string().refine(isObjectIdOrHexString, 'Invalid ID.'),
-    action: z.enum(['prepare', 'verify', 'approve'], {
+    action: z.enum(['prepare', 'verify', 'approve', 'comment'], {
       errorMap: () => ({ message: 'Invalid action.' }),
     }),
   }),
