@@ -11,7 +11,7 @@ module.exports = {
     PREPARED: 'PREPARED',
     EDITED: 'EDITED',
     SUBMITTED: 'SUBMITTED',
-    REQUSTED_REVISION: 'REQUESTED_REVISION', // Higher level department requests for more info
+    REQUESTED_REVISION: 'REQUESTED_REVISION', // Higher level department requests for more info
     REVISED: 'REVISED',
   }),
   DOCUMENT_STATUSES: Object.freeze({

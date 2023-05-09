@@ -14,5 +14,15 @@ module.exports = ({ Notification }) => {
         )
       );
     },
+
+    createNotification: async ({ type, to, from, action, documentId }) => {
+      return await Notification.create({
+        to,
+        type,
+        from,
+        action,
+        documentId,
+      });
+    },
   });
 };

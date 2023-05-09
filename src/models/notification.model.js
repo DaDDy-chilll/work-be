@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { DOCUMENT_ACTIONS } = require('../constants/document');
 
 const Schema = mongoose.Schema;
 
@@ -9,9 +10,14 @@ const notificationSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
   },
+  from: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  },
   type: {
     type: String,
-    enum: ['ACKNOWLEDGE'],
+    enum: Object.values(DOCUMENT_ACTIONS),
+    required: true,
   },
   documentId: {
     type: Schema.Types.ObjectId,

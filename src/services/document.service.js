@@ -352,7 +352,7 @@ module.exports = ({
     const saveDocument = document.save();
     const saveHistory = historyService.createHistory({
       actor: reviewer.id,
-      action: DOCUMENT_ACTIONS.REQUSTED_REVISION,
+      action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
       department: department,
       document: document.id,
       content: remark,
