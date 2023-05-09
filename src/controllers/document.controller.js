@@ -53,7 +53,7 @@ module.exports = ({ documentService }) => {
   });
 
   const reviseDocument = catchAsync(async (req, res, next) => {
-    const { id: documentId } = req.params.id;
+    const { id: documentId } = req.params;
     const user = req.user;
     const { remark, ...data } = req.body;
 
@@ -63,6 +63,22 @@ module.exports = ({ documentService }) => {
       files: req.files,
       remark,
       reviewer: user,
+    });
+
+    sendSuccessResponse({
+      data: document,
+      res,
+    });
+  });
+
+  const acknowledgeRevision = catchAsync(async (req, res, next) => {
+    const { documentId, revisionId } = req.params;
+    const userId = req.user.id;
+
+    const document = await documentService.acknowledgeDocument({
+      documentId,
+      revisionId,
+      userId,
     });
 
     sendSuccessResponse({
@@ -168,6 +184,7 @@ module.exports = ({ documentService }) => {
     createDocument,
     requestRevision,
     reviseDocument,
+    acknowledgeRevision,
     getDocumentsToCheck,
     commentOnDocument,
     getCurrentUserDocuments,

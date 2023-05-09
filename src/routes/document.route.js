@@ -4,11 +4,9 @@ const { container } = require('../container');
 
 const validate = require('../middlewares/validate');
 const authenticate = require('../middlewares/authenticate');
-const authorize = require('../middlewares/authorize');
 const isSuperadmin = require('../middlewares/is-superadmin');
 
 const { upload } = require('../lib/multer');
-const { USER_ROLES } = require('../constants/user');
 
 const {
   GET_DOCUMENTS,
@@ -57,10 +55,15 @@ router.patch(
   container.resolve('documentController').reviseDocument
 );
 
+router.post(
+  '/:documentId/revisions/:revisionId',
+  authenticate,
+  container.resolve('documentController').acknowledgeRevision
+);
+
 router.patch(
   '/:id/comment',
   authenticate,
-  authorize([USER_ROLES.executive, USER_ROLES.admin, USER_ROLES.fad]),
   validate(DOCUMENT_ACTION),
   container.resolve('documentController').commentOnDocument
 );

@@ -13,6 +13,7 @@ module.exports = {
     SUBMITTED: 'SUBMITTED',
     REQUESTED_REVISION: 'REQUESTED_REVISION', // Higher level department requests for more info
     REVISED: 'REVISED',
+    COMMENTED: 'COMMENTED',
   }),
   DOCUMENT_STATUSES: Object.freeze({
     PENDING: 'PENDING',

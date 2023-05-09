@@ -537,19 +537,20 @@ module.exports = ({
   const commentOnDocument = async ({ id, remark, user }) => {
     const document = await Document.findById(id);
 
-    if (document.state.status !== DOCUMENT_STATUSES.pending) {
+    if (document.state.status !== DOCUMENT_STATUSES.PENDING) {
       throw ApiError.badRequest('Document has already been approved.');
     }
 
-    if (document.state.currentReviewer.equals(user._id)) {
+    if (!document.currentReviewer.equals(user._id)) {
       throw ApiError.badRequest('You are not allowed to comment.');
     }
 
-    document.remarks.push({
-      remarker: user._id,
+    await historyService.createHistory({
+      actor: user.id,
+      action: DOCUMENT_ACTIONS.COMMENTED,
+      department: user.currentDepartment,
+      document: document.id,
       content: remark,
-      action: DOCUMENT_ACTIONS.comment,
-      section: document.state.section,
     });
 
     await document.save();
