@@ -548,7 +548,7 @@ module.exports = ({
     await historyService.createHistory({
       actor: user.id,
       action: DOCUMENT_ACTIONS.COMMENTED,
-      department: user.currentDepartment,
+      department: user.department,
       document: document.id,
       content: remark,
     });
