@@ -537,7 +537,7 @@ module.exports = ({
   const commentOnDocument = async ({ id, remark, user }) => {
     const document = await Document.findById(id);
 
-    if (document.state.status !== DOCUMENT_STATUSES.PENDING) {
+    if (document.status !== DOCUMENT_STATUSES.PENDING) {
       throw ApiError.badRequest('Document has already been approved.');
     }
 
