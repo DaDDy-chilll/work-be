@@ -25,5 +25,16 @@ module.exports = ({ Notification }) => {
         documentId,
       });
     },
+
+    getNotifications: async ({ query }) => {
+      const tmpQuery = { ...query };
+
+      const [notifications, count] = await Promise.all([
+        Notification.find(tmpQuery),
+        Notification.count(tmpQuery),
+      ]);
+
+      return { notifications, count };
+    },
   });
 };
