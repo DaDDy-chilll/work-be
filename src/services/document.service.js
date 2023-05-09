@@ -589,8 +589,8 @@ module.exports = ({
       .skip(skip)
       .limit(limit)
       .populate('requester')
-      .populate('histories', '_id')
-      .exec();
+      .populate('lastActivity');
+
     return { total, documents };
   };
 

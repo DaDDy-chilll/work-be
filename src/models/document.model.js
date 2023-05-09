@@ -85,12 +85,12 @@ const documentSchema = new Schema(
         },
       },
     ],
-    histories: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'History',
-      },
-    ],
+    // histories: [
+    //   {
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'History',
+    //   },
+    // ],
     status: {
       type: String,
       enum: Object.values(DOCUMENT_STATUSES),
@@ -168,6 +168,16 @@ documentSchema.pre(
     fieldName: 'documentId',
   })
 );
+
+documentSchema.virtual('lastActivity', {
+  ref: 'History',
+  localField: '_id',
+  foreignField: 'document',
+  justOne: true,
+  options: {
+    sort: '-createdAt',
+  },
+});
 
 const Document = mongoose.model('Document', documentSchema);
 
