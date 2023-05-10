@@ -73,7 +73,7 @@ module.exports = ({ documentService }) => {
 
   const acknowledgeRevision = catchAsync(async (req, res, next) => {
     const { documentId, revisionId } = req.params;
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     const document = await documentService.acknowledgeDocument({
       documentId,

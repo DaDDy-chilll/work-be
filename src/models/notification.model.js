@@ -10,10 +10,12 @@ const notificationSchema = new Schema(
     to: {
       type: Schema.Types.ObjectId,
       ref: 'User',
+      required: true,
     },
     from: {
       type: Schema.Types.ObjectId,
       ref: 'User',
+      required: true,
     },
     action: {
       type: String,
@@ -23,6 +25,7 @@ const notificationSchema = new Schema(
     documentId: {
       type: Schema.Types.ObjectId,
       ref: 'Document',
+      required: true,
     },
     isOpen: {
       type: Boolean,

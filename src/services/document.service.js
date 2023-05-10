@@ -331,7 +331,7 @@ module.exports = ({
     });
 
     await notificationService.createNotification({
-      to: updateDocument.requester,
+      to: updatedDocument.requester,
       from: reviewer.id,
       action: mapping[action],
       documentId: updatedDocument.id,
