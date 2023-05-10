@@ -455,7 +455,12 @@ module.exports = ({
 
     const revision = await revisionService.getActiveRevision({
       documentId: document.id,
+      reviewerId: reviewer.id,
     });
+
+    if (!revision) {
+      throw ApiError.badRequest('Revision does not exist.');
+    }
 
     const attachments = await uploadAttachments(files);
 
