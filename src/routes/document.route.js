@@ -53,7 +53,6 @@ router.patch(
   authenticate,
   upload.array('attachments'),
   validate(UPDATE_DOCUMENT),
-  checkDocumentAction,
   container.resolve('documentController').reviseDocument
 );
 
