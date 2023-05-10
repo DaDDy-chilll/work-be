@@ -299,34 +299,39 @@ module.exports = ({
     let nextReviewerItem = document.reviewers.list.find(
       ({ index }) => index === currentIndex + 1
     );
-
-    // TODO: Refactor assigining next reviewer
-    await document.updateOne(
+    const updatedDocument = await Document.findOneAndUpdate(
+      {
+        _id: document.id,
+        'reviewers.list.index': currentIndex,
+      },
       {
         currentReviewer: nextReviewerItem?.reviewer,
         'reviewers.currentReviewerIndex': nextReviewerItem?.index || 0,
         'reviewers.currentDepartment': nextReviewerItem?.department,
         ...updater,
       },
-      { new: true, runValidators: true }
+      {
+        runValidators: true,
+        new: true,
+      }
     );
 
     await historyService.createHistory({
       actor: reviewer.id,
       action: mapping[action],
       department: reviewer.department,
-      document: document.id,
+      document: updateDocument.id,
       content: remark,
     });
 
     await notificationService.createNotification({
-      to: document.requester,
+      to: updateDocument.requester,
       from: reviewer.id,
       action: mapping[action],
-      documentId: document.id,
+      documentId: updatedDocument.id,
     });
 
-    return document;
+    return updatedDocument;
   };
 
   const requestRevision = async ({

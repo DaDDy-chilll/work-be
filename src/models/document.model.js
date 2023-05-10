@@ -11,22 +11,6 @@ const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
 const Schema = mongoose.Schema;
 
-const reviewerSchema = {
-  order: {
-    type: Number,
-    required: true,
-  },
-  user: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-  },
-  action: {
-    type: String,
-    enum: ['pending', 'verified', 'approved', 'rejected', 'acknowledge'],
-    default: 'pending',
-  },
-};
-
 const documentSchema = new Schema(
   {
     documentId: {
@@ -128,6 +112,18 @@ const documentSchema = new Schema(
             required: true,
             enum: Object.values(AUTHORIZED_DEPARTMENTS),
           },
+          status: {
+            type: String,
+            enum: [
+              'PENDING',
+              DOCUMENT_ACTIONS.APPROVED,
+              DOCUMENT_ACTIONS.REJECTED,
+              DOCUMENT_ACTIONS.COMMENTED,
+              DOCUMENT_ACTIONS.VERIFIED,
+              DOCUMENT_ACTIONS.PREPARED,
+            ],
+            default: 'PENDING',
+          },
           canPrepare: Boolean,
           canEdit: Boolean,
           canApprove: Boolean,
@@ -145,9 +141,6 @@ const documentSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
-
-    adminReviewers: [reviewerSchema], // deprecated
-    fadReviewers: [reviewerSchema], // deprecated
   },
   {
     timestamps: true,
