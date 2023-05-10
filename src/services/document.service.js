@@ -594,8 +594,14 @@ module.exports = ({
       .skip(skip)
       .limit(limit)
       .populate('requester')
-      .populate('histories', '_id')
-      .exec();
+      .populate({
+        path: 'lastActivity',
+        populate: {
+          path: 'actor',
+          select: 'name',
+        },
+      });
+
     return { total, documents };
   };
 

@@ -9,4 +9,10 @@ router.get(
   container.resolve('notificationController').getCurrentUserNotifications
 );
 
+router.patch(
+  '/:id',
+  authenticate,
+  container.resolve('notificationController').openNotification
+);
+
 module.exports = router;
