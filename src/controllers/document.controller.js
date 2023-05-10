@@ -145,6 +145,18 @@ module.exports = ({ documentService }) => {
     });
   });
 
+  const getDocumentsToAcknowledge = catchAsync(async (req, res, next) => {
+    const documents = await documentService.getDocumentsToAcknowledge({
+      userId: req.user.id,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total: documents.length,
+    });
+  });
+
   const getCurrentUserDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
       query: { ...req.query, requester: req.user._id },
@@ -186,6 +198,7 @@ module.exports = ({ documentService }) => {
     reviseDocument,
     acknowledgeRevision,
     getDocumentsToCheck,
+    getDocumentsToAcknowledge,
     commentOnDocument,
     getCurrentUserDocuments,
     getAllDocuments,

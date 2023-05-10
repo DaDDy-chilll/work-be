@@ -6,6 +6,7 @@ module.exports = ({ Notification }) => {
     createDocAcknowledgementNotification: async ({
       usersToSendTo,
       documentId,
+      from,
     }) => {
       await Promise.all(
         usersToSendTo.map((id) =>

@@ -75,6 +75,12 @@ router.get(
 );
 
 router.get(
+  '/to-acknowledge',
+  authenticate,
+  container.resolve('documentController').getDocumentsToAcknowledge
+);
+
+router.get(
   '/me',
   authenticate,
   validate(GET_DOCUMENTS),

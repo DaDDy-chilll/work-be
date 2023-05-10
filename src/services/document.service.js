@@ -487,6 +487,8 @@ module.exports = ({
 
     await notificationService.createDocAcknowledgementNotification({
       usersToSendTo: [...usersToAcknowledge, document.requester],
+      from: reviewer.id,
+      documentId: document.id,
     });
 
     const usersToSendTo = [...usersToAcknowledge, document.requester];
@@ -589,6 +591,20 @@ module.exports = ({
     return document;
   };
 
+  const getDocumentsToAcknowledge = async ({ userId }) => {
+    const revisions = await revisionService.getRevisionsToAcknowledge({
+      userId,
+    });
+
+    const documentIds = revisions.map(({ document }) => document);
+
+    return await Document.find({
+      _id: {
+        $in: documentIds,
+      },
+    });
+  };
+
   const getDocumentById = async ({ id }) => {
     const document = await Document.findById(id).populate('requester');
 
@@ -680,6 +696,7 @@ module.exports = ({
     getDocumentById,
     getAllDocuments,
     getDocumentsToCheck,
+    getDocumentsToAcknowledge,
     updateDocument,
     deleteDocument,
     uploadAttachments,

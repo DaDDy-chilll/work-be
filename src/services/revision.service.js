@@ -68,12 +68,22 @@ module.exports = ({ Revision }) => {
     return revision;
   };
 
+  const getRevisionsToAcknowledge = async ({ userId }) => {
+    const revisions = await Revision.find({
+      'acknowledgements.user': userId,
+      'acknowledgements.hasAcknowledged': false,
+    });
+
+    return revisions;
+  };
+
   return {
     createRevision,
     getActiveRevision,
     assignAcknowledgements,
     getRevisionsByDocumentId,
     getRevisionById,
+    getRevisionsToAcknowledge,
     acknowledgeRevision,
   };
 };
