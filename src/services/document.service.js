@@ -291,6 +291,9 @@ module.exports = ({
         currentReviewer: currentReviewerItem.reviewer,
         'reviewers.currentReviewerIndex': currentReviewerItem.index,
         'reviewers.currentDepartment': currentReviewerItem.department,
+        $set: {
+          'reviewers.list.$.status': 'PENDING',
+        },
       };
     } else {
       throw ApiError.notAuthorized('Not allowed to perform this action.');
@@ -308,6 +311,9 @@ module.exports = ({
         currentReviewer: nextReviewerItem?.reviewer,
         'reviewers.currentReviewerIndex': nextReviewerItem?.index || 0,
         'reviewers.currentDepartment': nextReviewerItem?.department,
+        $set: {
+          'reviewers.list.$.status': mapping[action],
+        },
         ...updater,
       },
       {
@@ -320,7 +326,7 @@ module.exports = ({
       actor: reviewer.id,
       action: mapping[action],
       department: reviewer.department,
-      document: updateDocument.id,
+      document: updatedDocument.id,
       content: remark,
     });
 
