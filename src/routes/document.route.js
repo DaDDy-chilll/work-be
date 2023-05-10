@@ -51,6 +51,7 @@ router.post(
 router.patch(
   '/:id/revisions',
   authenticate,
+  upload.none(),
   validate(UPDATE_DOCUMENT),
   checkDocumentAction,
   container.resolve('documentController').reviseDocument
