@@ -311,10 +311,10 @@ module.exports = ({
         currentReviewer: nextReviewerItem?.reviewer,
         'reviewers.currentReviewerIndex': nextReviewerItem?.index || 0,
         'reviewers.currentDepartment': nextReviewerItem?.department,
-        $set: {
-          'reviewers.list.$.status': mapping[action],
-        },
         ...updater,
+        // $set: {
+        //   'reviewers.list.$.status': mapping[action],
+        // },
       },
       {
         runValidators: true,
@@ -376,6 +376,14 @@ module.exports = ({
       throw ApiError.badRequest(
         `No person in ${department} eligible to revise.`
       );
+    }
+
+    const activeRevision = await revisionService.getActiveRevision({
+      documentId: document.id,
+    });
+
+    if (activeRevision) {
+      throw ApiError.badRequest('Cannot');
     }
 
     document.status = DOCUMENT_STATUSES.REQUESTED_REVISION;
