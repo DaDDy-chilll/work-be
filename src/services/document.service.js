@@ -562,7 +562,7 @@ module.exports = ({
   const getDocumentsToCheck = async ({ user }) => {
     const documents = await Document.find({
       'reviewers.currentReviewerId': user.id,
-    });
+    }).populate('lastActivity');
 
     return { documents, total: 0 };
   };
@@ -602,7 +602,7 @@ module.exports = ({
       _id: {
         $in: documentIds,
       },
-    });
+    }).populate('lastActivity');
   };
 
   const getDocumentById = async ({ id }) => {
