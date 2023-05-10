@@ -37,6 +37,7 @@ router.post(
 router.post(
   '/:id/actions/:action',
   authenticate,
+  upload.none(),
   validate(DOCUMENT_ACTION),
   container.resolve('documentController').invokeDocumentAction
 );
