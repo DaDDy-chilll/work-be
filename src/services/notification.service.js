@@ -14,6 +14,7 @@ module.exports = ({ Notification }) => {
             to: id,
             action: DOCUMENT_ACTIONS.ACKNOWLEDGED,
             documentId,
+            from,
           })
         )
       );
