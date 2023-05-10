@@ -37,7 +37,7 @@ router.post(
 router.post(
   '/:id/actions/:action',
   authenticate,
-  upload.none(),
+  upload.array('attachments'),
   validate(DOCUMENT_ACTION),
   container.resolve('documentController').invokeDocumentAction
 );
@@ -51,7 +51,7 @@ router.post(
 router.patch(
   '/:id/revisions',
   authenticate,
-  upload.none(),
+  upload.array('attachments'),
   validate(UPDATE_DOCUMENT),
   checkDocumentAction,
   container.resolve('documentController').reviseDocument
@@ -92,6 +92,7 @@ router.get(
 router.patch(
   '/:id',
   authenticate,
+  upload.array('attachments'),
   validate(UPDATE_DOCUMENT),
   container.resolve('documentController').updateDocument
 );
