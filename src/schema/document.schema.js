@@ -32,7 +32,7 @@ const GET_DOCUMENTS = z.object({
       status: z
         .enum(Object.values(DOCUMENT_STATUSES))
         .or(z.array(z.enum(Object.values(DOCUMENT_STATUSES))))
-        .or(z.string),
+        .or(z.string()),
       amount: z.coerce.number().nonnegative(),
       amountMin: z.coerce.number().nonnegative(),
       amountMax: z.coerce.number().nonnegative(),
