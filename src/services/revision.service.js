@@ -65,7 +65,7 @@ module.exports = ({ Revision }) => {
   const acknowledgeRevision = async ({ revisionId, userId, documentId }) => {
     const revision = await Revision.findById(revisionId);
 
-    if (!revision || revision.document.equals(documentId)) {
+    if (!revision || !revision.document.equals(documentId)) {
       throw ApiError.badRequest('Revision does not exist.');
     }
 
