@@ -59,10 +59,10 @@ router.post(
   container.resolve('documentController').acknowledgeRevision
 );
 
-router.patch(
-  '/:id/comment',
+router.post(
+  '/:id/reject',
   authenticate,
-  container.resolve('documentController').commentOnDocument
+  container.resolve('documentController').rejectDocument
 );
 
 router.get(

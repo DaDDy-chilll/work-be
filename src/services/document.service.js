@@ -556,6 +556,41 @@ module.exports = ({
     return document;
   };
 
+  const rejectDocument = async ({ documentId, userId }) => {
+    const document = await Document.findById(documentId);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    if (document.isCaseClosed) {
+      throw ApiError.badRequest('Cannot reject the document.');
+    }
+
+    if (!document.currentReviewer.equals(userId)) {
+      throw ApiError.badRequest('Cannot reject the document.');
+    }
+
+    const currReviewerIdx = document.reviewers.currentReviewerIndex;
+
+    const updatedDocument = await Document.findOneAndUpdate(
+      { _id: documentId, 'reviewers.list.index': currReviewerIdx },
+      {
+        isCaseClosed: true,
+        status: DOCUMENT_STATUSES.REJECTED,
+        $set: {
+          'reviewers.list.$.status': DOCUMENT_ACTIONS.REJECTED,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    return updatedDocument;
+  };
+
   const getDocumentsToCheck = async ({ user }) => {
     const documents = await Document.find({
       'reviewers.currentReviewerId': user.id,
@@ -703,5 +738,6 @@ module.exports = ({
     invokeDocumentAction,
     reviseDocument,
     acknowledgeDocument,
+    rejectDocument,
   };
 };

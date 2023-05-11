@@ -87,6 +87,20 @@ module.exports = ({ documentService }) => {
     });
   });
 
+  const rejectDocument = catchAsync(async (req, res, next) => {
+    const id = req.params.id;
+    const userId = req.user.id;
+    const document = await documentService.rejectDocument({
+      documentId: id,
+      userId: userId,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+    });
+  });
+
   const commentOnDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.commentOnDocument({
       id: req.params.id,
@@ -206,5 +220,6 @@ module.exports = ({ documentService }) => {
     updateDocument,
     deleteDocument,
     invokeDocumentAction,
+    rejectDocument,
   };
 };
