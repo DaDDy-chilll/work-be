@@ -94,9 +94,11 @@ module.exports = ({
     return [];
   };
 
-  const prepareUpdater = ({ body }) => {
+  const prepareUpdater = async ({ body, files }) => {
+    const attachments = await uploadAttachments(files);
     return {
       ...body,
+      attachments,
     };
   };
 
@@ -233,6 +235,7 @@ module.exports = ({
     reviewer,
     documentId,
     remark,
+    files,
   }) => {
     const document = await Document.findById(documentId).populate(
       'reviewers.list.reviewer'
@@ -265,7 +268,7 @@ module.exports = ({
     }
     let updater;
     if (action === 'prepare' && currentReviewerItem.canPrepare) {
-      updater = prepareUpdater({ body });
+      updater = await prepareUpdater({ body, files });
     } else if (action === 'verify' && currentReviewerItem.canVerify) {
       updater = verifyUpdater();
     } else if (action === 'approve' && currentReviewerItem.canApprove) {
