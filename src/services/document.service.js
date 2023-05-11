@@ -603,7 +603,9 @@ module.exports = ({
   };
 
   const getDocumentById = async ({ id }) => {
-    const document = await Document.findById(id).populate('requester');
+    const document = await Document.findById(id)
+      .populate('requester')
+      .populate('reviewers.list.reviewer', 'name');
 
     if (!document) {
       throw _noDocumentError;
