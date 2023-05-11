@@ -275,9 +275,6 @@ module.exports = ({
         currentReviewer: currentReviewerItem.reviewer,
         'reviewers.currentReviewerIndex': currentReviewerItem.index,
         'reviewers.currentDepartment': currentReviewerItem.department,
-        $set: {
-          'reviewers.list.$.status': 'PENDING',
-        },
       };
     } else {
       throw ApiError.notAuthorized('Not allowed to perform this action.');
@@ -286,7 +283,9 @@ module.exports = ({
     let nextReviewerItem = document.reviewers.list.find(
       ({ index }) => index === currentIndex + 1
     );
-    const updatedDocument = await Document.findOneAndUpdate(
+
+    // TODO: REFACTOR
+    await Document.findOneAndUpdate(
       {
         _id: document.id,
         'reviewers.list.index': currentIndex,
@@ -296,9 +295,23 @@ module.exports = ({
         'reviewers.currentReviewerIndex': nextReviewerItem?.index || 0,
         'reviewers.currentDepartment': nextReviewerItem?.department,
         ...updater,
-        // $set: {
-        //   'reviewers.list.$.status': mapping[action],
-        // },
+      },
+      {
+        runValidators: true,
+        new: true,
+      }
+    );
+
+    const updatedDocument = await Document.findOneAndUpdate(
+      {
+        _id: document.id,
+        'reviewers.list.index': currentIndex,
+      },
+      {
+        $set: {
+          'reviewers.list.$.status':
+            action === 'comment' ? 'PENDING' : mapping[action],
+        },
       },
       {
         runValidators: true,

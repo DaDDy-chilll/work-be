@@ -21,7 +21,6 @@ module.exports = ({ Notification }) => {
     },
 
     createNotification: async ({ to, from, action, documentId }) => {
-      console.log(to);
       return await Notification.create({
         to,
         from,
