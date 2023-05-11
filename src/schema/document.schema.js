@@ -37,6 +37,7 @@ const GET_DOCUMENTS = z.object({
       amountMax: z.coerce.number().nonnegative(),
       requestedBy: z.string().refine(isObjectIdOrHexString),
       currentReviewer: z.string().refine(isObjectIdOrHexString),
+      caseStatus: z.enum(['open', 'closed']),
     })
     .partial()
     .strict()

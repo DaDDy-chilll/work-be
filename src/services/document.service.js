@@ -42,15 +42,11 @@ module.exports = ({
     if (queryFilter.status) {
       if (Array.isArray(queryFilter.status)) {
         filter.$or = queryFilter.status.map((value) => ({
-          'state.status': value,
+          status: value,
         }));
       } else {
-        filter['state.status'] = queryFilter.status;
+        filter.status = queryFilter.status;
       }
-    }
-
-    if (queryFilter.section) {
-      filter['state.section'] = queryFilter.section;
     }
 
     if (queryFilter.amount) {
@@ -72,18 +68,12 @@ module.exports = ({
       filter.requester = queryFilter.requester;
     }
 
-    if (queryFilter.history) {
-      filter['remarks.action'] =
-        queryFilter.history.action || documentActions.approve;
-      filter['remarks.section'] =
-        queryFilter.history.section || documentSections.admin;
+    if (queryFilter.currentReviewer) {
+      filter.currentReviewer = queryFilter.currentReviewer;
     }
 
-    if (
-      queryFilter.currentReviewer &&
-      isObjectIdOrHexString(queryFilter.currentReviewer)
-    ) {
-      filter.currentReviewer = queryFilter.currentReviewer;
+    if (queryFilter.caseStatus) {
+      filter.isCaseClosed = queryFilter.caseStatus === 'closed';
     }
 
     return filter;

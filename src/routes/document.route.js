@@ -16,12 +16,10 @@ const {
   DELETE_DOCUMENT,
 } = require('../schema/document.schema');
 const checkParamsId = require('../schema/checkParamsId.schema');
-const checkDocumentAction = require('../middlewares/check-document-action');
 
 router.get(
   '/',
   authenticate,
-  isSuperadmin,
   validate(GET_DOCUMENTS),
   container.resolve('documentController').getAllDocuments
 );
