@@ -373,7 +373,7 @@ module.exports = ({
     });
 
     if (activeRevision) {
-      throw ApiError.badRequest('Cannot');
+      throw ApiError.badRequest("There's already an ongoing revision.");
     }
 
     document.status = DOCUMENT_STATUSES.REQUESTED_REVISION;

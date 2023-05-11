@@ -44,6 +44,11 @@ module.exports = ({ Revision }) => {
   const getActiveRevision = async ({ documentId, reviewerId }) => {
     const revision = await Revision.findOne({
       document: documentId,
+      acknowledgements: {
+        $elemMatch: {
+          hasAcknowledged: false,
+        },
+      },
     });
 
     return revision;
