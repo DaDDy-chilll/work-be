@@ -439,7 +439,6 @@ module.exports = ({
 
     const revision = await revisionService.getActiveRevision({
       documentId: document.id,
-      reviewerId: reviewer.id,
     });
 
     if (!revision) {
@@ -468,12 +467,6 @@ module.exports = ({
     });
 
     await Promise.all([assignAcknowledgements, saveHistory, saveDocument]);
-
-    await notificationService.createDocAcknowledgementNotification({
-      usersToSendTo: [...usersToAcknowledge, document.requester],
-      from: reviewer.id,
-      documentId: document.id,
-    });
 
     const usersToSendTo = [...usersToAcknowledge, document.requester];
 
