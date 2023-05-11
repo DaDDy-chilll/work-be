@@ -98,7 +98,11 @@ module.exports = ({
     const attachments = await uploadAttachments(files);
     return {
       ...body,
-      attachments,
+      $push: {
+        attachments: {
+          $each: attachments,
+        },
+      },
     };
   };
 
