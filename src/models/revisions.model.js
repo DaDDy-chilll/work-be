@@ -46,6 +46,16 @@ const revisionSchema = new Schema(
   }
 );
 
+revisionSchema.virtual('status').get(function () {
+  if (this.acknowledgements.length === 0) {
+    return 'PENDING';
+  } else if (this.acknowledgements.some((i) => !i.hasAcknowledged)) {
+    return 'ACKNOWLEDGING';
+  } else {
+    return 'CLOSED';
+  }
+});
+
 const Revision = mongoose.model('Revision', revisionSchema);
 
 module.exports = Revision;

@@ -7,6 +7,18 @@ module.exports = ({ Revision }) => {
     reviewer,
     historyId,
   }) => {
+    const revisedDocuments = await Revision.find({ document: documentId });
+
+    const acknowledgements = revisedDocuments.map(
+      (doc) => doc.acknowledgements
+    );
+
+    const isActive = acknowledgements.some((i) => !i.hasAcknowledged);
+
+    if (isActive) {
+      throw ApiError.badRequest("There's already an ongoing revision.");
+    }
+
     const revision = await Revision.create({
       document: documentId,
       requester: requester.id,
@@ -32,7 +44,6 @@ module.exports = ({ Revision }) => {
   const getActiveRevision = async ({ documentId, reviewerId }) => {
     const revision = await Revision.findOne({
       document: documentId,
-      reviewer: reviewerId,
     });
 
     return revision;

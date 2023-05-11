@@ -31,13 +31,14 @@ const GET_DOCUMENTS = z.object({
         .default(10),
       status: z
         .enum(Object.values(DOCUMENT_STATUSES))
-        .or(z.array(z.enum(Object.values(DOCUMENT_STATUSES)))),
+        .or(z.array(z.enum(Object.values(DOCUMENT_STATUSES))))
+        .or(z.string),
       amount: z.coerce.number().nonnegative(),
       amountMin: z.coerce.number().nonnegative(),
       amountMax: z.coerce.number().nonnegative(),
       requestedBy: z.string().refine(isObjectIdOrHexString),
       currentReviewer: z.string().refine(isObjectIdOrHexString),
-      caseStatus: z.enum(['open', 'closed']),
+      caseStatus: z.enum(['open', 'closed', '']).or(z.string()),
     })
     .partial()
     .strict()
