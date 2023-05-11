@@ -556,7 +556,7 @@ module.exports = ({
     return document;
   };
 
-  const rejectDocument = async ({ documentId, userId }) => {
+  const rejectDocument = async ({ documentId, userId, remark }) => {
     const document = await Document.findById(documentId);
 
     if (!document) {
@@ -587,6 +587,23 @@ module.exports = ({
         runValidators: true,
       }
     );
+
+    const saveHistory = historyService.createHistory({
+      actor: userId,
+      action: DOCUMENT_ACTIONS.REJECTED,
+      department: document.reviewers.currentDepartment,
+      document: document.id,
+      content: remark,
+    });
+
+    const saveNoti = notificationService.createNotification({
+      to: document.requester,
+      from: userId,
+      action: DOCUMENT_ACTIONS.REJECTED,
+      documentId: document.id,
+    });
+
+    await Promise.all([saveHistory, saveNoti]);
 
     return updatedDocument;
   };

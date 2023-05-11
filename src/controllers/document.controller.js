@@ -93,6 +93,7 @@ module.exports = ({ documentService }) => {
     const document = await documentService.rejectDocument({
       documentId: id,
       userId: userId,
+      remark: req.body.remark,
     });
 
     sendSuccessResponse({
