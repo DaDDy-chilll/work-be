@@ -41,7 +41,7 @@ module.exports = ({ Revision }) => {
     return await Revision.findById(id);
   };
 
-  const getActiveRevision = async ({ documentId, reviewerId }) => {
+  const getActiveRevision = async ({ documentId }) => {
     const revision = await Revision.findOne({
       document: documentId,
       acknowledgements: {

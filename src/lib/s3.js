@@ -30,15 +30,6 @@ function uploadFile(file) {
 }
 
 async function getFileStream(key) {
-  const fileAttributes = await s3
-    .getObjectAttributes({
-      Bucket: AWS_S3_BUCKET_NAME,
-      Key: key,
-    })
-    .promise();
-
-  console.log(fileAttributes);
-
   return s3
     .getObject({ Key: key, Bucket: AWS_S3_BUCKET_NAME })
     .createReadStream();

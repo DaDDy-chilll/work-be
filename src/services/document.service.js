@@ -1,10 +1,4 @@
-const { isObjectIdOrHexString } = require('mongoose');
-const {
-  documentStatus,
-  userRoles,
-  documentSections,
-  documentActions,
-} = require('../constants');
+const { documentStatus, userRoles, documentSections } = require('../constants');
 const {
   DOCUMENT_STATUSES,
   DOCUMENT_ACTIONS,

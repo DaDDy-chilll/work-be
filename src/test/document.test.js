@@ -1,7 +1,4 @@
-const request = require('supertest');
-const mongoose = require('mongoose');
-const { expect } = require('chai');
-const { describe, it, before, beforeEach, after, afterEach } = require('mocha');
+const { describe, it, before, beforeEach } = require('mocha');
 
 const loadDb = require('./setups/load-db');
 const Document = require('../models/document.model');

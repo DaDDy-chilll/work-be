@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const { ZodSchema, ZodError } = require('zod');
 const { RequestHandler } = require('express');
 const ApiError = require('../helpers/apiError');

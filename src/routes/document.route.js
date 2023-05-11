@@ -4,7 +4,6 @@ const { container } = require('../container');
 
 const validate = require('../middlewares/validate');
 const authenticate = require('../middlewares/authenticate');
-const isSuperadmin = require('../middlewares/is-superadmin');
 
 const { upload } = require('../lib/multer');
 
