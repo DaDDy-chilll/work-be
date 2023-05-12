@@ -537,7 +537,7 @@ module.exports = ({
 
     const saveDocument = document.updateOne({
       ...body,
-      attachments: [...document.attachments, attachments],
+      attachments: [...document.attachments, ...attachments],
       status: DOCUMENT_STATUSES.REVISED,
     });
 
