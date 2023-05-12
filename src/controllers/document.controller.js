@@ -4,12 +4,11 @@ const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 
 module.exports = ({ documentService }) => {
   const createDocument = catchAsync(async (req, res, next) => {
-    const { isClaimDocument, originalDocumentId, ...body } = req.body;
+    const { originalDocumentId, ...body } = req.body;
     const document = await documentService.createRequisitionDocument({
       body,
       requester: req.user,
       files: req.files,
-      isClaimDocument,
       originalDocumentId,
     });
 

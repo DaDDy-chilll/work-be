@@ -15,12 +15,10 @@ const BASE_DOCUMENT = z.object({
         return { message: 'Invalid document type.' };
       },
     })
-    .default(DOCUMENT_TYPES.EXPENSE)
-    .optional(),
+    .default(DOCUMENT_TYPES.EXPENSE),
   amount: z.coerce.number().positive('Invalid amount'),
   description: z.string().transform(xss).optional(),
   originalDocumentId: z.string().refine(isObjectIdOrHexString).optional(),
-  isClaimDocument: z.boolean().optional().default(false),
 });
 
 const GET_DOCUMENTS = z.object({

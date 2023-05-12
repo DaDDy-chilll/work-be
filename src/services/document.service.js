@@ -184,9 +184,8 @@ module.exports = ({
     requester,
     files,
     originalDocumentId = undefined,
-    isClaimDocument = false,
   }) => {
-    if (isClaimDocument) {
+    if (body.type === DOCUMENT_TYPES.CLAIM) {
       const orgDoc = await Document.findById(originalDocumentId);
 
       if (!orgDoc) {
@@ -252,8 +251,7 @@ module.exports = ({
         ],
       },
       currentReviewer: officeAdmins[0].id,
-      type: isClaimDocument ? 'CLAIM' : body.type,
-      isClaimDocument,
+      isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
       ...(originalDocumentId && { originalDocument: originalDocumentId }),
     });
 
