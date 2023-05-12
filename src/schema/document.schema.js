@@ -104,6 +104,7 @@ const DOCUMENT_ACTION = z.object({
         .max(50, 'Name must have at most 50 characters.'),
       amount: z.coerce.number().positive('Invalid amount'),
       description: z.string().transform(xss).optional(),
+      remark: z.string().transform(xss),
     })
     .partial(),
   params: z.object({
