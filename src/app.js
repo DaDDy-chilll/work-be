@@ -28,6 +28,8 @@ if (NODE_ENV !== 'production') {
       const object = {
         method: tokens.method(req, res),
         body: req.body,
+        url: tokens.url(req, res),
+        status: tokens.status(req, res),
       };
 
       return JSON.stringify(object, null, 2);
