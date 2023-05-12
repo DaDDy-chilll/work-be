@@ -563,20 +563,18 @@ module.exports = ({
       ({ hasAcknowledged }) => hasAcknowledged
     );
 
-    const nextReviewerItem = document.reviewers.list.find(
+    const currReviewerItem = document.reviewers.list.find(
       (reviewerItem) =>
-        reviewerItem.index === document.reviewers.currentReviewerIndex + 1
+        reviewerItem.index === document.reviewers.currentReviewerIndex
     );
 
-    if (!nextReviewerItem) {
+    if (!currReviewerItem) {
       throw ApiError.badRequest('Something went wrong.');
     }
 
     if (isAllAcknowledged) {
       document.status = DOCUMENT_STATUSES.PENDING;
-      document.currentReviewer = nextReviewerItem.reviewer;
-      document.reviewers.currentReviewerIndex = nextReviewerItem.index;
-      document.reviewers.currentDepartment = nextReviewerItem.department;
+      document.currentReviewer = currReviewerItem.reviewer;
 
       await document.save();
     }
