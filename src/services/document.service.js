@@ -70,6 +70,10 @@ module.exports = ({
       filter.isCaseClosed = queryFilter.caseStatus === 'closed';
     }
 
+    if (queryFilter.type) {
+      filter.type = queryFilter.type;
+    }
+
     return filter;
   };
 
@@ -162,6 +166,10 @@ module.exports = ({
     } else if (isCurrentFAD) {
       update.status = DOCUMENT_STATUSES.APPROVED;
 
+      if (document.isClaimDocument) {
+        update.isCaseClosed = true;
+      }
+
       if (document.type === DOCUMENT_TYPES.EXPENSE) {
         update.isCaseClosed = true;
       }
@@ -171,7 +179,39 @@ module.exports = ({
   };
 
   // Public Methods
-  const createRequisitionDocument = async ({ body, requester, files }) => {
+  const createRequisitionDocument = async ({
+    body,
+    requester,
+    files,
+    originalDocumentId = undefined,
+    isClaimDocument = false,
+  }) => {
+    if (isClaimDocument) {
+      const orgDoc = await Document.findById(originalDocumentId);
+
+      if (!orgDoc) {
+        throw ApiError.badRequest('Original document not found.');
+      }
+
+      if (orgDoc.type !== DOCUMENT_TYPES.ADVANCE) {
+        throw ApiError.badRequest('Only advance document can be claimed.');
+      }
+
+      if (orgDoc.status !== DOCUMENT_STATUSES.APPROVED) {
+        throw ApiError.badRequest('Original document is not yet approved.');
+      }
+
+      const pastClaimDocument = await Document.findOne({
+        originalDocument: originalDocumentId,
+      });
+
+      if (pastClaimDocument) {
+        throw ApiError.badRequest(
+          'Original document already has a claim document.'
+        );
+      }
+    }
+
     const { users: officeAdmins } = await userService.getAllUsers({
       filter: {
         department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
@@ -212,6 +252,9 @@ module.exports = ({
         ],
       },
       currentReviewer: officeAdmins[0].id,
+      type: isClaimDocument ? 'CLAIM' : body.type,
+      isClaimDocument,
+      ...(originalDocumentId && { originalDocument: originalDocumentId }),
     });
 
     await document.save();
@@ -614,6 +657,12 @@ module.exports = ({
     return document;
   };
 
+  const getClaimDocumentIdByOriginalId = async ({ originalId }) => {
+    const doc = await Document.findOne({ originalDocument: originalId });
+
+    return doc?.id;
+  };
+
   const getAllDocuments = async ({ query }) => {
     const { skip, sort, limit, queryFilter } = getQuery(query);
 
@@ -693,6 +742,7 @@ module.exports = ({
     createRequisitionDocument,
     requestRevision,
     getDocumentById,
+    getClaimDocumentIdByOriginalId,
     getAllDocuments,
     getDocumentsToCheck,
     getDocumentsToAcknowledge,

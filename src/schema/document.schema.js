@@ -15,9 +15,12 @@ const BASE_DOCUMENT = z.object({
         return { message: 'Invalid document type.' };
       },
     })
-    .default(DOCUMENT_TYPES.EXPENSE),
+    .default(DOCUMENT_TYPES.EXPENSE)
+    .optional(),
   amount: z.coerce.number().positive('Invalid amount'),
   description: z.string().transform(xss).optional(),
+  originalDocumentId: z.string().refine(isObjectIdOrHexString).optional(),
+  isClaimDocument: z.boolean().optional().default(false),
 });
 
 const GET_DOCUMENTS = z.object({
@@ -39,6 +42,7 @@ const GET_DOCUMENTS = z.object({
       requestedBy: z.string().refine(isObjectIdOrHexString),
       currentReviewer: z.string().refine(isObjectIdOrHexString),
       caseStatus: z.enum(['open', 'closed', '']).or(z.string()),
+      type: z.string(),
     })
     .partial()
     .strict()

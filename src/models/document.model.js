@@ -141,6 +141,14 @@ const documentSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+    isClaimDocument: {
+      type: Boolean,
+      default: false,
+    },
+    originalDocument: {
+      type: Schema.Types.ObjectId,
+      ref: 'Document',
+    },
   },
   {
     timestamps: true,

@@ -1,12 +1,16 @@
+const { DOCUMENT_TYPES, DOCUMENT_STATUSES } = require('../constants/document');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 
 module.exports = ({ documentService }) => {
   const createDocument = catchAsync(async (req, res, next) => {
+    const { isClaimDocument, originalDocumentId, ...body } = req.body;
     const document = await documentService.createRequisitionDocument({
-      body: req.body,
+      body,
       requester: req.user,
       files: req.files,
+      isClaimDocument,
+      originalDocumentId,
     });
 
     sendSuccessResponse({
@@ -186,9 +190,25 @@ module.exports = ({ documentService }) => {
       id: req.params.id,
     });
 
+    let claimDocId;
+    if (
+      document.type === DOCUMENT_TYPES.ADVANCE &&
+      document.status === DOCUMENT_STATUSES.APPROVED
+    ) {
+      claimDocId = await documentService.getClaimDocumentIdByOriginalId({
+        originalId: document.id,
+      });
+    }
+
+    const shapedDoc = {
+      hasClaim: !!claimDocId,
+      claimDocumentId: claimDocId,
+      ...document.toObject({ getters: true }),
+    };
+
     sendSuccessResponse({
       res,
-      data: document,
+      data: shapedDoc,
     });
   });
 
