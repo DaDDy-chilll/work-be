@@ -342,6 +342,7 @@ module.exports = ({
         currentReviewer: nextReviewerItem?.reviewer,
         'reviewers.currentReviewerIndex': nextReviewerItem?.index || 0,
         'reviewers.currentDepartment': nextReviewerItem?.department,
+        remark,
         ...updater,
       },
       {
