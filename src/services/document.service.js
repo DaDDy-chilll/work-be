@@ -368,6 +368,19 @@ module.exports = ({
       }
     );
 
+    if (
+      updatedDocument.type === 'CLAIM' &&
+      updatedDocument.status === 'APPROVE'
+    ) {
+      const orgDocument = await Document.findById(
+        updatedDocument.originalDocument
+      );
+
+      orgDocument.isCaseClosed = true;
+
+      await orgDocument.save();
+    }
+
     await historyService.createHistory({
       actor: reviewer.id,
       action: mapping[action],
