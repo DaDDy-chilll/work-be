@@ -30,9 +30,13 @@ if (NODE_ENV !== 'production') {
         body: req.body,
         url: tokens.url(req, res),
         status: tokens.status(req, res),
+        ip: req.ip,
+        response_time: `${tokens['response-time'](req, res)}ms`,
+        user_agent: req.get('user-agent'),
+        user_id: req.user?.id,
       };
 
-      return JSON.stringify(object, null, 2);
+      return JSON.stringify(object, null, 4);
     })
   );
 }

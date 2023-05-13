@@ -1,8 +1,9 @@
 const winston = require('winston');
+const { combine, timestamp, json } = winston.format;
 
 const logger = winston.createLogger({
   level: 'debug',
-  format: winston.format.json(),
+  format: combine(json(), timestamp()),
   transports: [new winston.transports.Console()],
 });
 
