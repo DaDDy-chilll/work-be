@@ -98,15 +98,14 @@ module.exports = ({
     return [];
   };
 
-  const prepareUpdater = async ({ body, files }) => {
+  const prepareUpdater = async ({ body, files, oldAttachments }) => {
     const attachments = await uploadAttachments(files);
+
+    const newAttachments = [...oldAttachments, ...attachments];
+
     return {
       ...body,
-      $push: {
-        attachments: {
-          $each: attachments,
-        },
-      },
+      attachments: newAttachments,
     };
   };
 
@@ -313,7 +312,11 @@ module.exports = ({
     }
     let updater;
     if (action === 'prepare' && currentReviewerItem.canPrepare) {
-      updater = await prepareUpdater({ body, files });
+      updater = await prepareUpdater({
+        body,
+        files,
+        oldAttachments: document.attachments,
+      });
     } else if (action === 'verify' && currentReviewerItem.canVerify) {
       updater = verifyUpdater();
     } else if (action === 'approve' && currentReviewerItem.canApprove) {

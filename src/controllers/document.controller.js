@@ -30,6 +30,7 @@ module.exports = ({ documentService }) => {
       documentId: id,
       remark,
       reviewer: req.user,
+      files: req.files,
     });
 
     sendSuccessResponse({ res, code: 200, data: document });
