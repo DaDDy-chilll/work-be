@@ -641,6 +641,12 @@ module.exports = ({
       }
     );
 
+    if (updatedDocument.type === DOCUMENT_TYPES.CLAIM) {
+      await Document.findByIdAndUpdate(updatedDocument.originalDocument, {
+        isCaseClosed: true,
+      });
+    }
+
     const saveHistory = historyService.createHistory({
       actor: userId,
       action: DOCUMENT_ACTIONS.REJECTED,
