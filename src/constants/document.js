@@ -2,6 +2,7 @@ module.exports = {
   DOCUMENT_TYPES: Object.freeze({
     EXPENSE: 'EXPENSE',
     ADVANCE: 'ADVANCE',
+    CLAIM: 'CLAIM',
   }),
   DOCUMENT_ACTIONS: Object.freeze({
     VERIFIED: 'VERIFIED',

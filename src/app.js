@@ -22,7 +22,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 if (NODE_ENV !== 'production') {
-  app.use(morgan('dev'));
+  // app.use(morgan('dev'));
+  app.use(
+    morgan(function (tokens, req, res) {
+      const object = {
+        method: tokens.method(req, res),
+        body: req.body,
+        url: tokens.url(req, res),
+        status: tokens.status(req, res),
+      };
+
+      return JSON.stringify(object, null, 2);
+    })
+  );
 }
 
 app.get(['/', '/api'], (req, res) => {

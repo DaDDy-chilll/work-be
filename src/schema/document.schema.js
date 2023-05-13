@@ -18,6 +18,7 @@ const BASE_DOCUMENT = z.object({
     .default(DOCUMENT_TYPES.EXPENSE),
   amount: z.coerce.number().positive('Invalid amount'),
   description: z.string().transform(xss).optional(),
+  originalDocumentId: z.string().refine(isObjectIdOrHexString).optional(),
 });
 
 const GET_DOCUMENTS = z.object({
@@ -39,6 +40,7 @@ const GET_DOCUMENTS = z.object({
       requestedBy: z.string().refine(isObjectIdOrHexString),
       currentReviewer: z.string().refine(isObjectIdOrHexString),
       caseStatus: z.enum(['open', 'closed', '']).or(z.string()),
+      type: z.string(),
     })
     .partial()
     .strict()
@@ -102,6 +104,7 @@ const DOCUMENT_ACTION = z.object({
         .max(50, 'Name must have at most 50 characters.'),
       amount: z.coerce.number().positive('Invalid amount'),
       description: z.string().transform(xss).optional(),
+      remark: z.string().transform(xss),
     })
     .partial(),
   params: z.object({
