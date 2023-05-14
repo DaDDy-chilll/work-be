@@ -1,18 +1,19 @@
 const mongoose = require('mongoose');
 
-const Count = require('./count.model');
+const createCustomIdMiddlware = require('../helpers/model-customId-middleware.helper');
+
 const {
-  paymentType,
-  documentStatus,
-  documentSections,
-  documentActions,
-} = require('../constants');
+  DOCUMENT_TYPES,
+  DOCUMENT_STATUSES,
+  DOCUMENT_ACTIONS,
+} = require('../constants/document');
+const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
 const Schema = mongoose.Schema;
 
 const documentSchema = new Schema(
   {
-    customId: {
+    documentId: {
       type: String,
       required: true,
       unique: true,
@@ -21,10 +22,10 @@ const documentSchema = new Schema(
       type: String,
       required: true,
     },
-    paymentType: {
+    type: {
       type: String,
       required: true,
-      enum: Object.values(paymentType),
+      enum: Object.values(DOCUMENT_TYPES),
     },
     amount: {
       type: Number,
@@ -42,6 +43,11 @@ const documentSchema = new Schema(
       type: String,
       required: true,
     },
+    isCaseClosed: {
+      type: Boolean,
+      default: false,
+    },
+
     remarks: [
       {
         content: {
@@ -55,12 +61,7 @@ const documentSchema = new Schema(
         action: {
           type: String,
           required: true,
-          enum: Object.values(documentActions),
-        },
-        section: {
-          type: String,
-          required: true,
-          enum: Object.values(documentSections),
+          enum: Object.values(DOCUMENT_ACTIONS),
         },
         date: {
           type: Date,
@@ -68,23 +69,85 @@ const documentSchema = new Schema(
         },
       },
     ],
-    state: {
-      status: {
-        type: String,
-        required: true,
-        enum: Object.values(documentStatus),
-        default: documentStatus.pending,
-      },
-      section: {
-        type: String,
-        enum: Object.values(documentSections),
-        default: documentSections.admin,
-      },
+    // histories: [
+    //   {
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'History',
+    //   },
+    // ],
+    status: {
+      type: String,
+      enum: Object.values(DOCUMENT_STATUSES),
+      default: DOCUMENT_STATUSES.PENDING,
     },
-    requestedBy: {
+    requester: {
       type: mongoose.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+
+    reviewers: {
+      currentReviewerIndex: {
+        type: Number,
+        default: 0,
+      },
+      currentDepartment: {
+        type: String,
+        enum: Object.values(AUTHORIZED_DEPARTMENTS),
+        default: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+      },
+      list: [
+        {
+          reviewer: {
+            type: Schema.Types.ObjectId,
+            required: true,
+            ref: 'User',
+          },
+          index: {
+            type: Number,
+            required: true,
+          },
+          department: {
+            type: String,
+            required: true,
+            enum: Object.values(AUTHORIZED_DEPARTMENTS),
+          },
+          status: {
+            type: String,
+            enum: [
+              'PENDING',
+              DOCUMENT_ACTIONS.APPROVED,
+              DOCUMENT_ACTIONS.REJECTED,
+              DOCUMENT_ACTIONS.COMMENTED,
+              DOCUMENT_ACTIONS.VERIFIED,
+              DOCUMENT_ACTIONS.PREPARED,
+            ],
+            default: 'PENDING',
+          },
+          canPrepare: Boolean,
+          canEdit: Boolean,
+          canApprove: Boolean,
+          canVerify: Boolean,
+        },
+      ],
+    },
+    revisions: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Revision',
+      },
+    ],
+    currentReviewer: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    isClaimDocument: {
+      type: Boolean,
+      default: false,
+    },
+    originalDocument: {
+      type: Schema.Types.ObjectId,
+      ref: 'Document',
     },
   },
   {
@@ -95,29 +158,26 @@ const documentSchema = new Schema(
     toObject: {
       virtuals: true,
     },
-    id: false,
   }
 );
 
-documentSchema.pre('validate', async function (next) {
-  if (!this.isNew) return next();
-  const countDoc = await Count.findOneAndUpdate(
-    { model: 'document' },
-    {
-      model: 'document',
-      $inc: {
-        count: 1,
-      },
-    },
-    { new: true, upsert: true }
-  );
+documentSchema.pre(
+  'validate',
+  createCustomIdMiddlware({
+    modelName: 'Document',
+    prefix: 'D',
+    fieldName: 'documentId',
+  })
+);
 
-  this.customId = 'D-' + countDoc.count.toString().padStart(3, '0');
-  next();
-});
-
-documentSchema.virtual('id').get(function () {
-  return this.customId;
+documentSchema.virtual('lastActivity', {
+  ref: 'History',
+  localField: '_id',
+  foreignField: 'document',
+  justOne: true,
+  options: {
+    sort: '-createdAt',
+  },
 });
 
 const Document = mongoose.model('Document', documentSchema);

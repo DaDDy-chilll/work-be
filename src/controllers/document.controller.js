@@ -1,19 +1,15 @@
-const {
-  documentStatus,
-  documentSections,
-  documentActions,
-} = require('../constants');
+const { DOCUMENT_TYPES, DOCUMENT_STATUSES } = require('../constants/document');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
-const documentService = require('../services/document.service');
 
-const createDocumentController = () => {
+module.exports = ({ documentService }) => {
   const createDocument = catchAsync(async (req, res, next) => {
-    const attachments = await documentService.uploadAttachments(req.files);
+    const { originalDocumentId, ...body } = req.body;
     const document = await documentService.createRequisitionDocument({
-      ...req.body,
-      requestedBy: req.user._id,
-      attachments,
+      body,
+      requester: req.user,
+      files: req.files,
+      originalDocumentId,
     });
 
     sendSuccessResponse({
@@ -24,36 +20,94 @@ const createDocumentController = () => {
     });
   });
 
-  const verifyDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.verifyDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
+  const invokeDocumentAction = catchAsync(async (req, res, next) => {
+    const { action, id } = req.params;
+    const { remark, ...body } = req.body;
+
+    const document = await documentService.invokeDocumentAction({
+      action,
+      body,
+      documentId: id,
+      remark,
+      reviewer: req.user,
+      files: req.files,
+    });
+
+    sendSuccessResponse({ res, code: 200, data: document });
+  });
+
+  const requestRevision = catchAsync(async (req, res, next) => {
+    // Department to revis
+    const { department, remark } = req.body;
+    const { id } = req.params;
+
+    const document = await documentService.requestRevision({
+      reviewer: req.user,
+      documentId: id,
+      department,
+      remark,
     });
 
     sendSuccessResponse({
       res,
+      code: 201,
       data: document,
-      message: 'Document verified.',
+      message: 'Successfully requested revision.',
     });
   });
 
-  const approveDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.approveDocument({
-      id: req.params.id,
-      user: req.user,
-      remark: req.body.remark,
+  const reviseDocument = catchAsync(async (req, res, next) => {
+    const { id: documentId } = req.params;
+    const user = req.user;
+    const { remark, ...data } = req.body;
+
+    const document = await documentService.reviseDocument({
+      body: data,
+      documentId,
+      files: req.files,
+      remark,
+      reviewer: user,
     });
 
     sendSuccessResponse({
-      res,
       data: document,
-      message: 'Document approved.',
+      res,
+    });
+  });
+
+  const acknowledgeRevision = catchAsync(async (req, res, next) => {
+    const { documentId, revisionId } = req.params;
+    const userId = req.user._id;
+
+    const document = await documentService.acknowledgeDocument({
+      documentId,
+      revisionId,
+      userId,
+    });
+
+    sendSuccessResponse({
+      data: document,
+      res,
     });
   });
 
   const rejectDocument = catchAsync(async (req, res, next) => {
+    const id = req.params.id;
+    const userId = req.user.id;
     const document = await documentService.rejectDocument({
+      documentId: id,
+      userId: userId,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+    });
+  });
+
+  const commentOnDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.commentOnDocument({
       id: req.params.id,
       user: req.user,
       remark: req.body.remark,
@@ -62,145 +116,7 @@ const createDocumentController = () => {
     sendSuccessResponse({
       res,
       data: document,
-      message: 'Document rejected.',
-    });
-  });
-
-  const acknowledgeDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.acknowledgeDocument({
-      id: req.params.id,
-      userId: req.user._id,
-      remark: req.body.remark,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document acknowledged',
-    });
-  });
-
-  const submitDocumentToFAD = catchAsync(async (req, res, next) => {
-    const document = await documentService.submitToFAD({
-      id: req.params.id,
-      user: req.user,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Submitted to FAD',
-    });
-  });
-
-  const getRequestedDocuments = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        status: [documentStatus.pending, documentStatus.verified],
-      },
-    });
-
-    sendSuccessResponse({
-      res,
-      data: documents,
-      total,
-    });
-  });
-
-  const getMyDocuments = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getAllDocuments({
-      query: { ...req.query, requestedBy: req.user._id },
-    });
-
-    sendSuccessResponse({
-      res,
-      data: documents,
-      total,
-    });
-  });
-
-  const getAllDocuments = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getAllDocuments({
-      query: req.query,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: documents,
-      total,
-    });
-  });
-
-  const getDocumentsInFADSection = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        section: documentSections.fad,
-      },
-    });
-
-    sendSuccessResponse({
-      res,
-      data: documents,
-      total,
-    });
-  });
-
-  const getDocumentsInAdminSection = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        section: documentSections.admin,
-      },
-    });
-
-    sendSuccessResponse({
-      res,
-      data: documents,
-      total,
-    });
-  });
-
-  const getDocumentById = catchAsync(async (req, res, next) => {
-    const document = await documentService.getDocumentById({
-      id: req.params.id,
-    });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-    });
-  });
-
-  // This will return documents that
-  // are approved by admin section
-  // no matter the state of the documents
-  const getAdminApprovedDocuments = catchAsync(async (req, res, next) => {
-    const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        history: {
-          action: documentActions.approve,
-          section: documentSections.admin,
-        },
-      },
-    });
-
-    sendSuccessResponse({
-      res,
-      data: documents,
-      total,
-    });
-  });
-
-  const submitDraft = catchAsync(async (req, res, next) => {
-    const document = await documentService.submitDraft({ id: req.params.id });
-
-    sendSuccessResponse({
-      res,
-      data: document,
-      message: 'Document successfully submitted.',
+      message: 'Commented on document.',
     });
   });
 
@@ -233,24 +149,99 @@ const createDocumentController = () => {
     });
   });
 
+  const getDocumentsToCheck = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      query: {
+        ...req.query,
+        currentReviewer: req.user.id,
+        isCaseClosed: false,
+      },
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
+  const getDocumentsToAcknowledge = catchAsync(async (req, res, next) => {
+    const documents = await documentService.getDocumentsToAcknowledge({
+      userId: req.user.id,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total: documents.length,
+    });
+  });
+
+  const getCurrentUserDocuments = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      query: { ...req.query, requester: req.user._id },
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
+  const getAllDocuments = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      query: req.query,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
+  const getDocumentById = catchAsync(async (req, res, next) => {
+    const document = await documentService.getDocumentById({
+      id: req.params.id,
+    });
+
+    let claimDocId;
+    if (
+      document.type === DOCUMENT_TYPES.ADVANCE &&
+      document.status === DOCUMENT_STATUSES.APPROVED
+    ) {
+      claimDocId = await documentService.getClaimDocumentIdByOriginalId({
+        originalId: document.id,
+      });
+    }
+
+    const shapedDoc = {
+      hasClaim: !!claimDocId,
+      claimDocumentId: claimDocId,
+      ...document.toObject({ getters: true }),
+    };
+
+    sendSuccessResponse({
+      res,
+      data: shapedDoc,
+    });
+  });
+
   return {
     createDocument,
-    verifyDocument,
-    approveDocument,
-    rejectDocument,
-    acknowledgeDocument,
-    submitDocumentToFAD,
-    getRequestedDocuments,
-    getMyDocuments,
+    requestRevision,
+    reviseDocument,
+    acknowledgeRevision,
+    getDocumentsToCheck,
+    getDocumentsToAcknowledge,
+    commentOnDocument,
+    getCurrentUserDocuments,
     getAllDocuments,
     getDocumentById,
-    submitDraft,
     updateDocument,
     deleteDocument,
-    getDocumentsInFADSection,
-    getDocumentsInAdminSection,
-    getAdminApprovedDocuments,
+    invokeDocumentAction,
+    rejectDocument,
   };
 };
-
-module.exports = createDocumentController();

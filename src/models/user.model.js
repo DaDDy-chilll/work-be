@@ -1,49 +1,9 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const { userRoles } = require('../constants');
-const Count = require('./count.model');
+const createCustomIdMiddleware = require('../helpers/model-customId-middleware.helper');
 
 const Schema = mongoose.Schema;
-
-const permissions = {
-  admin: {
-    approve: {
-      type: Boolean,
-      default: false,
-    },
-    reject: {
-      type: Boolean,
-      default: false,
-    },
-    verify: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  fad: {
-    approve: {
-      type: Boolean,
-      default: false,
-    },
-    reject: {
-      type: Boolean,
-      default: false,
-    },
-    verify: {
-      type: Boolean,
-      default: false,
-    },
-    acknowledge: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  canSubmit: {
-    type: Boolean,
-    default: true,
-  },
-};
 
 const userSchema = new Schema(
   {
@@ -52,7 +12,7 @@ const userSchema = new Schema(
       required: true,
       unique: true,
     },
-    customId: {
+    userId: {
       type: String,
       required: true,
       unique: true,
@@ -68,9 +28,10 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: Object.values(userRoles),
+      enum: Object.values(['SUPERADMIN', 'AUTHORIZED', 'BASIC']),
+      default: 'BASIC',
     },
-    permissions,
+    // permissions, // deprecated
     jobLabel: {
       type: String,
       required: true,
@@ -78,6 +39,32 @@ const userSchema = new Schema(
     approvalAmount: {
       type: Number,
       default: 0,
+    },
+    isSuperadmin: {
+      type: Boolean,
+      default: false,
+    },
+    department: {
+      type: String,
+      required: true,
+    },
+    permissions: {
+      canApprove: {
+        type: Boolean,
+        default: false,
+      },
+      canEdit: {
+        type: Boolean,
+        default: true,
+      },
+      canPrepare: {
+        type: Boolean,
+        default: true,
+      },
+      canVerify: {
+        type: Boolean,
+        default: true,
+      },
     },
   },
   {
@@ -88,36 +75,23 @@ const userSchema = new Schema(
     toObject: {
       virtuals: true,
     },
-    id: false,
   }
 );
 
-userSchema.pre('validate', async function (next) {
-  if (!this.isNew) return next();
-  const countDoc = await Count.findOneAndUpdate(
-    { model: 'user' },
-    {
-      model: 'user',
-      $inc: {
-        count: 1,
-      },
-    },
-    { new: true, upsert: true }
-  );
-
-  this.customId = 'U-' + countDoc.count.toString().padStart(3, '0');
-  next();
-});
+userSchema.pre(
+  'validate',
+  createCustomIdMiddleware({
+    modelName: 'User',
+    prefix: 'U',
+    fieldName: 'userId',
+  })
+);
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   this.password = await bcrypt.hash(this.password, 12);
   next();
-});
-
-userSchema.virtual('id').get(function () {
-  return this.customId;
 });
 
 const User = mongoose.model('User', userSchema);

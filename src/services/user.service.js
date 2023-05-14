@@ -1,33 +1,25 @@
 const { userRoles } = require('../constants');
+const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const ApiError = require('../helpers/apiError');
-const getQuery = require('../helpers/getQuery');
-const User = require('../models/user.model');
 
-const createUserService = () => {
+module.exports = ({ User }) => {
   const _noUserError = ApiError.badRequest('User does not exist.');
 
-  const _getFilterForGetAllUsers = ({ queryFilter }) => {
-    const filter = {};
-
-    if (queryFilter.name) {
-      filter.name = {
-        $regex: queryFilter.name,
-        $options: 'i',
-      };
+  const createUser = async (body) => {
+    let role;
+    if (Object.values(AUTHORIZED_DEPARTMENTS).includes(body.department)) {
+      role = 'AUTHORIZED';
+    } else {
+      role = 'BASIC';
     }
 
-    if (queryFilter.role) {
-      filter.role = queryFilter.role;
-    }
+    const user = await User.create({ ...body, role });
+    user.password = undefined;
 
-    return filter;
+    return user;
   };
 
-  const getAllUsers = async ({ query }) => {
-    const { skip, limit, sort, queryFilter } = getQuery(query);
-
-    const filter = _getFilterForGetAllUsers({ queryFilter });
-
+  const getAllUsers = async ({ filter, sort, skip, limit }) => {
     const total = await User.count(filter);
 
     const users = await User.find(filter).sort(sort).skip(skip).limit(limit);
@@ -79,12 +71,45 @@ const createUserService = () => {
     return updatedUser;
   };
 
+  const areUsersValidReviewers = async (userIdList, dept) => {
+    return (
+      await Promise.all(
+        userIdList.map(async (id) => {
+          const user = await User.findById(id);
+
+          return user && user.permissions[dept].approve;
+        })
+      )
+    ).every((bool) => bool);
+  };
+
+  const getInvalidReviewer = async (userIdList, dept = '') => {
+    const userLists = await Promise.all(
+      userIdList.map(async (id) => {
+        const user = await User.findById(id);
+
+        return user;
+      })
+    );
+
+    return userLists.find((user) => !user.permissions[dept].approve) || null;
+  };
+
+  const getValidReviewers = async (dept) => {
+    const users = await User.find({
+      [`permissions.${dept}.approve`]: true,
+    });
+    return { users, total: users.length };
+  };
+
   return {
+    createUser,
     getAllUsers,
     getUserById,
     deleteUserById,
     updateUserById,
+    areUsersValidReviewers,
+    getInvalidReviewer,
+    getValidReviewers,
   };
 };
-
-module.exports = createUserService();

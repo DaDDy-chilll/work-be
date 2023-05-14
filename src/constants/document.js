@@ -1,0 +1,52 @@
+module.exports = {
+  DOCUMENT_TYPES: Object.freeze({
+    EXPENSE: 'EXPENSE',
+    ADVANCE: 'ADVANCE',
+    CLAIM: 'CLAIM',
+  }),
+  DOCUMENT_ACTIONS: Object.freeze({
+    VERIFIED: 'VERIFIED',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+    ACKNOWLEDGED: 'ACKNOWLEDGED',
+    PREPARED: 'PREPARED',
+    EDITED: 'EDITED',
+    SUBMITTED: 'SUBMITTED',
+    REQUESTED_REVISION: 'REQUESTED_REVISION', // Higher level department requests for more info
+    REVISED: 'REVISED',
+    COMMENTED: 'COMMENTED',
+  }),
+  DOCUMENT_STATUSES: Object.freeze({
+    PENDING: 'PENDING',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+    VERIFIED: 'VERIFIED',
+    REQUESTED_REVISION: 'REQUESTED_REVISION',
+    REVISED: 'REVISED',
+    ACKNOWLEDGED: 'ACKNOWLEDGED',
+    EDITED: 'EDITED',
+    PREPARED: 'PREPARED',
+  }),
+  STATUS_ACTION_MAP: Object.freeze({
+    pending: 'pending',
+    verified: 'verify',
+    approved: 'approve',
+    acknowledged: 'acknowledge',
+    commented: 'comment',
+    verify: 'verified',
+    approve: 'approved',
+    acknowledge: 'acknowledged',
+    comment: 'commented',
+  }),
+  REMARK_ACTIONS: Object.freeze({
+    approved: 'approved',
+    verified: 'verified',
+    rejected: 'rejected',
+    acknowledged: 'acknowledged',
+    comment: 'commented',
+  }),
+  DOCUMENT_SECTIONS: {
+    admin: 'admin',
+    fad: 'fad',
+  },
+};

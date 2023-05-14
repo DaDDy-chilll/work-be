@@ -1,31 +1,8 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-
 const ApiError = require('../helpers/apiError');
-const User = require('../models/user.model');
-const { JWT_TOKEN_SECRET } = require('../constants');
+const { verifyPassword, signToken } = require('./utils/auth.utils');
 
-const createAuthService = () => {
+module.exports = ({ User, userService }) => {
   const _noUserError = ApiError.badRequest('User does not exist.');
-
-  const _verifyPassword = async ({ plainText, encrypted }) => {
-    return await bcrypt.compare(plainText, encrypted);
-  };
-
-  const _signToken = ({ payload }) => {
-    return new Promise((resolve, reject) => {
-      jwt.sign(
-        payload,
-        JWT_TOKEN_SECRET,
-        { expiresIn: '1d' },
-        (error, token) => {
-          if (error) reject(error);
-
-          resolve(token);
-        }
-      );
-    });
-  };
 
   const getUserByEmail = async (email) => {
     const user = await User.findOne({ email });
@@ -34,8 +11,7 @@ const createAuthService = () => {
   };
 
   const register = async (data) => {
-    const user = await User.create(data);
-    user.password = undefined;
+    const user = await userService.createUser(data);
 
     return user;
   };
@@ -48,7 +24,7 @@ const createAuthService = () => {
       throw loginError;
     }
 
-    const isCorrectPassword = await _verifyPassword({
+    const isCorrectPassword = await verifyPassword({
       plainText: password,
       encrypted: user.password,
     });
@@ -59,7 +35,7 @@ const createAuthService = () => {
 
     user.password = undefined;
 
-    const token = await _signToken({ payload: { userId: user._id } });
+    const token = await signToken({ payload: { userId: user._id } });
 
     return { user, accessToken: token };
   };
@@ -74,6 +50,7 @@ const createAuthService = () => {
     user.password = newPassword;
 
     await user.save();
+    user.password = undefined;
 
     return user;
   };
@@ -85,5 +62,3 @@ const createAuthService = () => {
     updatePassword,
   };
 };
-
-module.exports = createAuthService();

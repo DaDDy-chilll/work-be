@@ -1,11 +1,16 @@
 const express = require('express');
 const morgan = require('morgan');
+const logger = require('./logger');
 const cors = require('cors');
 const { default: helmet } = require('helmet');
 
 const { NODE_ENV } = require('./constants');
 const errorHandler = require('./middlewares/errorHandler');
 const ApiError = require('./helpers/apiError');
+
+const { loadContainer } = require('./container');
+// load container before the routes load
+loadContainer();
 
 const router = require('./routes');
 const { getFileStream } = require('./lib/s3');
@@ -15,10 +20,30 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-if (NODE_ENV !== 'production') {
-  app.use(morgan('dev'));
-}
+app.use(
+  morgan(
+    function (tokens, req, res) {
+      const object = {
+        method: tokens.method(req, res),
+        body: req.body,
+        base_url: req.baseUrl,
+        params: req.params,
+        query: req.query,
+        res_status: tokens.status(req, res),
+        ip: req.ip,
+        response_time: `${tokens['response-time'](req, res)}ms`,
+        user_agent: req.get('user-agent'),
+        user_id: req.user?.id,
+        hostname: req.hostname,
+      };
+
+      return JSON.stringify(object);
+    },
+    { stream: logger.stream }
+  )
+);
 
 app.get(['/', '/api'], (req, res) => {
   res.send(`Parami Hostipal Budget Requisition API - ${NODE_ENV}`);
