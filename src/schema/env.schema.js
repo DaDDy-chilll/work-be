@@ -26,4 +26,6 @@ module.exports = z.object({
   AWS_S3_BUCKET_NAME: z.string({
     required_error: 'AWS_S3_BUCKET_NAME is missing.',
   }),
+  AXIOM_TOKEN: z.string(),
+  AXIOM_ORG_ID: z.string(),
 });

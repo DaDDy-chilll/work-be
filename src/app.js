@@ -1,5 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
+const logger = require('./logger');
 const cors = require('cors');
 const { default: helmet } = require('helmet');
 
@@ -21,25 +22,28 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-if (NODE_ENV !== 'production') {
-  // app.use(morgan('dev'));
-  app.use(
-    morgan(function (tokens, req, res) {
+app.use(
+  morgan(
+    function (tokens, req, res) {
       const object = {
         method: tokens.method(req, res),
         body: req.body,
-        url: tokens.url(req, res),
-        status: tokens.status(req, res),
+        base_url: req.baseUrl,
+        params: req.params,
+        query: req.query,
+        res_status: tokens.status(req, res),
         ip: req.ip,
         response_time: `${tokens['response-time'](req, res)}ms`,
         user_agent: req.get('user-agent'),
         user_id: req.user?.id,
+        hostname: req.hostname,
       };
 
-      return JSON.stringify(object, null, 4);
-    })
-  );
-}
+      return JSON.stringify(object);
+    },
+    { stream: logger.stream }
+  )
+);
 
 app.get(['/', '/api'], (req, res) => {
   res.send(`Parami Hostipal Budget Requisition API - ${NODE_ENV}`);
