@@ -390,9 +390,9 @@ module.exports = ({
     });
 
     const userIdsToSendNoti = [];
-    userIdsToSendNoti.push(updateDocument.requester);
+    userIdsToSendNoti.push(updatedDocument.requester);
     if (nextReviewerItem) {
-      userIdsToSendNoti.push(nextReviewerItem.reviewer);
+      userIdsToSendNoti.push(nextReviewerItem.reviewer.id);
     }
 
     await Promise.all(
