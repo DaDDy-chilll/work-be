@@ -389,12 +389,22 @@ module.exports = ({
       content: remark,
     });
 
-    await notificationService.createNotification({
-      to: updatedDocument.requester,
-      from: reviewer.id,
-      action: mapping[action],
-      documentId: updatedDocument.id,
-    });
+    const userIdsToSendNoti = [];
+    userIdsToSendNoti.push(updateDocument.requester);
+    if (nextReviewerItem) {
+      userIdsToSendNoti.push(nextReviewerItem.reviewer);
+    }
+
+    await Promise.all(
+      userIdsToSendNoti.map((id) =>
+        notificationService.createNotification({
+          to: id,
+          from: reviewer.id,
+          action: mapping[action],
+          documentId: updatedDocument.id,
+        })
+      )
+    );
 
     return updatedDocument;
   };
