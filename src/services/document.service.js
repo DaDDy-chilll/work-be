@@ -373,7 +373,7 @@ module.exports = ({
 
     if (
       updatedDocument.type === 'CLAIM' &&
-      updatedDocument.status === 'APPROVE'
+      updatedDocument.status === DOCUMENT_STATUSES.APPROVED
     ) {
       const orgDocument = await Document.findById(
         updatedDocument.originalDocument
@@ -392,12 +392,22 @@ module.exports = ({
       content: remark,
     });
 
-    await notificationService.createNotification({
-      to: updatedDocument.requester,
-      from: reviewer.id,
-      action: mapping[action],
-      documentId: updatedDocument.id,
-    });
+    const userIdsToSendNoti = [];
+    userIdsToSendNoti.push(updatedDocument.requester);
+    if (nextReviewerItem) {
+      userIdsToSendNoti.push(nextReviewerItem.reviewer.id);
+    }
+
+    await Promise.all(
+      userIdsToSendNoti.map((id) =>
+        notificationService.createNotification({
+          to: id,
+          from: reviewer.id,
+          action: mapping[action],
+          documentId: updatedDocument.id,
+        })
+      )
+    );
 
     return updatedDocument;
   };
