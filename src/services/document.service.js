@@ -373,7 +373,7 @@ module.exports = ({
 
     if (
       updatedDocument.type === 'CLAIM' &&
-      updatedDocument.status === 'APPROVE'
+      updatedDocument.status === DOCUMENT_STATUSES.APPROVED
     ) {
       const orgDocument = await Document.findById(
         updatedDocument.originalDocument
