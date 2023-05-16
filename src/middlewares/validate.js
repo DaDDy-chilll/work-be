@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 const { ZodSchema, ZodError } = require('zod');
 const { RequestHandler } = require('express');
 const ApiError = require('../helpers/apiError');
@@ -12,7 +11,6 @@ const ApiError = require('../helpers/apiError');
 function validate(schema) {
   return (req, res, next) => {
     try {
-      console.log(req.body);
       const result = schema.parse({
         body: req.body,
         query: req.query,

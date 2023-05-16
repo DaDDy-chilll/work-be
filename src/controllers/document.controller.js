@@ -30,6 +30,7 @@ module.exports = ({ documentService }) => {
       documentId: id,
       remark,
       reviewer: req.user,
+      files: req.files,
     });
 
     sendSuccessResponse({ res, code: 200, data: document });
@@ -90,6 +91,21 @@ module.exports = ({ documentService }) => {
     });
   });
 
+  const rejectDocument = catchAsync(async (req, res, next) => {
+    const id = req.params.id;
+    const userId = req.user.id;
+    const document = await documentService.rejectDocument({
+      documentId: id,
+      userId: userId,
+      remark: req.body.remark,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: document,
+    });
+  });
+
   const commentOnDocument = catchAsync(async (req, res, next) => {
     const document = await documentService.commentOnDocument({
       id: req.params.id,
@@ -138,6 +154,7 @@ module.exports = ({ documentService }) => {
       query: {
         ...req.query,
         currentReviewer: req.user.id,
+        isCaseClosed: false,
       },
     });
 
@@ -225,5 +242,6 @@ module.exports = ({ documentService }) => {
     updateDocument,
     deleteDocument,
     invokeDocumentAction,
+    rejectDocument,
   };
 };

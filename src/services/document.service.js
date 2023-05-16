@@ -98,15 +98,14 @@ module.exports = ({
     return [];
   };
 
-  const prepareUpdater = async ({ body, files }) => {
+  const prepareUpdater = async ({ body, files, oldAttachments }) => {
     const attachments = await uploadAttachments(files);
+
+    const newAttachments = [...oldAttachments, ...attachments];
+
     return {
       ...body,
-      $push: {
-        attachments: {
-          $each: attachments,
-        },
-      },
+      attachments: newAttachments,
     };
   };
 
@@ -313,7 +312,11 @@ module.exports = ({
     }
     let updater;
     if (action === 'prepare' && currentReviewerItem.canPrepare) {
-      updater = await prepareUpdater({ body, files });
+      updater = await prepareUpdater({
+        body,
+        files,
+        oldAttachments: document.attachments,
+      });
     } else if (action === 'verify' && currentReviewerItem.canVerify) {
       updater = verifyUpdater();
     } else if (action === 'approve' && currentReviewerItem.canApprove) {
@@ -619,6 +622,64 @@ module.exports = ({
     return document;
   };
 
+  const rejectDocument = async ({ documentId, userId, remark }) => {
+    const document = await Document.findById(documentId);
+
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist.');
+    }
+
+    if (document.isCaseClosed) {
+      throw ApiError.badRequest('Cannot reject the document.');
+    }
+
+    if (!document.currentReviewer.equals(userId)) {
+      throw ApiError.badRequest('Cannot reject the document.');
+    }
+
+    const currReviewerIdx = document.reviewers.currentReviewerIndex;
+
+    const updatedDocument = await Document.findOneAndUpdate(
+      { _id: documentId, 'reviewers.list.index': currReviewerIdx },
+      {
+        isCaseClosed: true,
+        status: DOCUMENT_STATUSES.REJECTED,
+        $set: {
+          'reviewers.list.$.status': DOCUMENT_ACTIONS.REJECTED,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (updatedDocument.type === DOCUMENT_TYPES.CLAIM) {
+      await Document.findByIdAndUpdate(updatedDocument.originalDocument, {
+        isCaseClosed: true,
+      });
+    }
+
+    const saveHistory = historyService.createHistory({
+      actor: userId,
+      action: DOCUMENT_ACTIONS.REJECTED,
+      department: document.reviewers.currentDepartment,
+      document: document.id,
+      content: remark,
+    });
+
+    const saveNoti = notificationService.createNotification({
+      to: document.requester,
+      from: userId,
+      action: DOCUMENT_ACTIONS.REJECTED,
+      documentId: document.id,
+    });
+
+    await Promise.all([saveHistory, saveNoti]);
+
+    return updatedDocument;
+  };
+
   const getDocumentsToCheck = async ({ user }) => {
     const documents = await Document.find({
       'reviewers.currentReviewerId': user.id,
@@ -773,5 +834,6 @@ module.exports = ({
     invokeDocumentAction,
     reviseDocument,
     acknowledgeDocument,
+    rejectDocument,
   };
 };

@@ -8,4 +8,6 @@ module.exports = {
   AWS_SECRET_KEY: process.env.AWS_SECRET_KEY,
   AWS_REGION: process.env.AWS_REGION,
   AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
+  AXIOM_TOKEN: process.env.AXIOM_TOKEN,
+  AXIOM_ORG_ID: process.env.AXIOM_ORG_ID,
 };

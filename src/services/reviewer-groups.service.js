@@ -62,12 +62,12 @@ module.exports = ({ ReviewerGroup, userService }) => {
           };
         }
       } else {
-        if (curr.reviewer.permissions.canApprove) {
-          return {
-            status: false,
-            message: `Only last person in ${curr.department} can have approve privilege.`,
-          };
-        }
+        // if (curr.reviewer.permissions.canApprove) {
+        //   return {
+        //     status: false,
+        //     message: `Only last person in ${curr.department} can have approve privilege.`,
+        //   };
+        // }
       }
     }
 
