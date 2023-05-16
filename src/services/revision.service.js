@@ -82,7 +82,7 @@ module.exports = ({ Revision }) => {
       (item) => item.user.equals(userId) && !item.hasAcknowledged
     );
 
-    if (!idx === -1) {
+    if (idx === -1) {
       throw ApiError.badRequest('Cannot acknowledge');
     }
 
