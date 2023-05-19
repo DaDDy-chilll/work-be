@@ -224,6 +224,21 @@ module.exports = ({
       throw ApiError.badRequest();
     }
 
+    const adminStaff = officeAdmins.find(
+      ({ permissions }) => !permissions.canApprove && permissions.canVerify
+    );
+    const adminManager = officeAdmins.find(
+      ({ permissions }) => permissions.canVerify
+    );
+
+    if (!adminStaff) {
+      throw ApiError.badRequest('There is no admin staff to check.');
+    }
+
+    if (!adminManager) {
+      throw ApiError.badRequest('There is no admin manager to approve.');
+    }
+
     const attachments = await uploadAttachments(files);
 
     const document = new Document({
@@ -234,7 +249,7 @@ module.exports = ({
       reviewers: {
         list: [
           {
-            reviewer: officeAdmins[0]._id,
+            reviewer: adminStaff._id,
             index: 0,
             department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
             canPrepare: true,
@@ -243,7 +258,7 @@ module.exports = ({
             canVerify: true,
           },
           {
-            reviewer: officeAdmins[1]._id,
+            reviewer: adminManager._id,
             index: 1,
             department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
             canPrepare: false,
@@ -253,7 +268,7 @@ module.exports = ({
           },
         ],
       },
-      currentReviewer: officeAdmins[0].id,
+      currentReviewer: adminStaff.id,
       isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
       ...(originalDocumentId && { originalDocument: originalDocumentId }),
     });
