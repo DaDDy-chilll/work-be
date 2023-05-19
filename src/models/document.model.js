@@ -24,12 +24,10 @@ const documentSchema = new Schema(
     },
     type: {
       type: String,
-      required: true,
       enum: Object.values(DOCUMENT_TYPES),
     },
     amount: {
       type: Number,
-      required: true,
     },
     attachments: [
       {

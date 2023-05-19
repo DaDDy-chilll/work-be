@@ -99,6 +99,10 @@ module.exports = ({
   };
 
   const prepareUpdater = async ({ body, files, oldAttachments }) => {
+    if (!body.type || body.amount <= 0) {
+      throw ApiError.badRequest('Type or amount are missing.');
+    }
+
     const attachments = await uploadAttachments(files);
 
     const newAttachments = [...oldAttachments, ...attachments];
