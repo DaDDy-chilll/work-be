@@ -7,6 +7,7 @@ const reviewerGroupRouter = require('./reviewer-groups.route');
 const historyRouter = require('./history.route');
 const notificationRouter = require('./notification.route');
 const revisionRouter = require('./revision.route');
+const departmentRouter = require('./department.routes');
 
 router.use('/auth', authRouter);
 
@@ -21,5 +22,7 @@ router.use('/histories', historyRouter);
 router.use('/notifications', notificationRouter);
 
 router.use('/revisions', revisionRouter);
+
+router.use('/departments', departmentRouter);
 
 module.exports = router;

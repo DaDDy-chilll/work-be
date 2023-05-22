@@ -6,6 +6,7 @@ const createUserController = require('./controllers/user.controller');
 const createHistoryController = require('./controllers/history.controller');
 const createNotificationController = require('./controllers/notification.controller');
 const createRevisionController = require('./controllers/revision.controller');
+const createDepartmentController = require('./controllers/department.controller');
 
 const createAuthService = require('./services/auth.service');
 const createDocumentService = require('./services/document.service');
@@ -21,6 +22,7 @@ const ReviewerGroup = require('./models/reviewer-group.model');
 const Revision = require('./models/revisions.model');
 const User = require('./models/user.model');
 const Notification = require('./models/notification.model');
+const Department = require('./models/department.model');
 
 const container = awilix.createContainer();
 
@@ -35,6 +37,7 @@ function loadControllers() {
     historyController: awilix.asFunction(createHistoryController),
     notificationController: awilix.asFunction(createNotificationController),
     revisionController: awilix.asFunction(createRevisionController),
+    departmentController: awilix.asFunction(createDepartmentController),
   };
 
   container.register(controllers);
@@ -62,6 +65,7 @@ function loadModels() {
     Revision: awilix.asValue(Revision),
     User: awilix.asValue(User),
     Notification: awilix.asValue(Notification),
+    Department: awilix.asValue(Department),
   };
 
   container.register(models);
