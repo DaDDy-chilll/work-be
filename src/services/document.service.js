@@ -11,6 +11,7 @@ const {
   AUTHORIZED_DEPARTMENTS,
   DEPARTMENT_LEVELS,
 } = require('../constants/user');
+const extractQuery = require('../helpers/extractQuery');
 
 module.exports = ({
   historyService,
@@ -30,7 +31,7 @@ module.exports = ({
     );
   };
 
-  const _getFilterForGetAllDocs = ({ queryFilter }) => {
+  const _getFilterForGetAllDocs = (queryFilter) => {
     const filter = {};
 
     if (queryFilter.status) {
@@ -764,26 +765,32 @@ module.exports = ({
   };
 
   const getAllDocuments = async ({ query }) => {
-    const { skip, sort, limit, queryFilter } = getQuery(query);
+    // const { skip, sort, limit, queryFilter } = getQuery(query);
 
-    const filter = _getFilterForGetAllDocs({
-      queryFilter,
-    });
+    // const filter = _getFilterForGetAllDocs({
+    //   queryFilter,
+    // });
 
-    const total = await Document.count(filter);
+    const { sort, limit, skip, filter } = extractQuery(
+      query,
+      _getFilterForGetAllDocs
+    );
 
-    const documents = await Document.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .populate('requester')
-      .populate({
-        path: 'lastActivity',
-        populate: {
-          path: 'actor',
-          select: 'name',
-        },
-      });
+    const [documents, total] = await Promise.all(
+      await Document.find(filter)
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .populate('requester')
+        .populate({
+          path: 'lastActivity',
+          populate: {
+            path: 'actor',
+            select: 'name',
+          },
+        }),
+      Document.count(filter)
+    );
 
     return { total, documents };
   };
