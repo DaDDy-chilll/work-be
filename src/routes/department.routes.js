@@ -4,6 +4,12 @@ const authenticate = require('../middlewares/authenticate');
 const isSuperadmin = require('../middlewares/is-superadmin');
 const { container } = require('../container');
 
+router.get(
+  '/',
+  authenticate,
+  container.resolve('departmentController').getDepartments
+);
+
 router.post(
   '/',
   authenticate,

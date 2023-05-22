@@ -12,5 +12,17 @@ module.exports = ({ departmentService }) => {
         message: 'Department created.',
       });
     }),
+
+    getDepartments: catchAsync(async (req, res, next) => {
+      const { departments, total } = await departmentService.getDepartments(
+        req.query
+      );
+
+      sendSuccessResponse({
+        res,
+        data: departments,
+        total,
+      });
+    }),
   });
 };
