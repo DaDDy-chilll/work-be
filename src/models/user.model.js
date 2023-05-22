@@ -45,7 +45,8 @@ const userSchema = new Schema(
       default: false,
     },
     department: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Department',
       required: true,
     },
     permissions: {
