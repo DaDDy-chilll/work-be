@@ -1,19 +1,11 @@
 const { userRoles } = require('../constants');
-const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const ApiError = require('../helpers/apiError');
 
 module.exports = ({ User }) => {
   const _noUserError = ApiError.badRequest('User does not exist.');
 
   const createUser = async (body) => {
-    let role;
-    if (Object.values(AUTHORIZED_DEPARTMENTS).includes(body.department)) {
-      role = 'AUTHORIZED';
-    } else {
-      role = 'BASIC';
-    }
-
-    const user = await User.create({ ...body, role });
+    const user = await User.create(body);
     user.password = undefined;
 
     return user;
