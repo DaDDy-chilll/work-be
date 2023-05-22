@@ -1,4 +1,5 @@
 const ApiError = require('../helpers/apiError');
+const extractQuery = require('../helpers/extractQuery');
 
 module.exports = ({ Department }) => {
   return Object.freeze({
@@ -14,6 +15,20 @@ module.exports = ({ Department }) => {
       const department = await Department.create(body);
 
       return department;
+    },
+
+    getDepartments: async (query) => {
+      const { sort, limit, skip, filter } = extractQuery(
+        query,
+        (filter) => filter
+      );
+
+      const [departments, total] = await Promise.all([
+        Department.find(filter).sort(sort).skip(skip).limit(limit),
+        Department.count(filter),
+      ]);
+
+      return { departments, total };
     },
   });
 };
