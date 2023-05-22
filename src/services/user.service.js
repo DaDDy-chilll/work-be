@@ -22,7 +22,14 @@ module.exports = ({ User }) => {
   const getAllUsers = async ({ filter, sort, skip, limit }) => {
     const total = await User.count(filter);
 
-    const users = await User.find(filter).sort(sort).skip(skip).limit(limit);
+    const users = await User.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: 'department',
+        transform: (doc, id) => (doc === null ? id : doc.name),
+      });
 
     return { users, total };
   };

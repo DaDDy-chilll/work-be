@@ -11,10 +11,7 @@ const getFilterForGetAllUsers = ({ query: originalQuery }) => {
   }
 
   if (query.department) {
-    filter.department = {
-      $regex: query.department,
-      $options: 'i',
-    };
+    filter.department = query.department;
   }
 
   return { filter, sort, limit, skip };
