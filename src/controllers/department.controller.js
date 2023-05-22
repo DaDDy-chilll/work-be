@@ -24,5 +24,20 @@ module.exports = ({ departmentService }) => {
         total,
       });
     }),
+
+    searchDepartments: catchAsync(async (req, res, next) => {
+      const { departments, total } = await departmentService.getDepartments({
+        name: {
+          $regex: req.query.q,
+          $options: 'i',
+        },
+      });
+
+      sendSuccessResponse({
+        res,
+        data: departments,
+        total,
+      });
+    }),
   });
 };

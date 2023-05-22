@@ -10,6 +10,12 @@ router.get(
   container.resolve('departmentController').getDepartments
 );
 
+router.get(
+  '/search',
+  authenticate,
+  container.resolve('departmentController').searchDepartments
+);
+
 router.post(
   '/',
   authenticate,
