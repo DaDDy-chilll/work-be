@@ -776,8 +776,8 @@ module.exports = ({
       _getFilterForGetAllDocs
     );
 
-    const [documents, total] = await Promise.all(
-      await Document.find(filter)
+    const [documents, total] = await Promise.all([
+      Document.find(filter)
         .sort(sort)
         .skip(skip)
         .limit(limit)
@@ -789,8 +789,8 @@ module.exports = ({
             select: 'name',
           },
         }),
-      Document.count(filter)
-    );
+      Document.count(filter),
+    ]);
 
     return { total, documents };
   };
