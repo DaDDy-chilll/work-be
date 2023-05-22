@@ -15,6 +15,7 @@ const createReviewersService = require('./services/reviewer-groups.service');
 const createRevisionService = require('./services/revision.service');
 const createUserService = require('./services/user.service');
 const createNotificationService = require('./services/notification.service');
+const createDepartmentService = require('./services/department.service');
 
 const Document = require('./models/document.model');
 const History = require('./models/history.model');
@@ -52,6 +53,7 @@ function loadServices() {
     revisionService: awilix.asFunction(createRevisionService),
     userService: awilix.asFunction(createUserService),
     notificationService: awilix.asFunction(createNotificationService),
+    departmentService: awilix.asFunction(createDepartmentService),
   };
 
   container.register(services);
