@@ -23,7 +23,7 @@ const ReviewerGroup = require('./models/reviewer-group.model');
 const Revision = require('./models/revisions.model');
 const User = require('./models/user.model');
 const Notification = require('./models/notification.model');
-const Department = require('./models/department.model');
+const { Department } = require('./models/department.model');
 
 const container = awilix.createContainer();
 
