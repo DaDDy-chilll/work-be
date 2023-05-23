@@ -5,7 +5,6 @@ const {
   DOCUMENT_TYPES,
 } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
-const getQuery = require('../helpers/getQuery');
 const { uploadFile } = require('../lib/s3');
 const {
   AUTHORIZED_DEPARTMENTS,
@@ -20,6 +19,7 @@ module.exports = ({
   userService,
   Document,
   ReviewerGroup,
+  departmentService,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -215,29 +215,52 @@ module.exports = ({
       }
     }
 
-    const { users: officeAdmins } = await userService.getAllUsers({
+    const { users } = await userService.getAllUsers({
       filter: {
-        department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+        department: requester.department,
+        'permissions.canApprove': true,
       },
     });
 
-    if (officeAdmins.length < 2) {
-      throw ApiError.badRequest();
+    const headOfCurrentUserDepartment = users[0];
+
+    if (!headOfCurrentUserDepartment) {
+      throw ApiError.badRequest('There is no head of department to approve.');
     }
 
-    const adminStaff = officeAdmins.find(
-      ({ permissions }) => !permissions.canApprove && permissions.canVerify
-    );
-    const adminManager = officeAdmins.find(
-      ({ permissions }) => permissions.canVerify
-    );
+    const startingDepartmentAfterHead =
+      await departmentService.getStartingDepartment();
 
-    if (!adminStaff) {
-      throw ApiError.badRequest('There is no admin staff to check.');
+    if (!startingDepartmentAfterHead) {
+      throw ApiError.badRequest(
+        'There is no department to handle the request.'
+      );
     }
 
-    if (!adminManager) {
-      throw ApiError.badRequest('There is no admin manager to approve.');
+    const { users: usersInStartingDepartment } = await userService.getAllUsers({
+      filter: {
+        department: startingDepartmentAfterHead._id,
+      },
+    });
+
+    const startingDepartmentStuff = usersInStartingDepartment.find(
+      (v) => !v.permissions.canApprove
+    );
+
+    const startingDepartmentHead = usersInStartingDepartment.find(
+      (v) => v.permissions.canApprove
+    );
+
+    if (!startingDepartmentStuff) {
+      throw ApiError.badRequest(
+        `There is no stuff to check your request in ${startingDepartmentAfterHead.name}.`
+      );
+    }
+
+    if (!startingDepartmentHead) {
+      throw ApiError.badRequest(
+        `There is no head to check your request in ${startingDepartmentAfterHead.name}.`
+      );
     }
 
     const attachments = await uploadAttachments(files);
@@ -248,28 +271,32 @@ module.exports = ({
       requester: requester.id,
       status: DOCUMENT_STATUSES.PENDING,
       reviewers: {
+        currentDepartment: headOfCurrentUserDepartment.department.id,
         list: [
           {
-            reviewer: adminStaff._id,
+            reviewer: headOfCurrentUserDepartment._id,
             index: 0,
-            department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
-            canPrepare: true,
-            canEdit: true,
-            canApprove: false,
-            canVerify: true,
+            department: headOfCurrentUserDepartment.department.id,
+            canPrepare: headOfCurrentUserDepartment.permissions.canPrepare,
+            canEdit: headOfCurrentUserDepartment.permissions.canEdit,
+            canApprove: headOfCurrentUserDepartment.permissions.canApprove,
+            canVerify: headOfCurrentUserDepartment.permissions.canVerify,
           },
           {
-            reviewer: adminManager._id,
+            reviewer: startingDepartmentStuff.id,
             index: 1,
-            department: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
-            canPrepare: false,
-            canEdit: false,
-            canApprove: true,
-            canVerify: false,
+            department: startingDepartmentAfterHead.id,
+            ...startingDepartmentStuff.permissions,
+          },
+          {
+            reviewer: startingDepartmentHead.id,
+            index: 1,
+            department: startingDepartmentAfterHead.id,
+            ...startingDepartmentHead.permissions,
           },
         ],
       },
-      currentReviewer: adminStaff.id,
+      currentReviewer: headOfCurrentUserDepartment.id,
       isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
       ...(originalDocumentId && { originalDocument: originalDocumentId }),
     });

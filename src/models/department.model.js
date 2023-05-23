@@ -6,6 +6,10 @@ const departmentSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  isStartingDepartment: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Department = mongoose.model('Department', departmentSchema);

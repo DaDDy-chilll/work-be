@@ -90,9 +90,8 @@ const documentSchema = new Schema(
         default: 0,
       },
       currentDepartment: {
-        type: String,
-        enum: Object.values(AUTHORIZED_DEPARTMENTS),
-        default: AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN,
+        type: Schema.Types.ObjectId,
+        ref: 'Department',
       },
       list: [
         {
@@ -106,9 +105,9 @@ const documentSchema = new Schema(
             required: true,
           },
           department: {
-            type: String,
+            type: Schema.Types.ObjectId,
             required: true,
-            enum: Object.values(AUTHORIZED_DEPARTMENTS),
+            ref: 'Department',
           },
           status: {
             type: String,
