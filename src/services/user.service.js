@@ -20,7 +20,6 @@ module.exports = ({ User }) => {
       .limit(limit)
       .populate({
         path: 'department',
-        transform: (doc, id) => (doc === null ? id : doc.name),
       });
 
     return { users, total };

@@ -30,5 +30,9 @@ module.exports = ({ Department }) => {
 
       return { departments, total };
     },
+
+    getStartingDepartment: async () => {
+      return await Department.findOne({ isStartingDepartment: true });
+    },
   });
 };
