@@ -6,10 +6,7 @@ const {
 } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 const { uploadFile } = require('../lib/s3');
-const {
-  AUTHORIZED_DEPARTMENTS,
-  DEPARTMENT_LEVELS,
-} = require('../constants/user');
+const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const extractQuery = require('../helpers/extractQuery');
 
 module.exports = ({
