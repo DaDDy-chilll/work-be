@@ -1,10 +1,11 @@
 require('dotenv').config('./.env');
+const mongoose = require('mongoose');
 const connectDb = require('./connectDb');
 const User = require('../../models/user.model');
 const Department = require('../../models/department.model');
 
 const DB_URI = process.env.MONGODB_URI;
-const DB_NAME = 'local-parami-requisition-management';
+const DB_NAME = 'dev-parami-requisition-management';
 
 connectDb({ dbUri: DB_URI, dbName: DB_NAME }, async () => {
   const users = await User.find();
@@ -18,7 +19,9 @@ connectDb({ dbUri: DB_URI, dbName: DB_NAME }, async () => {
       { upsert: true, new: true }
     );
 
-    await User.findByIdAndUpdate(user.id, { department: department.id });
+    await User.findByIdAndUpdate(user.id, {
+      department: new mongoose.Types.ObjectId(department.id),
+    });
   }
 
   console.log('Users are updated with new departments.');
