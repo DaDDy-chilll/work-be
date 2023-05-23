@@ -11,9 +11,9 @@ connectDb({ dbUri: DB_URI, dbName: DB_NAME }, async () => {
 
   await Promise.all(
     users.map((user) => {
-      user.department = new mongoose.Types.ObjectId(user.department);
-
-      return user.save();
+      return User.findByIdAndUpdate(user.id, {
+        department: new mongoose.Types.ObjectId(user.department),
+      });
     })
   );
 
