@@ -127,10 +127,9 @@ module.exports = ({
     const isCurrentFAD =
       document.reviewers.currentDepartment === AUTHORIZED_DEPARTMENTS.FAD;
 
-    if (
-      document.reviewers.currentDepartment ===
-      AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN
-    ) {
+    const currDept = await departmentService.getStartingDepartment();
+
+    if (currDept.equals(document.reviewers.currentDepartment)) {
       group = await ReviewerGroup.findById(groupId).populate(
         'reviewers.reviewer'
       );
@@ -290,7 +289,7 @@ module.exports = ({
           },
           {
             reviewer: startingDepartmentHead.id,
-            index: 1,
+            index: 2,
             department: startingDepartmentAfterHead.id,
             ...startingDepartmentHead.permissions,
           },
@@ -469,32 +468,24 @@ module.exports = ({
     if (document.status !== DOCUMENT_STATUSES.PENDING) {
       throw ApiError.badRequest('Document must be in pending status.');
     }
-    // basically OA won't request a revision
-    if (reviewer.department === AUTHORIZED_DEPARTMENTS.OFFICE_ADMIN) {
-      throw ApiError.badRequest();
-    }
 
     if (!reviewer._id.equals(document.currentReviewer)) {
       throw ApiError.notAuthorized();
     }
 
-    const requesterDeptLevel = DEPARTMENT_LEVELS[reviewer.department];
-    const requestedDepartmentLevel = DEPARTMENT_LEVELS[department];
-
-    if (requesterDeptLevel <= requestedDepartmentLevel) {
-      throw ApiError.badRequest(
-        'Can only request revision to lower departments.'
-      );
-    }
-
-    const revisorItem = document.reviewers.list.find(
-      (item) => item.department === department && item.canEdit
+    const requestedPersonObject = document.reviewers.list.find(
+      (r) => r.canEdit
+    );
+    const requesterObject = document.reviewers.list.find((r) =>
+      r.reviewer.equals(reviewer.id)
     );
 
-    if (!revisorItem) {
-      throw ApiError.badRequest(
-        `No person in ${department} eligible to revise.`
-      );
+    if (!requestedPersonObject || !requesterObject) {
+      throw ApiError.badRequest('No person to revise.');
+    }
+
+    if (requesterObject.index <= requestedPersonObject.index) {
+      throw ApiError.badRequest('You can only request person lower than you.');
     }
 
     const activeRevision = await revisionService.getActiveRevision({
@@ -506,7 +497,7 @@ module.exports = ({
     }
 
     document.status = DOCUMENT_STATUSES.REQUESTED_REVISION;
-    document.currentReviewer = revisorItem.reviewer;
+    document.currentReviewer = requestedPersonObject.reviewer;
 
     const saveDocument = document.save();
     const saveHistory = historyService.createHistory({
@@ -523,14 +514,14 @@ module.exports = ({
       documentId: document.id,
       requester: reviewer,
       reviewer: {
-        id: revisorItem.reviewer,
-        department: revisorItem.department,
+        id: requestedPersonObject.reviewer,
+        department: requestedPersonObject.department,
       },
       historyId: history.id,
     });
 
     await notificationService.createNotification({
-      to: revisorItem.reviewer,
+      to: requestedPersonObject.reviewer,
       from: reviewer.id,
       action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
       documentId: document.id,
@@ -568,7 +559,7 @@ module.exports = ({
         (item) =>
           item.index < document.reviewers.currentReviewerIndex &&
           !item.reviewer.equals(reviewer.id) &&
-          item.department !== document.reviewers.currentDepartment
+          !item.department.equals(document.reviewers.currentDepartment)
       )
       .map((item) => item.reviewer);
 
