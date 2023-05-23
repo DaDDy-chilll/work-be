@@ -15,7 +15,7 @@ const createReviewersService = require('./services/reviewer-groups.service');
 const createRevisionService = require('./services/revision.service');
 const createUserService = require('./services/user.service');
 const createNotificationService = require('./services/notification.service');
-const createDepartmentService = require('./services/department.service');
+const { createDepartmentService } = require('./services/department.service');
 
 const Document = require('./models/document.model');
 const History = require('./models/history.model');
