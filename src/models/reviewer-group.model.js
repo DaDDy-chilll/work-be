@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const createCustomIdMiddleware = require('../helpers/model-customId-middleware.helper');
-const { AUTHORIZED_DEPARTMENTS: DEPARTMENTS } = require('../constants/user');
 
 const Schema = mongoose.Schema;
 
@@ -19,25 +18,10 @@ const reviewerGroupSchema = new Schema(
           ref: 'User',
         },
         department: {
-          type: String,
-          enum: Object.values(DEPARTMENTS),
+          type: Schema.Types.ObjectId,
+          ref: 'Department',
+          required: true,
         },
-        // canPrepare: {
-        //   type: Boolean,
-        //   default: false,
-        // },
-        // canEdit: {
-        //   type: Boolean,
-        //   default: false,
-        // },
-        // canApprove: {
-        //   type: Boolean,
-        //   default: false,
-        // },
-        // canVerify: {
-        //   type: Boolean,
-        //   default: true,
-        // },
       },
     ],
     name: String,
