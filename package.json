@@ -9,8 +9,8 @@
     "lint:check": "npx eslint ./src",
     "lint:fix": "npx eslint --fix ./src",
     "postinstall": "tsc",
-    "deploy:dev": "git add . && git commit -m \"Heroku Deploy - Development\" && git push heroku-development development:main",
-    "deploy:prod": "git add . && git commit -m \"Heroku Deploy - Production\" && git push heroku-prod main:main"
+    "deploy:dev": "git push heroku-development development:main",
+    "deploy:prod": "git push heroku-prod main:main"
   },
   "keywords": [],
   "author": "",
