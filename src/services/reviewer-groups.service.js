@@ -2,6 +2,14 @@ const _ = require('lodash');
 
 const ApiError = require('../helpers/apiError');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {ReturnType<import('./user.service')>} userService
+ * @property {typeof import('../models/reviewer-group.model')} ReviewerGroup
+ *
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({ ReviewerGroup, userService }) => {
   const validateReviewerGroup = async (reviewers, departmentOrders) => {
     let tempReviewers = await Promise.all(

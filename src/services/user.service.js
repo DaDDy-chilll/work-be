@@ -1,6 +1,12 @@
 const { userRoles } = require('../constants');
 const ApiError = require('../helpers/apiError');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {typeof import('../models/user.model')} User
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({ User }) => {
   const _noUserError = ApiError.badRequest('User does not exist.');
 
