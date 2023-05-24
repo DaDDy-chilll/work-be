@@ -11,7 +11,8 @@
     "postinstall": "tsc",
     "deploy:dev": "git push heroku-development development:main",
     "deploy:prod": "git push heroku-prod main:main",
-    "build": "tsc"
+    "build": "tsc",
+    "preview": "NODE_ENV=staging npm build && npm start"
   },
   "keywords": [],
   "author": "",
