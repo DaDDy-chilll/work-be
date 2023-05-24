@@ -8,7 +8,13 @@ const { uploadFile } = require('../lib/s3');
  * @property {string} mimetype
  */
 
-module.exports = () => {
+/**
+ * @typedef {Object} Dependencies
+ * @property {import('./image-manipulation.service').TImageManipulationService} imageManipulationService
+ * @param {Dependencies} param0
+ * @returns
+ */
+module.exports = ({ imageManipulationService }) => {
   return Object.freeze({
     /**
      *
@@ -16,13 +22,19 @@ module.exports = () => {
      * @returns {UploadReturn}
      */
     uploadFile: async (file) => {
-      const uploadedFile = await uploadFile(file);
+      let tmpFile = file;
+
+      if (file.mimetype.startsWith('image')) {
+        tmpFile = await imageManipulationService.compressImage(file);
+      }
+
+      const uploadedFile = await uploadFile(tmpFile);
 
       return {
         key: uploadedFile.Key,
         url: uploadedFile.Location,
-        filename: file.originalname,
-        mimetype: file.mimetype,
+        filename: tmpFile.originalname,
+        mimetype: tmpFile.mimetype,
       };
     },
 
