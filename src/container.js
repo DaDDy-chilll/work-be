@@ -16,6 +16,11 @@ const createRevisionService = require('./services/revision.service');
 const createUserService = require('./services/user.service');
 const createNotificationService = require('./services/notification.service');
 const { createDepartmentService } = require('./services/department.service');
+const { createJwtService } = require('./services/jwt.service');
+const {
+  createImageManipulationService,
+} = require('./services/image-manipulation.service');
+const createFileService = require('./services/files.service');
 
 const Document = require('./models/document.model');
 const History = require('./models/history.model');
@@ -54,6 +59,9 @@ function loadServices() {
     userService: awilix.asFunction(createUserService),
     notificationService: awilix.asFunction(createNotificationService),
     departmentService: awilix.asFunction(createDepartmentService),
+    jwtService: awilix.asFunction(createJwtService),
+    fileService: awilix.asFunction(createFileService),
+    imageManipulationService: awilix.asFunction(createImageManipulationService),
   };
 
   container.register(services);

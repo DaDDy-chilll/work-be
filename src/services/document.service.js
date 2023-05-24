@@ -23,6 +23,7 @@ module.exports = ({
   Document,
   ReviewerGroup,
   departmentService,
+  fileService,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -84,16 +85,7 @@ module.exports = ({
   const uploadAttachments = async (files) => {
     if (Array.isArray(files)) {
       const uploadedFiles = await Promise.all(
-        files.map(async (file) => {
-          const uploadedFile = await uploadFile(file);
-
-          return {
-            key: uploadedFile.Key,
-            url: uploadedFile.Location,
-            filename: file.originalname,
-            mimetype: file.mimetype,
-          };
-        })
+        files.map(fileService.uploadFile)
       );
 
       return uploadedFiles;
