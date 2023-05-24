@@ -2,6 +2,14 @@ const ApiError = require('../helpers/apiError');
 const { verifyPassword, signToken } = require('./utils/auth.utils');
 const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {typeof import('../models/user.model')} User
+ * @property {ReturnType<typeof import('../services/user.service')>} userService
+ *
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({ User, userService }) => {
   const _noUserError = ApiError.badRequest('User does not exist.');
 

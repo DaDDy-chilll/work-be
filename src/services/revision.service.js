@@ -1,5 +1,11 @@
 const ApiError = require('../helpers/apiError');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {typeof import('../models/revisions.model')} Revision
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({ Revision }) => {
   const createRevision = async ({
     documentId,

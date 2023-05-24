@@ -5,13 +5,14 @@ const {
   DOCUMENT_TYPES,
 } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
-const { uploadFile } = require('../lib/s3');
 const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const extractQuery = require('../helpers/extractQuery');
 
 /**
  * @typedef {Object} Dependencies
  * @property {import('./department.service').TDepartmentService} departmentService
+ * @property {ReturnType<typeof import('./user.service')>} userService
+ * @property {ReturnType<typeof import('./notification.service')>} notificationService
  * @param {Dependencies} param0
  * @returns
  */

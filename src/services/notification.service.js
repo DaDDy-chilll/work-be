@@ -1,6 +1,13 @@
 const { DOCUMENT_ACTIONS } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {typeof import('../models/notification.model')} Notification
+ *
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({ Notification }) => {
   return Object.freeze({
     createDocAcknowledgementNotification: async ({
