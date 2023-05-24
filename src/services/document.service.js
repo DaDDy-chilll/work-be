@@ -9,6 +9,12 @@ const { uploadFile } = require('../lib/s3');
 const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const extractQuery = require('../helpers/extractQuery');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {import('./department.service').TDepartmentService} departmentService
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({
   historyService,
   revisionService,
@@ -126,7 +132,7 @@ module.exports = ({
 
     const currDept = await departmentService.getStartingDepartment();
 
-    if (currDept.equals(document.reviewers.currentDepartment)) {
+    if (currDept._id.equals(document.reviewers.currentDepartment)) {
       group = await ReviewerGroup.findById(groupId).populate(
         'reviewers.reviewer'
       );
@@ -140,7 +146,7 @@ module.exports = ({
           return {
             ...item.reviewer.permissions,
             index,
-            reviewer: item.reviewer.id,
+            reviewer: item.reviewer._id,
             department: item.department,
           };
         })
