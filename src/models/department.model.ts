@@ -25,12 +25,12 @@ const departmentSchema = new mongoose.Schema(
 );
 
 departmentSchema.pre(
-  'validate' as any,
+  'validate',
   createCustomIdMiddleware({
     modelName: 'Department',
     prefix: 'DP',
     fieldName: 'departmentId',
-  }) as any
+  }) as unknown as mongoose.PreMiddlewareFunction
 );
 
 export const Department = mongoose.model('Department', departmentSchema);
