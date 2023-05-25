@@ -39,7 +39,7 @@ export const createImageManipulationService = () => {
             ...file,
             buffer: outputBuffer,
             size: info.size,
-            mimetype: info.format,
+            mimetype: file.mimetype,
           });
         });
     });
