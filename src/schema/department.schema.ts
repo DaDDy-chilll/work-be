@@ -2,10 +2,12 @@ import { z } from 'zod';
 
 export const CREATE_DEPARTMENT = z.object({
   body: z.object({
-    name: z.string({
-      required_error: 'Department name is required',
-      invalid_type_error: 'Department name invalid type.',
-    }),
+    name: z
+      .string({
+        required_error: 'Department name is required',
+        invalid_type_error: 'Department name invalid type.',
+      })
+      .min(1, 'Department name is required.'),
   }),
 });
 
