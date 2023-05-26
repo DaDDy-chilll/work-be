@@ -109,12 +109,16 @@ module.exports = ({ ReviewerGroup, userService }) => {
   };
 
   const getReviewerGroupById = async (id) => {
-    return await ReviewerGroup.findById(id).populate({
-      path: 'reviewers.reviewer',
-      populate: {
-        path: 'department',
-      },
-    });
+    return await ReviewerGroup.findById(id)
+      .populate({
+        path: 'reviewers.reviewer',
+        populate: {
+          path: 'department',
+        },
+      })
+      .populate({
+        path: 'reviewers.department',
+      });
   };
 
   return {
