@@ -20,7 +20,8 @@ const historySchema = new Schema(
       enum: Object.values(DOCUMENT_ACTIONS),
     },
     department: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Department',
       required: true,
     },
     date: {

@@ -763,7 +763,10 @@ module.exports = ({
   const getDocumentById = async ({ id }) => {
     const document = await Document.findById(id)
       .populate('requester')
-      .populate('reviewers.list.reviewer', 'name');
+      .populate({
+        path: 'reviewers.list.reviewer',
+        populate: 'department',
+      });
 
     if (!document) {
       throw _noDocumentError;
@@ -798,10 +801,15 @@ module.exports = ({
         .populate('requester')
         .populate({
           path: 'lastActivity',
-          populate: {
-            path: 'actor',
-            select: 'name',
-          },
+          populate: [
+            {
+              path: 'actor',
+              select: 'name',
+            },
+            {
+              path: 'department',
+            },
+          ],
         }),
       Document.count(filter),
     ]);
