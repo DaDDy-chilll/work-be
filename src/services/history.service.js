@@ -15,10 +15,12 @@ module.exports = ({ History }) => {
   };
 
   const getHistories = async ({ documentId }) => {
-    return await History.find({ document: documentId }).populate(
-      'actor',
-      'name role department jobLabel'
-    );
+    return await History.find({ document: documentId }).populate({
+      path: 'actor',
+      populate: {
+        path: 'department',
+      },
+    });
   };
 
   return { createHistory, getHistories };
