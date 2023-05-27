@@ -65,12 +65,12 @@ module.exports = ({ ReviewerGroup, userService }) => {
 
     departments = [...new Set([...departments])];
 
-    if (departments.length !== departmentOrders.length) {
-      return {
-        status: false,
-        message: 'Missing department(s)',
-      };
-    }
+    // if (departments.length !== departmentOrders.length) {
+    //   return {
+    //     status: false,
+    //     message: 'Missing department(s)',
+    //   };
+    // }
 
     return { status: true };
   };
