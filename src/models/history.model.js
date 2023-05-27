@@ -8,7 +8,6 @@ const historySchema = new Schema(
   {
     content: {
       type: String,
-      default: 'No remark.',
     },
     actor: {
       type: mongoose.Types.ObjectId,
