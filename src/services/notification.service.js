@@ -40,7 +40,7 @@ module.exports = ({ Notification }) => {
       const tmpQuery = { ...query };
 
       const [notifications, count] = await Promise.all([
-        Notification.find(tmpQuery).populate('from', 'name'),
+        Notification.find(tmpQuery).sort('-createdAt').populate('from', 'name'),
         Notification.count(tmpQuery),
       ]);
 
