@@ -14,14 +14,17 @@ const revisionSchema = new Schema(
       ref: 'User',
       required: true,
     },
-    requestedByDepartment: String,
+    requestedByDepartment: {
+      type: Schema.Types.ObjectId,
+      ref: 'Department',
+    },
     reviewer: {
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
     reviewDepartment: {
-      type: String,
-      required: true,
+      type: Schema.Types.ObjectId,
+      ref: 'Department',
     },
     acknowledgements: [
       {

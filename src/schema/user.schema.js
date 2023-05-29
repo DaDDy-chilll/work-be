@@ -1,5 +1,6 @@
 const { z } = require('zod');
 const checkParamsId = require('./checkParamsId.schema');
+const { isObjectIdOrHexString } = require('mongoose');
 
 const BASE_USER = z.object({
   body: z.object({
@@ -13,10 +14,12 @@ const BASE_USER = z.object({
       .min(8, 'Password must have at least 8 characters.')
       .max(16, 'Password exceeds a maximum of 16 characters.'),
     jobLabel: z.string({ required_error: 'Job label is required.' }),
-    department: z.string({ required_error: 'Department is required.' }),
+    department: z
+      .string({ required_error: 'Department is required.' })
+      .refine(isObjectIdOrHexString, 'Invalid department.'),
     permissions: z
       .object({
-        canApprove: z.boolean().optional().default(true),
+        canApprove: z.boolean().optional().default(false),
 
         canEdit: z.boolean().optional().default(true),
         canPrepare: z.boolean().optional().default(true),

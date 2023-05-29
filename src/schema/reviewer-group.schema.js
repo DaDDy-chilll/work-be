@@ -1,7 +1,6 @@
 const { isObjectIdOrHexString } = require('mongoose');
 const { z } = require('zod');
 const checkParamsId = require('./checkParamsId.schema');
-const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
 const BASE_GROUP = z.object({
   body: z.object({
@@ -15,23 +14,25 @@ const BASE_GROUP = z.object({
         reviewer: z
           .string({ required_error: 'Reviewer ID is required.' })
           .refine(isObjectIdOrHexString),
-        department: z.enum(
-          Object.values(AUTHORIZED_DEPARTMENTS).filter(
-            (d) => d !== 'OFFICE_ADMIN'
-          ),
-          {
-            errorMap: (_issue, _ctx) => ({
-              message: 'Invalid department.',
-            }),
-          }
-        ),
+        department: z.string().refine(isObjectIdOrHexString),
       })
     ),
   }),
 });
 
 const CREATE_GROUP = z.object({
-  body: BASE_GROUP.shape.body.strict(),
+  body: BASE_GROUP.shape.body
+    .merge(
+      z.object({
+        departmentOrders: z.array(
+          z.object({
+            department: z.string().refine(isObjectIdOrHexString, 'Invalid ID'),
+            index: z.number().nonnegative(),
+          })
+        ),
+      })
+    )
+    .strict(),
 });
 
 const UPDATE_GROUP = z

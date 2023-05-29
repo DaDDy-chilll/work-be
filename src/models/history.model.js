@@ -8,7 +8,6 @@ const historySchema = new Schema(
   {
     content: {
       type: String,
-      default: 'No remark.',
     },
     actor: {
       type: mongoose.Types.ObjectId,
@@ -20,7 +19,8 @@ const historySchema = new Schema(
       enum: Object.values(DOCUMENT_ACTIONS),
     },
     department: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Department',
       required: true,
     },
     date: {

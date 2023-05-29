@@ -1,13 +1,17 @@
 const _ = require('lodash');
 
-const {
-  DEPARTMENT_LEVELS,
-  AUTHORIZED_DEPARTMENTS,
-} = require('../constants/user');
 const ApiError = require('../helpers/apiError');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {ReturnType<import('./user.service')>} userService
+ * @property {typeof import('../models/reviewer-group.model')} ReviewerGroup
+ *
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({ ReviewerGroup, userService }) => {
-  const validateReviewerGroup = async (reviewers) => {
+  const validateReviewerGroup = async (reviewers, departmentOrders) => {
     let tempReviewers = await Promise.all(
       reviewers.map(async (item) => {
         const reviewer = await userService.getUserById({ id: item.reviewer });
@@ -43,46 +47,30 @@ module.exports = ({ ReviewerGroup, userService }) => {
       }
 
       if (curr.department !== next.department) {
-        const diff =
-          DEPARTMENT_LEVELS[next.department] -
-          DEPARTMENT_LEVELS[curr.department];
-
-        // Checks correct dept order
-        if (diff !== 1) {
-          return {
-            status: false,
-            message: `Wrong department order: ${curr.department} & ${next.department}`,
-          };
-        }
-
         if (!curr.reviewer.permissions.canApprove) {
           return {
             status: false,
-            message: `Last person in ${curr.department} must have approve privilege.`,
+            message: `Last person in ${curr.reviewer.department.name} must have approve privilege.`,
           };
         }
       } else {
-        // if (curr.reviewer.permissions.canApprove) {
-        //   return {
-        //     status: false,
-        //     message: `Only last person in ${curr.department} can have approve privilege.`,
-        //   };
-        // }
+        if (curr.reviewer.permissions.canApprove) {
+          return {
+            status: false,
+            message: `Only last person in ${curr.department} can have approve privilege.`,
+          };
+        }
       }
     }
 
     departments = [...new Set([...departments])];
 
-    if (
-      departments.length !==
-      Object.values(AUTHORIZED_DEPARTMENTS).filter((d) => d !== 'OFFICE_ADMIN')
-        .length
-    ) {
-      return {
-        status: false,
-        message: 'Missing department(s)',
-      };
-    }
+    // if (departments.length !== departmentOrders.length) {
+    //   return {
+    //     status: false,
+    //     message: 'Missing department(s)',
+    //   };
+    // }
 
     return { status: true };
   };
@@ -93,7 +81,10 @@ module.exports = ({ ReviewerGroup, userService }) => {
   };
 
   const createReviewerGroup = async (data) => {
-    const validation = await validateReviewerGroup(data.reviewers);
+    const validation = await validateReviewerGroup(
+      data.reviewers,
+      data.departmentOrders
+    );
 
     if (!validation.status) {
       throw ApiError.badRequest(validation.message);
@@ -118,7 +109,16 @@ module.exports = ({ ReviewerGroup, userService }) => {
   };
 
   const getReviewerGroupById = async (id) => {
-    return await ReviewerGroup.findById(id).populate('reviewers.reviewer');
+    return await ReviewerGroup.findById(id)
+      .populate({
+        path: 'reviewers.reviewer',
+        populate: {
+          path: 'department',
+        },
+      })
+      .populate({
+        path: 'reviewers.department',
+      });
   };
 
   return {

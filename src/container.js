@@ -6,6 +6,7 @@ const createUserController = require('./controllers/user.controller');
 const createHistoryController = require('./controllers/history.controller');
 const createNotificationController = require('./controllers/notification.controller');
 const createRevisionController = require('./controllers/revision.controller');
+const createDepartmentController = require('./controllers/department.controller');
 
 const createAuthService = require('./services/auth.service');
 const createDocumentService = require('./services/document.service');
@@ -14,6 +15,12 @@ const createReviewersService = require('./services/reviewer-groups.service');
 const createRevisionService = require('./services/revision.service');
 const createUserService = require('./services/user.service');
 const createNotificationService = require('./services/notification.service');
+const { createDepartmentService } = require('./services/department.service');
+const { createJwtService } = require('./services/jwt.service');
+const {
+  createImageManipulationService,
+} = require('./services/image-manipulation.service');
+const createFileService = require('./services/files.service');
 
 const Document = require('./models/document.model');
 const History = require('./models/history.model');
@@ -21,6 +28,7 @@ const ReviewerGroup = require('./models/reviewer-group.model');
 const Revision = require('./models/revisions.model');
 const User = require('./models/user.model');
 const Notification = require('./models/notification.model');
+const { Department } = require('./models/department.model');
 
 const container = awilix.createContainer();
 
@@ -35,6 +43,7 @@ function loadControllers() {
     historyController: awilix.asFunction(createHistoryController),
     notificationController: awilix.asFunction(createNotificationController),
     revisionController: awilix.asFunction(createRevisionController),
+    departmentController: awilix.asFunction(createDepartmentController),
   };
 
   container.register(controllers);
@@ -49,6 +58,10 @@ function loadServices() {
     revisionService: awilix.asFunction(createRevisionService),
     userService: awilix.asFunction(createUserService),
     notificationService: awilix.asFunction(createNotificationService),
+    departmentService: awilix.asFunction(createDepartmentService),
+    jwtService: awilix.asFunction(createJwtService),
+    fileService: awilix.asFunction(createFileService),
+    imageManipulationService: awilix.asFunction(createImageManipulationService),
   };
 
   container.register(services);
@@ -62,6 +75,7 @@ function loadModels() {
     Revision: awilix.asValue(Revision),
     User: awilix.asValue(User),
     Notification: awilix.asValue(Notification),
+    Department: awilix.asValue(Department),
   };
 
   container.register(models);

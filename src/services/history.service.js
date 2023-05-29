@@ -1,3 +1,10 @@
+/**
+ * @typedef {Object} Dependencies
+ * @property {typeof import('../models/history.model')} History
+ *
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({ History }) => {
   const createHistory = async (data) => {
     const history = new History(data);
@@ -8,10 +15,12 @@ module.exports = ({ History }) => {
   };
 
   const getHistories = async ({ documentId }) => {
-    return await History.find({ document: documentId }).populate(
-      'actor',
-      'name role department jobLabel'
-    );
+    return await History.find({ document: documentId }).populate({
+      path: 'actor',
+      populate: {
+        path: 'department',
+      },
+    });
   };
 
   return { createHistory, getHistories };

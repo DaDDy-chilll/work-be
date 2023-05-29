@@ -9,14 +9,13 @@ const BASE_DOCUMENT = z.object({
     .string()
     .min(2, 'Name must have at least 2 characters.')
     .max(50, 'Name must have at most 50 characters.'),
-  type: z
-    .enum(Object.values(DOCUMENT_TYPES), {
-      errorMap: (_issue, _ctx) => {
-        return { message: 'Invalid document type.' };
-      },
-    })
-    .default(DOCUMENT_TYPES.EXPENSE),
-  amount: z.coerce.number().positive('Invalid amount'),
+  type: z.enum(Object.values(DOCUMENT_TYPES), {
+    errorMap: (_issue, _ctx) => {
+      return { message: 'Invalid document type.' };
+    },
+  }),
+
+  amount: z.coerce.number().positive('Invalid amount').optional(),
   description: z.string().transform(xss).optional(),
   originalDocumentId: z.string().refine(isObjectIdOrHexString).optional(),
 });
@@ -53,7 +52,7 @@ const GET_DOCUMENTS = z.object({
 });
 
 const CREATE_DOCUMENT = z.object({
-  body: BASE_DOCUMENT.strict(),
+  body: BASE_DOCUMENT.omit({ type: true, amount: true }).strict(),
 });
 
 const DELETE_DOCUMENT = checkParamsId;
@@ -103,6 +102,11 @@ const DOCUMENT_ACTION = z.object({
         .min(2, 'Name must have at least 2 characters.')
         .max(50, 'Name must have at most 50 characters.'),
       amount: z.coerce.number().positive('Invalid amount'),
+      type: z.enum(Object.values(DOCUMENT_TYPES), {
+        errorMap: (_issue, _ctx) => {
+          return { message: 'Invalid document type.' };
+        },
+      }),
       description: z.string().transform(xss).optional(),
       remark: z.string().transform(xss),
     })

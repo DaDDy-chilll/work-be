@@ -1,19 +1,17 @@
 const { userRoles } = require('../constants');
-const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const ApiError = require('../helpers/apiError');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {typeof import('../models/user.model')} User
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({ User }) => {
   const _noUserError = ApiError.badRequest('User does not exist.');
 
   const createUser = async (body) => {
-    let role;
-    if (Object.values(AUTHORIZED_DEPARTMENTS).includes(body.department)) {
-      role = 'AUTHORIZED';
-    } else {
-      role = 'BASIC';
-    }
-
-    const user = await User.create({ ...body, role });
+    const user = await User.create(body);
     user.password = undefined;
 
     return user;
@@ -22,13 +20,21 @@ module.exports = ({ User }) => {
   const getAllUsers = async ({ filter, sort, skip, limit }) => {
     const total = await User.count(filter);
 
-    const users = await User.find(filter).sort(sort).skip(skip).limit(limit);
+    const users = await User.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: 'department',
+      });
 
     return { users, total };
   };
 
   const getUserById = async ({ id }) => {
-    const user = await User.findById(id);
+    const user = await User.findById(id).populate({
+      path: 'department',
+    });
 
     if (!user) {
       throw _noUserError;

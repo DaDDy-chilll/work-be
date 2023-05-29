@@ -1,6 +1,15 @@
 const ApiError = require('../helpers/apiError');
 const { verifyPassword, signToken } = require('./utils/auth.utils');
+const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {typeof import('../models/user.model')} User
+ * @property {ReturnType<typeof import('../services/user.service')>} userService
+ *
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({ User, userService }) => {
   const _noUserError = ApiError.badRequest('User does not exist.');
 
@@ -11,7 +20,27 @@ module.exports = ({ User, userService }) => {
   };
 
   const register = async (data) => {
-    const user = await userService.createUser(data);
+    let role;
+    if (Object.values(AUTHORIZED_DEPARTMENTS).includes(data.department)) {
+      role = 'AUTHORIZED';
+    } else {
+      role = 'BASIC';
+    }
+
+    if (data.permissions?.canApprove) {
+      const userWithApprovePermission = await User.findOne({
+        'permissions.canApprove': true,
+        department: data.department,
+      });
+
+      if (userWithApprovePermission) {
+        throw ApiError.badRequest(
+          "There's already one person with approve permission."
+        );
+      }
+    }
+
+    const user = await userService.createUser({ ...data, role });
 
     return user;
   };

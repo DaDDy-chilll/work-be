@@ -26,11 +26,11 @@ const userSchema = new Schema(
       type: String,
       select: false,
     },
-    role: {
-      type: String,
-      enum: Object.values(['SUPERADMIN', 'AUTHORIZED', 'BASIC']),
-      default: 'BASIC',
-    },
+    // role: {
+    //   type: String,
+    //   enum: Object.values(['SUPERADMIN', 'AUTHORIZED', 'BASIC']),
+    //   default: 'BASIC',
+    // },
     // permissions, // deprecated
     jobLabel: {
       type: String,
@@ -45,7 +45,8 @@ const userSchema = new Schema(
       default: false,
     },
     department: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'Department',
       required: true,
     },
     permissions: {
@@ -92,6 +93,16 @@ userSchema.pre('save', async function (next) {
 
   this.password = await bcrypt.hash(this.password, 12);
   next();
+});
+
+userSchema.virtual('role').get(function () {
+  if (this.isSuperadmin) {
+    return 'SUPERADMIN';
+  }
+
+  return Object.values(this.permissions).every((p) => !p)
+    ? 'BASIC'
+    : 'AUTHORIZED';
 });
 
 const User = mongoose.model('User', userSchema);
