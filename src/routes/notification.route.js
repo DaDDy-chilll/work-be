@@ -15,4 +15,10 @@ router.patch(
   container.resolve('notificationController').openNotification
 );
 
+router.post(
+  '/all-read',
+  authenticate,
+  container.resolve('notificationController').markAllAsRead
+);
+
 module.exports = router;

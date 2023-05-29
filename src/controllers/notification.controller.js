@@ -1,6 +1,13 @@
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {ReturnType<import('../services/notification.service')>} notificationService
+ *
+ * @param {Dependencies} param0
+ * @returns
+ */
 module.exports = ({ notificationService }) => {
   return Object.freeze({
     getCurrentUserNotifications: catchAsync(async (req, res, next) => {
@@ -27,6 +34,11 @@ module.exports = ({ notificationService }) => {
         res,
         data: notification,
       });
+    }),
+
+    markAllAsRead: catchAsync(async (req, res, next) => {
+      await notificationService.markAllAsRead({ userId: req.user._id });
+      sendSuccessResponse({ res, code: 204 });
     }),
   });
 };

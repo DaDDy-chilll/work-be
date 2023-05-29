@@ -76,5 +76,9 @@ module.exports = ({ Notification }) => {
 
       return notification;
     },
+    markAllAsRead: async ({ userId }) => {
+      await Notification.updateMany({ to: userId }, { isOpen: true });
+      return;
+    },
   });
 };
