@@ -1,8 +1,7 @@
 const connectDb = require('./connectDb');
 const User = require('../../models/user.model');
 
-const DB_URI =
-  'mongodb+srv://marco:XxJGeytqcFIBGmMo@cluster0.wkpxthm.mongodb.net/?retryWrites=true&w=majority';
+const DB_URI = 'jfkdsa';
 const DB_NAME = 'parami-requisition-management';
 const PASSWORD = 'paramisuperadmin';
 
