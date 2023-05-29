@@ -4,14 +4,8 @@ const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 module.exports = ({ notificationService }) => {
   return Object.freeze({
     getCurrentUserNotifications: catchAsync(async (req, res, next) => {
-      const userId = req.user.id;
-
       const { notifications, count } =
-        await notificationService.getNotifications({
-          query: {
-            to: userId,
-          },
-        });
+        await notificationService.getNotifications(req.query);
 
       sendSuccessResponse({
         res,

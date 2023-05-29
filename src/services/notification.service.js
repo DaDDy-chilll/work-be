@@ -1,5 +1,6 @@
 const { DOCUMENT_ACTIONS } = require('../constants/document');
 const ApiError = require('../helpers/apiError');
+const extractQuery = require('../helpers/extractQuery');
 
 /**
  * @typedef {Object} Dependencies
@@ -36,12 +37,23 @@ module.exports = ({ Notification }) => {
       });
     },
 
-    getNotifications: async ({ query }) => {
-      const tmpQuery = { ...query };
+    getNotifications: async (query) => {
+      const { sort, filter, skip, limit } = extractQuery(query, (oldFilter) => {
+        const filter = {};
+
+        if (oldFilter.to) {
+          filter.to = oldFilter.to;
+        }
+        return filter;
+      });
 
       const [notifications, count] = await Promise.all([
-        Notification.find(tmpQuery).sort('-createdAt').populate('from', 'name'),
-        Notification.count(tmpQuery),
+        Notification.find(filter)
+          .sort(sort)
+          .skip(skip)
+          .limit(limit)
+          .populate('from', 'name'),
+        Notification.count(filter),
       ]);
 
       return { notifications, count };
