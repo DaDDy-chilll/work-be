@@ -1,11 +1,9 @@
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
-const { getFilterForGetAllUsers } = require('./helpers/user.helper');
 
 module.exports = ({ userService }) => {
   const getAllUsers = catchAsync(async (req, res, next) => {
-    const query = getFilterForGetAllUsers({ query: req.query });
-    const { users, total } = await userService.getAllUsers(query);
+    const { users, total } = await userService.getAllUsers(req.query);
 
     sendSuccessResponse({
       res,
