@@ -1,5 +1,6 @@
 const { userRoles } = require('../constants');
 const ApiError = require('../helpers/apiError');
+const extractQuery = require('../helpers/extractQuery');
 
 /**
  * @typedef {Object} Dependencies
@@ -17,7 +18,23 @@ module.exports = ({ User }) => {
     return user;
   };
 
-  const getAllUsers = async ({ filter, sort, skip, limit }) => {
+  const getAllUsers = async (query) => {
+    const { filter, limit, sort, skip } = extractQuery(query, (oldFilter) => {
+      const filter = {};
+
+      if (oldFilter.name) {
+        filter.name = {
+          $regex: oldFilter.name,
+          $options: 'i',
+        };
+      }
+
+      if (oldFilter.department) {
+        filter.department = oldFilter.department;
+      }
+
+      return filter;
+    });
     const total = await User.count(filter);
 
     const users = await User.find(filter)
