@@ -37,18 +37,11 @@ module.exports = ({ Notification }) => {
       });
     },
 
-    getNotifications: async (query) => {
-      const { sort, filter, skip, limit } = extractQuery(query, (oldFilter) => {
-        const filter = {};
-
-        if (oldFilter.to) {
-          filter.to = oldFilter.to;
-        }
-        return filter;
-      });
+    getNotifications: async (query, userId) => {
+      const { sort, filter, skip, limit } = extractQuery(query, (f) => f);
 
       const [notifications, count] = await Promise.all([
-        Notification.find(filter)
+        Notification.find({ ...filter, to: userId })
           .sort(sort)
           .skip(skip)
           .limit(limit)
