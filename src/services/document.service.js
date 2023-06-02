@@ -25,6 +25,7 @@ module.exports = ({
   ReviewerGroup,
   departmentService,
   fileService,
+  User,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -210,14 +211,8 @@ module.exports = ({
       }
     }
 
-    const { users } = await userService.getAllUsers({
-      filter: {
-        department: requester.department,
-        'permissions.canApprove': true,
-      },
-    });
-
-    const headOfCurrentUserDepartment = users[0];
+    const headOfCurrentUserDepartment =
+      await userService.getHeadOfCurrentDepartment(requester.department);
 
     if (!headOfCurrentUserDepartment) {
       throw ApiError.badRequest('There is no head of department to approve.');
@@ -233,9 +228,7 @@ module.exports = ({
     }
 
     const { users: usersInStartingDepartment } = await userService.getAllUsers({
-      filter: {
-        department: startingDepartmentAfterHead._id,
-      },
+      department: startingDepartmentAfterHead._id,
     });
 
     const startingDepartmentStuff = usersInStartingDepartment.find(
