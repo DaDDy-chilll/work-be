@@ -92,10 +92,7 @@ const DOCUMENT_ACTION = z.object({
   body: z
     .object({
       groupId: z.string().refine(isObjectIdOrHexString, 'Invalid Group ID.'),
-      name: z
-        .string()
-        .min(2, 'Name must have at least 2 characters.')
-        .max(50, 'Name must have at most 50 characters.'),
+      name: z.string().min(1, 'Name must have at least 1 character.'),
       amount: z.coerce.number().positive('Invalid amount'),
       type: z.enum(Object.values(DOCUMENT_TYPES), {
         errorMap: (_issue, _ctx) => {
