@@ -81,10 +81,7 @@ const SUBMIT_TO_FAD = z.object({
 const UPDATE_DOCUMENT = z
   .object({
     body: z.object({
-      name: z
-        .string()
-        .min(2, 'Name must have at least 2 characters.')
-        .max(50, 'Name must have at most 50 characters.'),
+      name: z.string().min(1, 'Name must have at least 1 character.'),
       amount: z.coerce.number().positive('Invalid amount'),
       description: z.string().transform(xss).optional(),
     }),
