@@ -118,10 +118,8 @@ module.exports = ({
     return {};
   };
 
-  const approveUpdater = async ({ document, groupId }) => {
+  const approveUpdater = async ({ document }) => {
     const update = {};
-    let group;
-    let addedReviewers;
 
     const isCurrentFAD =
       document.reviewers.currentDepartment === AUTHORIZED_DEPARTMENTS.FAD;
@@ -129,42 +127,17 @@ module.exports = ({
     const currDept = await departmentService.getStartingDepartment();
 
     if (currDept._id.equals(document.reviewers.currentDepartment)) {
-      group = await ReviewerGroup.findById(groupId).populate(
-        'reviewers.reviewer'
+      const nextReviewer = document.reviewers.list.find(
+        (r) => r.index === document.reviewers.currentReviewerIndex + 1
       );
-      if (!group) {
-        throw ApiError.badRequest('Group does not exist.');
+
+      const isCurrentReviewerLastPerson = !!!nextReviewer;
+
+      if (isCurrentReviewerLastPerson && !document.isWorkflowAssigned) {
+        throw ApiError.badRequest(
+          'Please choose a workflow before processing.'
+        );
       }
-
-      addedReviewers = group.reviewers
-        .map((item) => {
-          const index = item.index + document.reviewers.list.length;
-          return {
-            ...item.reviewer.permissions,
-            index,
-            reviewer: item.reviewer._id,
-            department: item.department,
-          };
-        })
-        .sort((a, b) => {
-          if (a.index < b.index) {
-            return -1;
-          } else if (b.index < a.index) {
-            return 1;
-          } else {
-            return 0;
-          }
-        });
-
-      update.$push = {
-        'reviewers.list': {
-          $each: addedReviewers,
-        },
-      };
-
-      update['reviewers.currentReviewerIndex'] = addedReviewers[0].index;
-      update['reviewers.currentDepartment'] = addedReviewers[0].department;
-      update.currentReviewer = addedReviewers[0].reviewer;
     } else if (isCurrentFAD) {
       update.status = DOCUMENT_STATUSES.APPROVED;
 
@@ -354,10 +327,12 @@ module.exports = ({
         files,
         oldAttachments: document.attachments,
       });
+      updater = { ...updater, ...(await approveUpdater({ document })) };
     } else if (action === 'verify' && currentReviewerItem.canVerify) {
-      updater = verifyUpdater();
+      // TODO: Refactor
+      updater = await approveUpdater({ document });
     } else if (action === 'approve' && currentReviewerItem.canApprove) {
-      updater = await approveUpdater({ document, groupId: body.groupId });
+      updater = await approveUpdater({ document });
     } else if (action === 'comment') {
       updater = {
         currentReviewer: currentReviewerItem.reviewer,
