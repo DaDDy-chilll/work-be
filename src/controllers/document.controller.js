@@ -2,6 +2,13 @@ const { DOCUMENT_TYPES, DOCUMENT_STATUSES } = require('../constants/document');
 const catchAsync = require('../helpers/catchAsync');
 const sendSuccessResponse = require('../helpers/sendSuccessResponse');
 
+/**
+ * @typedef {Object} Dependencies
+ * @property {ReturnType<import('../services/document.service')>} documentService
+ *
+ * @param {Dependencies} dependencies
+ * @returns
+ */
 module.exports = ({ documentService }) => {
   const createDocument = catchAsync(async (req, res, next) => {
     const { originalDocumentId, ...body } = req.body;
@@ -34,6 +41,23 @@ module.exports = ({ documentService }) => {
     });
 
     sendSuccessResponse({ res, code: 200, data: document });
+  });
+
+  const chooseWorkflow = catchAsync(async (req, res, next) => {
+    const user = req.user;
+    const { workflowId } = req.body;
+    const documentId = req.params.id;
+
+    await documentService.chooseWorkflowForDocument({
+      workflowId,
+      documentId,
+      user,
+    });
+
+    sendSuccessResponse({
+      res,
+      code: 200,
+    });
   });
 
   const requestRevision = catchAsync(async (req, res, next) => {
@@ -243,5 +267,6 @@ module.exports = ({ documentService }) => {
     deleteDocument,
     invokeDocumentAction,
     rejectDocument,
+    chooseWorkflow,
   };
 };

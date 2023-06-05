@@ -13,6 +13,8 @@ const extractQuery = require('../helpers/extractQuery');
  * @property {import('./department.service').TDepartmentService} departmentService
  * @property {ReturnType<typeof import('./user.service')>} userService
  * @property {ReturnType<typeof import('./notification.service')>} notificationService
+ * @property {ReturnType<typeof import('./reviewer-groups.service')>} reviewerGroupService
+ * @property {import('../models/document.model')} Document
  * @param {Dependencies} param0
  * @returns
  */
@@ -25,7 +27,7 @@ module.exports = ({
   ReviewerGroup,
   departmentService,
   fileService,
-  User,
+  reviewerGroupService,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -445,6 +447,65 @@ module.exports = ({
     );
 
     return updatedDocument;
+  };
+
+  const chooseWorkflowForDocument = async ({
+    workflowId,
+    documentId,
+    user,
+  }) => {
+    const workflow = await reviewerGroupService.getReviewerGroupById(
+      workflowId
+    );
+
+    if (!workflow) {
+      throw ApiError.notFound('Workflow does not exist.');
+    }
+
+    const document = await Document.findById(documentId);
+
+    if (document.isWorkflowAssigned) {
+      throw ApiError.badRequest('Workflow has already been chosen.');
+    }
+
+    if (!document.currentReviewer.equals(user._id)) {
+      throw ApiError.notAuthorized();
+    }
+
+    if (!user.department.isStartingDepartment) {
+      throw ApiError.notAuthorized();
+    }
+
+    const addedReviewers = workflow.reviewers
+      .map((item) => {
+        const index = item.index + document.reviewers.list.length;
+        return {
+          ...item.reviewer.permissions,
+          index,
+          reviewer: item.reviewer._id,
+          department: item.department,
+        };
+      })
+      .sort((a, b) => {
+        if (a.index < b.index) {
+          return -1;
+        } else if (b.index < a.index) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+
+    await Document.findByIdAndUpdate(documentId, {
+      $addToSet: {
+        'reviewers.list': {
+          $each: addedReviewers,
+        },
+      },
+      isWorkflowAssigned: true,
+    });
+
+    return document._id;
   };
 
   const requestRevision = async ({
@@ -876,5 +937,6 @@ module.exports = ({
     reviseDocument,
     acknowledgeDocument,
     rejectDocument,
+    chooseWorkflowForDocument,
   };
 };
