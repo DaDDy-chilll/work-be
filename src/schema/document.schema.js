@@ -5,10 +5,7 @@ const { isObjectIdOrHexString } = require('mongoose');
 const checkParamsId = require('./checkParamsId.schema');
 
 const BASE_DOCUMENT = z.object({
-  name: z
-    .string()
-    .min(2, 'Name must have at least 2 characters.')
-    .max(50, 'Name must have at most 50 characters.'),
+  name: z.string().min(1, 'Name must have at least 2 characters.'),
   type: z.enum(Object.values(DOCUMENT_TYPES), {
     errorMap: (_issue, _ctx) => {
       return { message: 'Invalid document type.' };
@@ -29,6 +26,7 @@ const GET_DOCUMENTS = z.object({
         .int('`limit` must be positive integer.')
         .positive('`limit` must be positive integer.')
         .default(10),
+      page: z.coerce.number().positive(),
       status: z
         .enum(Object.values(DOCUMENT_STATUSES))
         .or(z.array(z.enum(Object.values(DOCUMENT_STATUSES))))

@@ -46,6 +46,11 @@ const documentSchema = new Schema(
       default: false,
     },
 
+    isWorkflowAssigned: {
+      type: Boolean,
+      default: false,
+    },
+
     remarks: [
       {
         content: {
@@ -137,6 +142,7 @@ const documentSchema = new Schema(
     currentReviewer: {
       type: Schema.Types.ObjectId,
       ref: 'User',
+      index: true,
     },
     isClaimDocument: {
       type: Boolean,

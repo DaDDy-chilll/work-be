@@ -60,6 +60,13 @@ module.exports = ({ User }) => {
     return user;
   };
 
+  const getHeadOfCurrentDepartment = (departmentId) => {
+    return User.findOne({
+      department: departmentId,
+      'permissions.canApprove': true,
+    }).populate('department');
+  };
+
   const deleteUserById = async ({ id }) => {
     const user = await User.findById(id);
 
@@ -134,5 +141,6 @@ module.exports = ({ User }) => {
     areUsersValidReviewers,
     getInvalidReviewer,
     getValidReviewers,
+    getHeadOfCurrentDepartment,
   };
 };

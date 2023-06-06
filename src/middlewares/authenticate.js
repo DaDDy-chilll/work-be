@@ -30,7 +30,7 @@ const authenticate = catchAsync(async (req, res, next) => {
       return next(badTokenError);
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).populate('department');
 
     if (!user) {
       return next(badTokenError);

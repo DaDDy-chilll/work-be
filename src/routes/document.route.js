@@ -32,6 +32,12 @@ router.post(
 );
 
 router.post(
+  '/:id/choose-workflow',
+  authenticate,
+  container.resolve('documentController').chooseWorkflow
+);
+
+router.post(
   '/:id/actions/:action',
   authenticate,
   upload.array('attachments'),
