@@ -186,6 +186,10 @@ module.exports = ({
       }
     }
 
+    if (requester.isSuperadmin) {
+      throw ApiError.notAuthorized();
+    }
+
     const headOfCurrentUserDepartment =
       await userService.getHeadOfCurrentDepartment(requester.department);
 
