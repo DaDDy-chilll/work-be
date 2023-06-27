@@ -83,6 +83,10 @@ module.exports = ({
       filter.type = queryFilter.type;
     }
 
+    if (queryFilter.requestedByDepartment) {
+      filter.requestedByDepartment = queryFilter.requestedByDepartment;
+    }
+
     return filter;
   };
 

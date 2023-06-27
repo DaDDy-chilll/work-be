@@ -37,6 +37,7 @@ const authenticate = catchAsync(async (req, res, next) => {
     }
 
     req.user = user;
+    req.department = user.department;
 
     next();
   });
