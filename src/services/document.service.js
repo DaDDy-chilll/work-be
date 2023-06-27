@@ -39,7 +39,7 @@ module.exports = ({
     );
   };
 
-  const _getFilterForGetAllDocs = (queryFilter) => {
+  const _getFilterForGetAllDocs = (queryFilter, user) => {
     const filter = {};
 
     if (queryFilter.status) {
@@ -83,8 +83,8 @@ module.exports = ({
       filter.type = queryFilter.type;
     }
 
-    if (queryFilter.requestedByDepartment) {
-      filter.requestedByDepartment = queryFilter.requestedByDepartment;
+    if (user.department.type !== 'authorized') {
+      filter.requestedByDepartment = user.department._id;
     }
 
     return filter;
@@ -819,16 +819,9 @@ module.exports = ({
     return doc?.id;
   };
 
-  const getAllDocuments = async ({ query }) => {
-    // const { skip, sort, limit, queryFilter } = getQuery(query);
-
-    // const filter = _getFilterForGetAllDocs({
-    //   queryFilter,
-    // });
-
-    const { sort, limit, skip, filter } = extractQuery(
-      query,
-      _getFilterForGetAllDocs
+  const getAllDocuments = async ({ query, user }) => {
+    const { sort, limit, skip, filter } = extractQuery(query, (f) =>
+      _getFilterForGetAllDocs(f, user)
     );
 
     const [documents, total] = await Promise.all([

@@ -20,7 +20,7 @@ const departmentSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['normal', 'authorized'],
+      enum: ['normal', 'authorized', 'superadmin'],
       default: 'normal',
     },
   },
