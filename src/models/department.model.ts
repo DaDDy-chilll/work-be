@@ -18,6 +18,11 @@ const departmentSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    type: {
+      type: String,
+      enum: ['normal', 'authorized'],
+      default: 'normal',
+    },
   },
   {
     timestamps: true,

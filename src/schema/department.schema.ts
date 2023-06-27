@@ -8,6 +8,11 @@ export const CREATE_DEPARTMENT = z.object({
         invalid_type_error: 'Department name invalid type.',
       })
       .min(1, 'Department name is required.'),
+    type: z
+      .enum(['normal', 'authorized'], {
+        errorMap: () => ({ message: 'Invalid department type' }),
+      })
+      .default('normal'),
   }),
 });
 
