@@ -88,6 +88,10 @@ const documentSchema = new Schema(
       ref: 'User',
       required: true,
     },
+    requestedByDepartment: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Department',
+    },
 
     reviewers: {
       currentReviewerIndex: {

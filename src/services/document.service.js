@@ -236,6 +236,7 @@ module.exports = ({
       ...body,
       attachments,
       requester: requester.id,
+      requestedByDepartment: requester.department,
       status: DOCUMENT_STATUSES.PENDING,
       reviewers: {
         currentDepartment: headOfCurrentUserDepartment.department.id,
