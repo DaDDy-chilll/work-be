@@ -41,6 +41,14 @@ router.patch(
   container.resolve('userController').updateUserById
 );
 
+router.post(
+  '/:id/disable',
+  authenticate,
+  isSuperadmin,
+  validate(checkParamsId),
+  container.resolve('userController').disableUser
+);
+
 router.get(
   '/approval-eligibility/:dept',
   authenticate,
