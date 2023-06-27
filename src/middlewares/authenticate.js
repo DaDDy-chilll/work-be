@@ -32,6 +32,10 @@ const authenticate = catchAsync(async (req, res, next) => {
 
     const user = await User.findById(userId).populate('department');
 
+    if (user.isDisabled) {
+      return next(ApiError.notAuthorized());
+    }
+
     if (!user) {
       return next(badTokenError);
     }
