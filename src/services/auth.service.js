@@ -47,7 +47,9 @@ module.exports = ({ User, userService }) => {
 
   const login = async ({ email, password }) => {
     const loginError = ApiError.badRequest('Wrong credentials.');
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email, isDisabled: false }).select(
+      '+password'
+    );
 
     if (!user) {
       throw loginError;

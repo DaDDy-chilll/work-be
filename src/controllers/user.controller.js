@@ -76,6 +76,15 @@ module.exports = ({ userService }) => {
     });
   });
 
+  const disableUser = catchAsync(async (req, res, next) => {
+    await userService.disableUser(req.params.id);
+
+    sendSuccessResponse({
+      res,
+      data: null,
+    });
+  });
+
   return {
     getAllUsers,
     getUserById,
@@ -84,5 +93,6 @@ module.exports = ({ userService }) => {
     updateUserById,
     checkApprovalEligibilityForUsers,
     getValidReviewers,
+    disableUser,
   };
 };
