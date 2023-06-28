@@ -215,12 +215,8 @@ module.exports = ({ documentService }) => {
 
   const getAllDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        ...(!req.user.isSuperadmin && {
-          requestedByDepartment: req.department,
-        }),
-      },
+      query: req.query,
+      user: req.user,
     });
 
     sendSuccessResponse({
