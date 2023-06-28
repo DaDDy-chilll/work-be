@@ -83,7 +83,7 @@ module.exports = ({
       filter.type = queryFilter.type;
     }
     
-    if (user.department.type !== 'authorized') {
+    if (user && user.department.type !== 'authorized') {
       filter.requestedByDepartment = user.department._id;
     }
 
