@@ -82,7 +82,7 @@ module.exports = ({
     if (queryFilter.type) {
       filter.type = queryFilter.type;
     }
-    
+
     if (user && user.department.type !== 'authorized') {
       filter.requestedByDepartment = user.department._id;
     }
@@ -330,17 +330,17 @@ module.exports = ({
       throw ApiError.notAuthorized(`Cannot perform ${action}.`);
     }
     let updater;
-    if (action === 'prepare' && currentReviewerItem.canPrepare) {
+    if (action === 'prepare' && reviewer.permissions.canPrepare) {
       updater = await prepareUpdater({
         body,
         files,
         oldAttachments: document.attachments,
       });
       updater = { ...updater, ...(await approveUpdater({ document })) };
-    } else if (action === 'verify' && currentReviewerItem.canVerify) {
+    } else if (action === 'verify' && reviewer.permissions.canVerify) {
       // TODO: Refactor
       updater = await approveUpdater({ document });
-    } else if (action === 'approve' && currentReviewerItem.canApprove) {
+    } else if (action === 'approve' && reviewer.permissions.canApprove) {
       updater = await approveUpdater({ document });
     } else if (action === 'comment') {
       updater = {
