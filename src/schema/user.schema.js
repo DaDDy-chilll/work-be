@@ -44,7 +44,8 @@ const UPDATE_USER = z.object({
   body: BASE_USER.shape.body.pick({
     email: true,
     jobLabel: true,
-    department: true,
+    department: false,
+    permissions: true,
   }),
 });
 
