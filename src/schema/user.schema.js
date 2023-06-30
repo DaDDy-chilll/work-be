@@ -34,21 +34,21 @@ const REGISTER_USER = z.object({
 });
 
 const LOGIN = z.object({
-  body: BASE_USER.shape.body
-    .pick({
-      email: true,
-      password: true,
-    })
-    .deepPartial(),
+  body: BASE_USER.shape.body.pick({
+    email: true,
+    password: true,
+  }),
 });
 
 const UPDATE_USER = z.object({
-  body: BASE_USER.shape.body.pick({
-    email: true,
-    jobLabel: true,
-    department: false,
-    permissions: true,
-  }),
+  body: BASE_USER.shape.body
+    .pick({
+      email: true,
+      jobLabel: true,
+      department: false,
+      permissions: true,
+    })
+    .deepPartial(),
 });
 
 const UPDATE_PASSWORD = z
