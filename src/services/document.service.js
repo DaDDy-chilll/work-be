@@ -102,9 +102,9 @@ module.exports = ({
     return [];
   };
 
-  const prepareUpdater = async ({ body, files, oldAttachments }) => {
-    if (!body.type || body.amount <= 0) {
-      throw ApiError.badRequest('Type or amount are missing.');
+  const prepareUpdater = async ({ body, files, oldAttachments, reviewer }) => {
+    if ((body.type || body.amount) && !reviewer.permissions.editAmount) {
+      throw ApiError.badRequest('You do not have permissions to edit amount.');
     }
 
     const attachments = await uploadAttachments(files);
@@ -335,6 +335,7 @@ module.exports = ({
         body,
         files,
         oldAttachments: document.attachments,
+        reviewer,
       });
       updater = { ...updater, ...(await approveUpdater({ document })) };
     } else if (action === 'verify' && reviewer.permissions.canVerify) {

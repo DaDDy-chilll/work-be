@@ -70,6 +70,10 @@ const userSchema = new Schema(
         type: Boolean,
         default: true,
       },
+      editAmount: {
+        type: Boolean,
+        default: false,
+      },
     },
   },
   {
