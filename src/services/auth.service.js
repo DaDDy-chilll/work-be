@@ -20,13 +20,6 @@ module.exports = ({ User, userService }) => {
   };
 
   const register = async (data) => {
-    let role;
-    if (Object.values(AUTHORIZED_DEPARTMENTS).includes(data.department)) {
-      role = 'AUTHORIZED';
-    } else {
-      role = 'BASIC';
-    }
-
     if (data.permissions?.canApprove) {
       const userWithApprovePermission = await User.findOne({
         'permissions.canApprove': true,
@@ -40,7 +33,7 @@ module.exports = ({ User, userService }) => {
       }
     }
 
-    const user = await userService.createUser({ ...data, role });
+    const user = await userService.createUser(data);
 
     return user;
   };
