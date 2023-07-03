@@ -25,6 +25,7 @@ const reviewerGroupSchema = new Schema(
       },
     ],
     name: String,
+    description: String,
   },
   {
     timestamps: true,

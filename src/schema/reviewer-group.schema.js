@@ -5,6 +5,7 @@ const checkParamsId = require('./checkParamsId.schema');
 const BASE_GROUP = z.object({
   body: z.object({
     name: z.string({ required_error: 'Group name is required' }),
+    description: z.string().optional(),
     reviewers: z.array(
       z.object({
         index: z.coerce
