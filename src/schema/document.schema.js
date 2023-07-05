@@ -12,7 +12,7 @@ const BASE_DOCUMENT = z.object({
     },
   }),
 
-  amount: z.coerce.number().positive('Invalid amount').optional(),
+  amount: z.coerce.number().nonnegative('Invalid amount').optional(),
   description: z.string().transform(xss).optional(),
   originalDocumentId: z.string().refine(isObjectIdOrHexString).optional(),
 });
@@ -70,7 +70,7 @@ const SUBMIT_TO_FAD = z.object({
             order: z.coerce
               .number()
               .int()
-              .nonnegative('Must be a positive order.'),
+              .nonnegative('Must be a positive order.id'),
           })
           .array(),
       })
@@ -82,7 +82,7 @@ const UPDATE_DOCUMENT = z
   .object({
     body: z.object({
       name: z.string().min(2, 'Name must have at least 2 characters.'),
-      amount: z.coerce.number().positive('Invalid amount'),
+      amount: z.coerce.number().nonnegative('Invalid amount'),
       description: z.string().transform(xss).optional(),
     }),
   })
@@ -93,7 +93,7 @@ const DOCUMENT_ACTION = z.object({
     .object({
       groupId: z.string().refine(isObjectIdOrHexString, 'Invalid Group ID.'),
       name: z.string().min(2, 'Name must have at least 2 characters.'),
-      amount: z.coerce.number().positive('Invalid amount').optional(),
+      amount: z.coerce.number().nonnegative('Invalid amount').optional(),
       type: z
         .enum(Object.values(DOCUMENT_TYPES), {
           errorMap: (_issue, _ctx) => {
