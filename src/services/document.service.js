@@ -103,7 +103,7 @@ module.exports = ({
   };
 
   const prepareUpdater = async ({ body, files, oldAttachments, reviewer }) => {
-    if ((body.type || body.amount) && !reviewer.permissions.canEditAmount) {
+    if (body.amount && body.amount > 0 && !reviewer.permissions.canEditAmount) {
       throw ApiError.badRequest('You do not have permissions to edit amount.');
     }
 
