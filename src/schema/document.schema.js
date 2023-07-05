@@ -70,7 +70,7 @@ const SUBMIT_TO_FAD = z.object({
             order: z.coerce
               .number()
               .int()
-              .nonnegative('Must be a positive order.'),
+              .nonnegative('Must be a positive order.id'),
           })
           .array(),
       })
