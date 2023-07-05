@@ -81,10 +81,7 @@ const SUBMIT_TO_FAD = z.object({
 const UPDATE_DOCUMENT = z
   .object({
     body: z.object({
-      name: z
-        .string()
-        .min(2, 'Name must have at least 2 characters.')
-        .max(50, 'Name must have at most 50 characters.'),
+      name: z.string().min(2, 'Name must have at least 2 characters.'),
       amount: z.coerce.number().positive('Invalid amount'),
       description: z.string().transform(xss).optional(),
     }),
@@ -95,10 +92,7 @@ const DOCUMENT_ACTION = z.object({
   body: z
     .object({
       groupId: z.string().refine(isObjectIdOrHexString, 'Invalid Group ID.'),
-      name: z
-        .string()
-        .min(2, 'Name must have at least 2 characters.')
-        .max(50, 'Name must have at most 50 characters.'),
+      name: z.string().min(2, 'Name must have at least 2 characters.'),
       amount: z.coerce.number().positive('Invalid amount').optional(),
       type: z
         .enum(Object.values(DOCUMENT_TYPES), {
