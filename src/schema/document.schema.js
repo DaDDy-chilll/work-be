@@ -12,7 +12,7 @@ const BASE_DOCUMENT = z.object({
     },
   }),
 
-  amount: z.coerce.number().positive('Invalid amount').optional(),
+  amount: z.coerce.number().nonnegative('Invalid amount').optional(),
   description: z.string().transform(xss).optional(),
   originalDocumentId: z.string().refine(isObjectIdOrHexString).optional(),
 });
