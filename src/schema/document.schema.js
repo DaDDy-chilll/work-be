@@ -99,14 +99,12 @@ const DOCUMENT_ACTION = z.object({
         .string()
         .min(2, 'Name must have at least 2 characters.')
         .max(50, 'Name must have at most 50 characters.'),
-      amount: z.coerce.number().positive('Invalid amount').optional(),
-      type: z
-        .enum(Object.values(DOCUMENT_TYPES), {
-          errorMap: (_issue, _ctx) => {
-            return { message: 'Invalid document type.' };
-          },
-        })
-        .optional(),
+      amount: z.coerce.number().positive('Invalid amount'),
+      type: z.enum(Object.values(DOCUMENT_TYPES), {
+        errorMap: (_issue, _ctx) => {
+          return { message: 'Invalid document type.' };
+        },
+      }),
       description: z.string().transform(xss).optional(),
       remark: z.string().transform(xss),
     })
