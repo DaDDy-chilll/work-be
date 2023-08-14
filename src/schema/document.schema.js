@@ -15,6 +15,7 @@ const BASE_DOCUMENT = z.object({
   amount: z.coerce.number().nonnegative('Invalid amount').optional(),
   description: z.string().transform(xss).optional(),
   originalDocumentId: z.string().refine(isObjectIdOrHexString).optional(),
+  workflowId: z.string().refine(isObjectIdOrHexString),
 });
 
 const GET_DOCUMENTS = z.object({
@@ -54,29 +55,6 @@ const CREATE_DOCUMENT = z.object({
 });
 
 const DELETE_DOCUMENT = checkParamsId;
-
-const SUBMIT_TO_FAD = z.object({
-  body: CREATE_DOCUMENT.shape.body
-    .pick({
-      name: true,
-      amount: true,
-      description: true,
-    })
-    .merge(
-      z.object({
-        fadReviewers: z
-          .object({
-            user: z.string().refine(isObjectIdOrHexString, 'Invalid user ID.'),
-            order: z.coerce
-              .number()
-              .int()
-              .nonnegative('Must be a positive order.id'),
-          })
-          .array(),
-      })
-    )
-    .strict(),
-});
 
 const UPDATE_DOCUMENT = z
   .object({
@@ -118,6 +96,5 @@ module.exports = {
   CREATE_DOCUMENT,
   DELETE_DOCUMENT,
   DOCUMENT_ACTION,
-  SUBMIT_TO_FAD,
   UPDATE_DOCUMENT,
 };

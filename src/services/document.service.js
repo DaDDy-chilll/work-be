@@ -194,45 +194,20 @@ module.exports = ({
       throw ApiError.notAuthorized();
     }
 
-    const headOfCurrentUserDepartment =
-      await userService.getHeadOfCurrentDepartment(requester.department);
-
-    if (!headOfCurrentUserDepartment) {
-      throw ApiError.badRequest('There is no head of department to approve.');
-    }
-
-    const startingDepartmentAfterHead =
-      await departmentService.getStartingDepartment();
-
-    if (!startingDepartmentAfterHead) {
-      throw ApiError.badRequest(
-        'There is no department to handle the request.'
-      );
-    }
-
-    const { users: usersInStartingDepartment } = await userService.getAllUsers({
-      department: startingDepartmentAfterHead._id,
-    });
-
-    const startingDepartmentStuff = usersInStartingDepartment.find(
-      (v) => !v.permissions.canApprove
+    const workflow = await reviewerGroupService.getReviewerGroupById(
+      body.workflowId
     );
 
-    const startingDepartmentHead = usersInStartingDepartment.find(
-      (v) => v.permissions.canApprove
-    );
-
-    if (!startingDepartmentStuff) {
-      throw ApiError.badRequest(
-        `There is no stuff to check your request in ${startingDepartmentAfterHead.name}.`
-      );
+    if (!workflow) {
+      throw ApiError.badRequest('Workflow does not exist');
     }
 
-    if (!startingDepartmentHead) {
-      throw ApiError.badRequest(
-        `There is no head to check your request in ${startingDepartmentAfterHead.name}.`
-      );
-    }
+    const reviewers = workflow.reviewers.map((r) => ({
+      reviewer: r.reviewer._id,
+      index: r.index,
+      department: r.reviewer.department._id,
+      ...r.reviewer.permissions,
+    }));
 
     const attachments = await uploadAttachments(files);
 
@@ -243,32 +218,10 @@ module.exports = ({
       requestedByDepartment: requester.department,
       status: DOCUMENT_STATUSES.PENDING,
       reviewers: {
-        currentDepartment: headOfCurrentUserDepartment.department.id,
-        list: [
-          {
-            reviewer: headOfCurrentUserDepartment._id,
-            index: 0,
-            department: headOfCurrentUserDepartment.department.id,
-            canPrepare: headOfCurrentUserDepartment.permissions.canPrepare,
-            canEdit: headOfCurrentUserDepartment.permissions.canEdit,
-            canApprove: headOfCurrentUserDepartment.permissions.canApprove,
-            canVerify: headOfCurrentUserDepartment.permissions.canVerify,
-          },
-          {
-            reviewer: startingDepartmentStuff.id,
-            index: 1,
-            department: startingDepartmentAfterHead.id,
-            ...startingDepartmentStuff.permissions,
-          },
-          {
-            reviewer: startingDepartmentHead.id,
-            index: 2,
-            department: startingDepartmentAfterHead.id,
-            ...startingDepartmentHead.permissions,
-          },
-        ],
+        currentDepartment: reviewers[0].department,
+        list: reviewers,
       },
-      currentReviewer: headOfCurrentUserDepartment.id,
+      currentReviewer: reviewers[0].reviewer._id,
       isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
       ...(originalDocumentId && { originalDocument: originalDocumentId }),
     });
