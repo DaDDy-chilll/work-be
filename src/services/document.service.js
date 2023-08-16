@@ -202,12 +202,29 @@ module.exports = ({
       throw ApiError.badRequest('Workflow does not exist');
     }
 
-    const reviewers = workflow.reviewers.map((r) => ({
-      reviewer: r.reviewer._id,
-      index: r.index,
-      department: r.reviewer.department._id,
-      ...r.reviewer.permissions,
-    }));
+    const currentUserHeadOfDepartment =
+      await userService.getHeadOfCurrentDepartment(requester.department);
+
+    if (!currentUserHeadOfDepartment) {
+      throw ApiError.badRequest(
+        'Your department does not have anyone to approve.'
+      );
+    }
+
+    const reviewers = [
+      {
+        reviewer: currentUserHeadOfDepartment._id,
+        index: 0,
+        department: currentUserHeadOfDepartment.department._id,
+        ...currentUserHeadOfDepartment.permissions,
+      },
+      ...workflow.reviewers.map((r) => ({
+        reviewer: r.reviewer._id,
+        index: r.index + 1,
+        department: r.reviewer.department._id,
+        ...r.reviewer.permissions,
+      })),
+    ];
 
     const attachments = await uploadAttachments(files);
 
