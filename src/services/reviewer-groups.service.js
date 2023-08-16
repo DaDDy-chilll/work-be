@@ -75,7 +75,9 @@ module.exports = ({ ReviewerGroup, userService }) => {
     return { status: true };
   };
   const getReviewersGroup = async () => {
-    const groups = await ReviewerGroup.find().populate('reviewers.reviewer');
+    const groups = await ReviewerGroup.find()
+      .populate('reviewers.reviewer')
+      .populate('reviewers.department');
     const total = await ReviewerGroup.count();
     return { groups, total };
   };

@@ -20,13 +20,6 @@ module.exports = ({ User, userService }) => {
   };
 
   const register = async (data) => {
-    let role;
-    if (Object.values(AUTHORIZED_DEPARTMENTS).includes(data.department)) {
-      role = 'AUTHORIZED';
-    } else {
-      role = 'BASIC';
-    }
-
     if (data.permissions?.canApprove) {
       const userWithApprovePermission = await User.findOne({
         'permissions.canApprove': true,
@@ -40,14 +33,16 @@ module.exports = ({ User, userService }) => {
       }
     }
 
-    const user = await userService.createUser({ ...data, role });
+    const user = await userService.createUser(data);
 
     return user;
   };
 
   const login = async ({ email, password }) => {
     const loginError = ApiError.badRequest('Wrong credentials.');
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email, isDisabled: false }).select(
+      '+password'
+    );
 
     if (!user) {
       throw loginError;

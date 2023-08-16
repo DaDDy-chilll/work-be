@@ -132,6 +132,20 @@ module.exports = ({ User }) => {
     return { users, total: users.length };
   };
 
+  const disableUser = async (userId) => {
+    const user = await User.findOneAndUpdate(
+      { _id: userId, isSuperadmin: false },
+      { isDisabled: true },
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      throw ApiError.notFound('User not found.');
+    }
+
+    return user;
+  };
+
   return {
     createUser,
     getAllUsers,
@@ -142,5 +156,6 @@ module.exports = ({ User }) => {
     getInvalidReviewer,
     getValidReviewers,
     getHeadOfCurrentDepartment,
+    disableUser,
   };
 };

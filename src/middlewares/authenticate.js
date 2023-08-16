@@ -30,13 +30,18 @@ const authenticate = catchAsync(async (req, res, next) => {
       return next(badTokenError);
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).populate('department');
+
+    if (user.isDisabled) {
+      return next(ApiError.notAuthorized());
+    }
 
     if (!user) {
       return next(badTokenError);
     }
 
     req.user = user;
+    req.department = user.department;
 
     next();
   });

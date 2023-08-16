@@ -20,10 +20,10 @@ const BASE_USER = z.object({
     permissions: z
       .object({
         canApprove: z.boolean().optional().default(false),
-
-        canEdit: z.boolean().optional().default(true),
-        canPrepare: z.boolean().optional().default(true),
-        canVerify: z.boolean().optional().default(true),
+        canEdit: z.boolean().optional().default(false),
+        canPrepare: z.boolean().optional().default(false),
+        canVerify: z.boolean().optional().default(false),
+        canEditAmount: z.boolean().optional().default(false),
       })
       .optional(),
   }),
@@ -41,11 +41,14 @@ const LOGIN = z.object({
 });
 
 const UPDATE_USER = z.object({
-  body: BASE_USER.shape.body.pick({
-    email: true,
-    jobLabel: true,
-    department: true,
-  }),
+  body: BASE_USER.shape.body
+    .pick({
+      email: true,
+      jobLabel: true,
+      department: false,
+      permissions: true,
+    })
+    .deepPartial(),
 });
 
 const UPDATE_PASSWORD = z

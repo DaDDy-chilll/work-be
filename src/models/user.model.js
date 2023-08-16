@@ -49,6 +49,10 @@ const userSchema = new Schema(
       ref: 'Department',
       required: true,
     },
+    isDisabled: {
+      type: Boolean,
+      default: false,
+    },
     permissions: {
       canApprove: {
         type: Boolean,
@@ -65,6 +69,10 @@ const userSchema = new Schema(
       canVerify: {
         type: Boolean,
         default: true,
+      },
+      canEditAmount: {
+        type: Boolean,
+        default: false,
       },
     },
   },

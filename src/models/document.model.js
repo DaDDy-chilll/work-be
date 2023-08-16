@@ -46,6 +46,11 @@ const documentSchema = new Schema(
       default: false,
     },
 
+    isWorkflowAssigned: {
+      type: Boolean,
+      default: false,
+    },
+
     remarks: [
       {
         content: {
@@ -82,6 +87,10 @@ const documentSchema = new Schema(
       type: mongoose.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    requestedByDepartment: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Department',
     },
 
     reviewers: {
@@ -137,6 +146,7 @@ const documentSchema = new Schema(
     currentReviewer: {
       type: Schema.Types.ObjectId,
       ref: 'User',
+      index: true,
     },
     isClaimDocument: {
       type: Boolean,
