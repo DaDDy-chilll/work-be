@@ -211,20 +211,20 @@ module.exports = ({
       );
     }
 
-    const reviewers = [
-      {
+    const reviewers = workflow.reviewers.map((r) => ({
+      reviewer: r.reviewer._id,
+      department: r.reviewer.department._id,
+      ...r.reviewer.permissions,
+    }));
+
+    if (!currentUserHeadOfDepartment.equals(requester._id)) {
+      console.log('Hello!');
+      reviewers.unshift({
         reviewer: currentUserHeadOfDepartment._id,
-        index: 0,
         department: currentUserHeadOfDepartment.department._id,
         ...currentUserHeadOfDepartment.permissions,
-      },
-      ...workflow.reviewers.map((r) => ({
-        reviewer: r.reviewer._id,
-        index: r.index + 1,
-        department: r.reviewer.department._id,
-        ...r.reviewer.permissions,
-      })),
-    ];
+      });
+    }
 
     const attachments = await uploadAttachments(files);
 
@@ -236,7 +236,10 @@ module.exports = ({
       status: DOCUMENT_STATUSES.PENDING,
       reviewers: {
         currentDepartment: reviewers[0].department,
-        list: reviewers,
+        list: reviewers.map((r, idx) => ({
+          ...r,
+          index: idx,
+        })),
       },
       currentReviewer: reviewers[0].reviewer._id,
       isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
