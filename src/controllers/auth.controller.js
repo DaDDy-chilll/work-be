@@ -34,6 +34,7 @@ module.exports = ({ authService }) => {
       const updatedUser = await authService.updatePassword({
         id: req.params.id,
         newPassword: req.body.password,
+        currentPassword: req.body.currentPassword,
       });
 
       sendSuccessResponse({

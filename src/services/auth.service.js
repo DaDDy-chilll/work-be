@@ -64,11 +64,20 @@ module.exports = ({ User, userService }) => {
     return { user, accessToken: token };
   };
 
-  const updatePassword = async ({ id, newPassword }) => {
+  const updatePassword = async ({ id, newPassword, currentPassword }) => {
     const user = await User.findById(id).select('+password');
 
     if (!user) {
       throw _noUserError;
+    }
+
+    const matchedPasswords = await verifyPassword({
+      plainText: currentPassword,
+      encrypted: user.password,
+    });
+
+    if (!matchedPasswords) {
+      throw ApiError.badRequest('Passwords do not match');
     }
 
     user.password = newPassword;

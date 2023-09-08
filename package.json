@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon ./src/server.js",
+    "dev": "tsx --watch ./src/server.js",
     "start": "node ./dist/server.js",
     "lint:check": "npx eslint ./src",
     "lint:fix": "npx eslint --fix ./src",
@@ -38,6 +38,7 @@
     "rbac": "^5.0.3",
     "sharp": "^0.32.1",
     "slugify": "^1.6.5",
+    "tsx": "^3.12.8",
     "uuid": "^9.0.0",
     "winston": "^3.8.2",
     "xss": "^1.0.14",

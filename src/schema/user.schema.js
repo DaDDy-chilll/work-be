@@ -53,9 +53,20 @@ const UPDATE_USER = z.object({
 
 const UPDATE_PASSWORD = z
   .object({
-    body: BASE_USER.shape.body.pick({
-      password: true,
-    }),
+    body: BASE_USER.shape.body
+      .pick({
+        password: true,
+      })
+      .merge(
+        z.object({
+          currentPassword: z.string().min(1, 'Please provide current password'),
+          confirmPassword: z.string().min(1, 'Please confirm password'),
+        })
+      )
+      .refine(
+        ({ password, confirmPassword }) => password === confirmPassword,
+        'Passwords do not match'
+      ),
   })
   .merge(checkParamsId);
 

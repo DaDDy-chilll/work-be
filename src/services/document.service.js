@@ -42,6 +42,13 @@ module.exports = ({
   const _getFilterForGetAllDocs = (queryFilter, user) => {
     const filter = {};
 
+    if (queryFilter.search) {
+      filter.name = {
+        $regex: queryFilter.search,
+        $options: 'i',
+      };
+    }
+
     if (queryFilter.status) {
       if (Array.isArray(queryFilter.status)) {
         filter.$or = queryFilter.status.map((value) => ({

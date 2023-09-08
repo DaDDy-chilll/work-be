@@ -39,6 +39,7 @@ const GET_DOCUMENTS = z.object({
       currentReviewer: z.string().refine(isObjectIdOrHexString),
       caseStatus: z.enum(['open', 'closed', '']).or(z.string()),
       type: z.string(),
+      search: z.string().optional(),
     })
     .partial()
     .strict()
