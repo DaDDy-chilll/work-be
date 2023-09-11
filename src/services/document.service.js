@@ -90,8 +90,26 @@ module.exports = ({
       filter.type = queryFilter.type;
     }
 
-    if (user && user.department.type !== 'authorized') {
-      filter.requestedByDepartment = user.department._id;
+    if (queryFilter.startDate || queryFilter.endDate) {
+      filter.createdAt = {
+        ...(queryFilter.startDate && {
+          $gte: queryFilter.startDate,
+        }),
+        ...(queryFilter.endDate && {
+          $lte: queryFilter.endDate,
+        }),
+      };
+    }
+
+    if (user) {
+      if (user.department.type !== 'authorized') {
+        filter.requestedByDepartment = user.department._id;
+      } else if (
+        user.department.type === 'authorized' &&
+        queryFilter.department
+      ) {
+        filter.requestedByDepartment = queryFilter.department;
+      }
     }
 
     return filter;

@@ -3,6 +3,7 @@ const xss = require('xss');
 const { DOCUMENT_STATUSES, DOCUMENT_TYPES } = require('../constants/document');
 const { isObjectIdOrHexString } = require('mongoose');
 const checkParamsId = require('./checkParamsId.schema');
+const dayjs = require('../lib/dayjs');
 
 const BASE_DOCUMENT = z.object({
   name: z.string().min(1, 'Name must have at least 2 characters.'),
@@ -40,6 +41,18 @@ const GET_DOCUMENTS = z.object({
       caseStatus: z.enum(['open', 'closed', '']).or(z.string()),
       type: z.string(),
       search: z.string().optional(),
+      department: z
+        .string()
+        .refine(isObjectIdOrHexString)
+        .or(
+          z
+            .string()
+            .array()
+            .refine((v) => v.every(isObjectIdOrHexString))
+        )
+        .optional(),
+      startDate: z.coerce.date().optional(),
+      endDate: z.coerce.date().optional(),
     })
     .partial()
     .strict()
@@ -48,7 +61,13 @@ const GET_DOCUMENTS = z.object({
         return amountMin <= amountMax;
       }
       return true;
-    }),
+    })
+    .refine(({ startDate, endDate }) => {
+      if (startDate && endDate) {
+        return dayjs(startDate).isSameOrBefore(endDate);
+      }
+      return true;
+    }, 'Start date must come before end date'),
 });
 
 const CREATE_DOCUMENT = z.object({
