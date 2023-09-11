@@ -51,24 +51,23 @@ const UPDATE_USER = z.object({
     .deepPartial(),
 });
 
-const UPDATE_PASSWORD = z
-  .object({
-    body: BASE_USER.shape.body
-      .pick({
-        password: true,
-      })
-      .merge(
-        z.object({
-          currentPassword: z.string().min(1, 'Please provide current password'),
-          confirmPassword: z.string().min(1, 'Please confirm password'),
-        })
-      )
-      .refine(
-        ({ password, confirmPassword }) => password === confirmPassword,
-        'Passwords do not match'
-      ),
-  })
-  .merge(checkParamsId);
+const UPDATE_PASSWORD = z.object({
+  body: z
+    .object({
+      userId: z
+        .string()
+        .refine(isObjectIdOrHexString, 'User ID must be an object id'),
+      password: z
+        .string()
+        .min(8, 'Password must have at least 8 characters.')
+        .max(16, 'Password exceeds a maximum of 16 characters.'),
+      confirmPassword: z.string().min(1, 'Please confirm password'),
+    })
+    .refine(
+      ({ password, confirmPassword }) => password === confirmPassword,
+      'Passwords do not match'
+    ),
+});
 
 const GET_USERS = z.object({
   query: z

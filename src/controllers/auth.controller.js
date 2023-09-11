@@ -31,11 +31,7 @@ module.exports = ({ authService }) => {
     }),
 
     updatePassword: catchAsync(async (req, res, next) => {
-      const updatedUser = await authService.updatePassword({
-        id: req.params.id,
-        newPassword: req.body.password,
-        currentPassword: req.body.currentPassword,
-      });
+      const updatedUser = await authService.updatePassword(req.body);
 
       sendSuccessResponse({
         res,

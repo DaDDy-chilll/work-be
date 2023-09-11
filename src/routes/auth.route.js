@@ -25,7 +25,7 @@ router.post(
 );
 
 router.patch(
-  '/password/:id',
+  '/password',
   authenticate,
   isSuperadmin,
   validate(UPDATE_PASSWORD),

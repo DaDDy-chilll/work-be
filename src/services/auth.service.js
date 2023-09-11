@@ -64,23 +64,14 @@ module.exports = ({ User, userService }) => {
     return { user, accessToken: token };
   };
 
-  const updatePassword = async ({ id, newPassword, currentPassword }) => {
-    const user = await User.findById(id).select('+password');
+  const updatePassword = async ({ userId, password }) => {
+    const user = await User.findOne({ _id: userId, isDisabled: false });
 
     if (!user) {
       throw _noUserError;
     }
 
-    const matchedPasswords = await verifyPassword({
-      plainText: currentPassword,
-      encrypted: user.password,
-    });
-
-    if (!matchedPasswords) {
-      throw ApiError.badRequest('Passwords do not match');
-    }
-
-    user.password = newPassword;
+    user.password = password;
 
     await user.save();
     user.password = undefined;
