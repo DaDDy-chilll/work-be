@@ -167,9 +167,47 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
     return { sort, limit, skip, filter };
   };
 
+  const getCurrentReviewer = (document, reviewer) => {
+    const currentIndex = document.reviewers.currentReviewerIndex;
+    return document.reviewers.list.find(
+      ({ reviewer: reviewerId, index }) =>
+        index === currentIndex && reviewerId.equals(reviewer.id)
+    );
+  };
+
+  const canDoAction = (action, permissions) => {
+    if (action === 'comment') {
+      return true;
+    }
+    const mappings = {
+      prepare: 'canPrepare',
+      approve: 'canApprove',
+    };
+    const permission = mappings[action];
+    return permissions[permission];
+  };
+
+  const getNextReviewer = (document) => {
+    return document.reviewers.list.find(
+      (r) => r.index === document.reviewers.currentReviewerIndex + 1
+    );
+  };
+
+  const setupNextReviewer = (nextReviewerItem) => {
+    const updater = {};
+    updater.currentReviewer = nextReviewerItem?.reviewer || null;
+    updater['reviewers.currentReviewerIndex'] = nextReviewerItem?.index || 0;
+    updater['reviewers.currentDepartment'] = nextReviewerItem?.department;
+    return updater;
+  };
+
   return Object.freeze({
     checkClaimDocument,
     getReviewersForDocument,
     transformGetAllDocumentsFilter,
+    getCurrentReviewer,
+    getNextReviewer,
+    canDoAction,
+    setupNextReviewer,
   });
 };

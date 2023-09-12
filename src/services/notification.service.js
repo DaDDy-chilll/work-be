@@ -37,6 +37,10 @@ module.exports = ({ Notification }) => {
       });
     },
 
+    sendNotifications: async (notifications) => {
+      return await Notification.insertMany(notifications);
+    },
+
     getNotifications: async (query, userId) => {
       const { sort, filter, skip, limit } = extractQuery(query, (f) => f);
 

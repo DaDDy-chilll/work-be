@@ -5,14 +5,12 @@ const {
   DOCUMENT_TYPES,
 } = require('../constants/document');
 const ApiError = require('../utils/apiError');
-const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 const extractQuery = require('../utils/extractQuery');
 
 /**
  * @typedef {Object} Dependencies
- * @property {import('./department.service').TDepartmentService} departmentService
- * @property {ReturnType<typeof import('./notification.service')>} notificationService
  * @property {ReturnType<typeof import('./reviewer-groups.service')>} reviewerGroupService
+ * @property {ReturnType<typeof import('./event-emitter.service')>} emitter
  * @property {import('../models/document.model')} Document
  * @property {ReturnType<import('../helpers/document.helper')>} documentHelper
  * @param {Dependencies} param0
@@ -21,12 +19,11 @@ const extractQuery = require('../utils/extractQuery');
 module.exports = ({
   historyService,
   revisionService,
-  notificationService,
   Document,
-  departmentService,
   fileService,
   reviewerGroupService,
   documentHelper,
+  emitter,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -48,61 +45,6 @@ module.exports = ({
     }
 
     return [];
-  };
-
-  const prepareUpdater = async ({ body, files, oldAttachments, reviewer }) => {
-    if (body.amount && body.amount > 0 && !reviewer.permissions.canEditAmount) {
-      throw ApiError.badRequest('You do not have permissions to edit amount.');
-    }
-
-    const attachments = await uploadAttachments(files);
-
-    const newAttachments = [...oldAttachments, ...attachments];
-
-    return {
-      ...body,
-      attachments: newAttachments,
-    };
-  };
-
-  // Currently empty
-  const verifyUpdater = () => {
-    return {};
-  };
-
-  const approveUpdater = async ({ document }) => {
-    const update = {};
-
-    const isCurrentFAD =
-      document.reviewers.currentDepartment === AUTHORIZED_DEPARTMENTS.FAD;
-
-    const currDept = await departmentService.getStartingDepartment();
-
-    if (currDept._id.equals(document.reviewers.currentDepartment)) {
-      const nextReviewer = document.reviewers.list.find(
-        (r) => r.index === document.reviewers.currentReviewerIndex + 1
-      );
-
-      const isCurrentReviewerLastPerson = !!!nextReviewer;
-
-      if (isCurrentReviewerLastPerson && !document.isWorkflowAssigned) {
-        throw ApiError.badRequest(
-          'Please choose a workflow before processing.'
-        );
-      }
-    } else if (isCurrentFAD) {
-      update.status = DOCUMENT_STATUSES.APPROVED;
-
-      if (document.isClaimDocument) {
-        update.isCaseClosed = true;
-      }
-
-      if (document.type === DOCUMENT_TYPES.EXPENSE) {
-        update.isCaseClosed = true;
-      }
-    }
-
-    return update;
   };
 
   // Public Methods
@@ -145,18 +87,21 @@ module.exports = ({
 
     await document.save();
 
-    await historyService.createHistory({
-      actor: requester.id,
-      department: requester.department,
-      action: DOCUMENT_ACTIONS.SUBMITTED,
-      document: document.id,
-    });
-
-    await notificationService.createNotification({
-      to: document.currentReviewer,
-      from: document.requester,
-      action: DOCUMENT_ACTIONS.SUBMITTED,
-      documentId: document.id,
+    await emitter.emitAsync('document.create', {
+      notifications: [
+        {
+          to: document.currentReviewer,
+          from: document.requester,
+          action: DOCUMENT_ACTIONS.SUBMITTED,
+          documentId: document.id,
+        },
+      ],
+      history: {
+        actor: requester.id,
+        department: requester.department,
+        action: DOCUMENT_ACTIONS.SUBMITTED,
+        document: document.id,
+      },
     });
 
     return document;
@@ -190,77 +135,54 @@ module.exports = ({
     };
 
     // Check if it's reviewer's turn
-    const currentIndex = document.reviewers.currentReviewerIndex;
-    const currentReviewerItem = document.reviewers.list.find(
-      ({ reviewer: reviewerId, index }) =>
-        index === currentIndex && reviewerId.equals(reviewer.id)
+    const currentReviewerItem = documentHelper.getCurrentReviewer(
+      document,
+      reviewer
     );
-
     if (!currentReviewerItem) {
       throw ApiError.notAuthorized(`Cannot perform ${action}.`);
     }
-    let updater;
-    if (action === 'prepare' && reviewer.permissions.canPrepare) {
-      updater = await prepareUpdater({
-        body,
-        files,
-        oldAttachments: document.attachments,
-        reviewer,
-      });
-      updater = { ...updater, ...(await approveUpdater({ document })) };
-    } else if (action === 'verify' && reviewer.permissions.canVerify) {
-      // TODO: Refactor
-      updater = await approveUpdater({ document });
-    } else if (action === 'approve' && reviewer.permissions.canApprove) {
-      updater = await approveUpdater({ document });
-    } else if (action === 'comment') {
-      updater = {
-        currentReviewer: currentReviewerItem.reviewer,
-        'reviewers.currentReviewerIndex': currentReviewerItem.index,
-        'reviewers.currentDepartment': currentReviewerItem.department,
-      };
-    } else {
-      throw ApiError.notAuthorized('Not allowed to perform this action.');
+
+    if (!documentHelper.canDoAction(action, reviewer.permissions)) {
+      throw ApiError.notAuthorized(`Cannot perform ${action}.`);
     }
 
-    let nextReviewerItem = document.reviewers.list.find(
-      ({ index }) => index === currentIndex + 1
-    );
+    const willGoToNextReviewer = action !== 'comment';
+    let updater = { ...body };
 
-    // TODO: REFACTOR
-    await Document.findOneAndUpdate(
-      {
-        _id: document.id,
-        'reviewers.list.index': currentIndex,
-      },
-      {
-        currentReviewer: nextReviewerItem?.reviewer,
-        'reviewers.currentReviewerIndex': nextReviewerItem?.index || 0,
-        'reviewers.currentDepartment': nextReviewerItem?.department,
-        remark,
-        ...updater,
-      },
-      {
-        runValidators: true,
-        new: true,
+    const nextReviewerItem = documentHelper.getNextReviewer(document);
+    if (willGoToNextReviewer) {
+      const updatedCurrentReviewerObj =
+        documentHelper.setupNextReviewer(nextReviewerItem);
+      updater = { ...updater, ...updatedCurrentReviewerObj };
+    }
+
+    if (action === 'prepare') {
+      if (
+        body.amount &&
+        body.amount > 0 &&
+        !reviewer.permissions.canEditAmount
+      ) {
+        throw ApiError.badRequest(
+          'You do not have permissions to edit amount.'
+        );
       }
-    );
+      const attachments = await uploadAttachments(files);
+
+      const newAttachments = [...document.attachments, ...attachments];
+      updater.attachments = newAttachments;
+    }
 
     const updatedDocument = await Document.findOneAndUpdate(
+      { _id: document._id, 'reviewers.list.index': currentReviewerItem.index },
       {
-        _id: document.id,
-        'reviewers.list.index': currentIndex,
-      },
-      {
+        ...updater,
         $set: {
           'reviewers.list.$.status':
             action === 'comment' ? 'PENDING' : mapping[action],
         },
       },
-      {
-        runValidators: true,
-        new: true,
-      }
+      { new: true, runValidators: true }
     );
 
     if (
@@ -276,30 +198,27 @@ module.exports = ({
       await orgDocument.save();
     }
 
-    await historyService.createHistory({
-      actor: reviewer.id,
-      action: mapping[action],
-      department: reviewer.department,
-      document: updatedDocument.id,
-      content: remark,
-    });
-
-    const userIdsToSendNoti = [];
-    userIdsToSendNoti.push(updatedDocument.requester);
+    const userIdsToSendNoti = [updatedDocument.requester];
     if (nextReviewerItem) {
       userIdsToSendNoti.push(nextReviewerItem.reviewer.id);
     }
 
-    await Promise.all(
-      userIdsToSendNoti.map((id) =>
-        notificationService.createNotification({
-          to: id,
-          from: reviewer.id,
-          action: mapping[action],
-          documentId: updatedDocument.id,
-        })
-      )
-    );
+    await emitter.emitAsync('document.action', {
+      notifications: userIdsToSendNoti.map((id) => ({
+        to: id,
+        from: reviewer.id,
+        action: mapping[action],
+        documentId: updatedDocument.id,
+      })),
+
+      history: {
+        actor: reviewer.id,
+        action: mapping[action],
+        department: reviewer.department,
+        document: updatedDocument.id,
+        content: remark,
+      },
+    });
 
     return updatedDocument;
   };
@@ -404,17 +323,7 @@ module.exports = ({
     document.status = DOCUMENT_STATUSES.REQUESTED_REVISION;
     document.currentReviewer = requestedPersonObject.reviewer;
 
-    const saveDocument = document.save();
-    const saveHistory = historyService.createHistory({
-      actor: reviewer.id,
-      action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
-      department: department,
-      document: document.id,
-      content: remark,
-    });
-
-    const [, history] = await Promise.all([saveDocument, saveHistory]);
-
+    await document.save();
     await revisionService.createRevision({
       documentId: document.id,
       requester: reviewer,
@@ -425,11 +334,22 @@ module.exports = ({
       historyId: history.id,
     });
 
-    await notificationService.createNotification({
-      to: requestedPersonObject.reviewer,
-      from: reviewer.id,
-      action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
-      documentId: document.id,
+    await emitter.emitAsync('document.requestRevision', {
+      notifications: [
+        {
+          to: requestedPersonObject.reviewer,
+          from: reviewer.id,
+          action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
+          documentId: document.id,
+        },
+      ],
+      history: {
+        actor: reviewer.id,
+        action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
+        department: department,
+        document: document.id,
+        content: remark,
+      },
     });
 
     return document;
@@ -478,40 +398,33 @@ module.exports = ({
 
     const attachments = await uploadAttachments(files);
 
-    const assignAcknowledgements = revisionService.assignAcknowledgements({
-      revisionId: revision.id,
-      users: [...usersToAcknowledge, document.requester],
-    });
-
-    const saveHistory = historyService.createHistory({
-      actor: reviewer.id,
-      action: DOCUMENT_ACTIONS.REVISED,
-      department: document.reviewers.currentDepartment,
-      document: document.id,
-      content: remark,
-    });
-
-    const saveDocument = document.updateOne({
+    await document.updateOne({
       ...body,
       attachments: [...document.attachments, ...attachments],
       status: DOCUMENT_STATUSES.REVISED,
     });
 
-    await Promise.all([assignAcknowledgements, saveHistory, saveDocument]);
+    await revisionService.assignAcknowledgements({
+      revisionId: revision.id,
+      users: [...usersToAcknowledge, document.requester],
+    });
 
     const usersToSendTo = [...usersToAcknowledge, document.requester];
-
-    await Promise.all(
-      usersToSendTo.map((id) =>
-        notificationService.createNotification({
-          to: id,
-          from: reviewer.id,
-          action: DOCUMENT_ACTIONS.REVISED,
-          documentId: document.id,
-        })
-      )
-    );
-
+    await emitter.emitAsync('document.revise', {
+      notifications: usersToSendTo.map((id) => ({
+        to: id,
+        from: reviewer.id,
+        action: DOCUMENT_ACTIONS.REVISED,
+        documentId: document.id,
+      })),
+      history: {
+        actor: reviewer.id,
+        action: DOCUMENT_ACTIONS.REVISED,
+        department: document.reviewers.currentDepartment,
+        document: document.id,
+        content: remark,
+      },
+    });
     return document;
   };
 
@@ -548,18 +461,21 @@ module.exports = ({
       await document.save();
     }
 
-    await historyService.createHistory({
-      actor: userId,
-      action: DOCUMENT_ACTIONS.ACKNOWLEDGED,
-      department: document.reviewers.currentDepartment,
-      document: document.id,
-    });
-
-    await notificationService.createNotification({
-      to: document.requester,
-      from: userId,
-      action: DOCUMENT_ACTIONS.ACKNOWLEDGED,
-      documentId: document.id,
+    await emitter.emitAsync('document.acknowledge', {
+      notifications: [
+        {
+          to: document.requester,
+          from: userId,
+          action: DOCUMENT_ACTIONS.ACKNOWLEDGED,
+          documentId: document.id,
+        },
+      ],
+      history: {
+        actor: userId,
+        action: DOCUMENT_ACTIONS.ACKNOWLEDGED,
+        department: document.reviewers.currentDepartment,
+        document: document.id,
+      },
     });
 
     return document;
@@ -603,32 +519,24 @@ module.exports = ({
       });
     }
 
-    const saveHistory = historyService.createHistory({
-      actor: userId,
-      action: DOCUMENT_ACTIONS.REJECTED,
-      department: document.reviewers.currentDepartment,
-      document: document.id,
-      content: remark,
+    await emitter.emitAsync('document.reject', {
+      notifications: [
+        {
+          to: document.requester,
+          from: userId,
+          action: DOCUMENT_ACTIONS.REJECTED,
+          documentId: document.id,
+        },
+      ],
+      history: {
+        actor: userId,
+        action: DOCUMENT_ACTIONS.REJECTED,
+        department: document.reviewers.currentDepartment,
+        document: document.id,
+        content: remark,
+      },
     });
-
-    const saveNoti = notificationService.createNotification({
-      to: document.requester,
-      from: userId,
-      action: DOCUMENT_ACTIONS.REJECTED,
-      documentId: document.id,
-    });
-
-    await Promise.all([saveHistory, saveNoti]);
-
     return updatedDocument;
-  };
-
-  const getDocumentsToCheck = async ({ user }) => {
-    const documents = await Document.find({
-      'reviewers.currentReviewerId': user.id,
-    }).populate('lastActivity');
-
-    return { documents, total: 0 };
   };
 
   const commentOnDocument = async ({ id, remark, user }) => {
@@ -771,7 +679,6 @@ module.exports = ({
     getDocumentById,
     getClaimDocumentIdByOriginalId,
     getAllDocuments,
-    getDocumentsToCheck,
     getDocumentsToAcknowledge,
     updateDocument,
     deleteDocument,

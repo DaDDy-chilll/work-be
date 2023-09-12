@@ -21,6 +21,7 @@ const {
   createImageManipulationService,
 } = require('./services/image-manipulation.service');
 const createFileService = require('./services/files.service');
+const createEmitterService = require('./services/event-emitter.service');
 
 const Document = require('./models/document.model');
 const History = require('./models/history.model');
@@ -63,6 +64,9 @@ function loadServices() {
     jwtService: awilix.asFunction(createJwtService),
     fileService: awilix.asFunction(createFileService),
     imageManipulationService: awilix.asFunction(createImageManipulationService),
+    emitter: awilix.asFunction(createEmitterService, {
+      lifetime: awilix.Lifetime.SINGLETON,
+    }),
   };
 
   container.register(services);
