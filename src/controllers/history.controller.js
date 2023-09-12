@@ -1,5 +1,5 @@
-const catchAsync = require('../helpers/catchAsync');
-const sendSuccessResponse = require('../helpers/sendSuccessResponse');
+const catchAsync = require('../utils/catchAsync');
+const sendSuccessResponse = require('../utils/sendSuccessResponse');
 
 module.exports = ({ historyService }) => {
   return Object.freeze({

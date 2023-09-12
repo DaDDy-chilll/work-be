@@ -1,6 +1,6 @@
-const catchAsync = require('../helpers/catchAsync');
-const ApiError = require('../helpers/apiError');
-const sendSuccessResponse = require('../helpers/sendSuccessResponse');
+const catchAsync = require('../utils/catchAsync');
+const ApiError = require('../utils/apiError');
+const sendSuccessResponse = require('../utils/sendSuccessResponse');
 
 module.exports = ({ authService }) => {
   return {

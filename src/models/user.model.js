@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const createCustomIdMiddleware = require('../helpers/model-customId-middleware.helper');
+const createCustomIdMiddleware = require('../utils/model-customId-middleware.helper');
 
 const Schema = mongoose.Schema;
 

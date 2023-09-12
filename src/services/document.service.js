@@ -4,17 +4,17 @@ const {
   DOCUMENT_ACTIONS,
   DOCUMENT_TYPES,
 } = require('../constants/document');
-const ApiError = require('../helpers/apiError');
+const ApiError = require('../utils/apiError');
 const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
-const extractQuery = require('../helpers/extractQuery');
+const extractQuery = require('../utils/extractQuery');
 
 /**
  * @typedef {Object} Dependencies
  * @property {import('./department.service').TDepartmentService} departmentService
- * @property {ReturnType<typeof import('./user.service')>} userService
  * @property {ReturnType<typeof import('./notification.service')>} notificationService
  * @property {ReturnType<typeof import('./reviewer-groups.service')>} reviewerGroupService
  * @property {import('../models/document.model')} Document
+ * @property {ReturnType<import('../helpers/document.helper')>} documentHelper
  * @param {Dependencies} param0
  * @returns
  */
@@ -22,12 +22,11 @@ module.exports = ({
   historyService,
   revisionService,
   notificationService,
-  userService,
   Document,
-  ReviewerGroup,
   departmentService,
   fileService,
   reviewerGroupService,
+  documentHelper,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -37,82 +36,6 @@ module.exports = ({
       document.requestedBy.equals(user._id) ||
       user.role === userRoles.superadmin
     );
-  };
-
-  const _getFilterForGetAllDocs = (queryFilter, user) => {
-    const filter = {};
-
-    if (queryFilter.search) {
-      filter.name = {
-        $regex: queryFilter.search,
-        $options: 'i',
-      };
-    }
-
-    if (queryFilter.status) {
-      if (Array.isArray(queryFilter.status)) {
-        filter.$or = queryFilter.status.map((value) => ({
-          status: value,
-        }));
-      } else {
-        filter.status = queryFilter.status;
-      }
-    }
-
-    if (queryFilter.amount) {
-      filter.amount = parseInt(queryFilter.amount, 10);
-    }
-
-    if (queryFilter.amountMin || queryFilter.amountMax) {
-      filter.amount = {
-        ...(queryFilter.amountMin && {
-          $gte: parseInt(queryFilter.amountMin, 10),
-        }),
-        ...(queryFilter.amountMax && {
-          $lte: parseInt(queryFilter.amountMax, 10),
-        }),
-      };
-    }
-
-    if (queryFilter.requester) {
-      filter.requester = queryFilter.requester;
-    }
-
-    if (queryFilter.currentReviewer) {
-      filter.currentReviewer = queryFilter.currentReviewer;
-    }
-
-    if (queryFilter.caseStatus) {
-      filter.isCaseClosed = queryFilter.caseStatus === 'closed';
-    }
-
-    if (queryFilter.type) {
-      filter.type = queryFilter.type;
-    }
-
-    if (queryFilter.startDate || queryFilter.endDate) {
-      filter.createdAt = {
-        ...(queryFilter.startDate && {
-          $gte: queryFilter.startDate,
-        }),
-        ...(queryFilter.endDate && {
-          $lte: queryFilter.endDate,
-        }),
-      };
-    }
-
-    if (user) {
-      if (user.department.type !== 'authorized') {
-        filter.requestedByDepartment = user.department._id;
-      } else if (
-        user.department.type === 'authorized' &&
-        queryFilter.department
-      ) {
-        filter.requestedByDepartment = queryFilter.department;
-      }
-    }
-
-    return filter;
   };
 
   const uploadAttachments = async (files) => {
@@ -190,66 +113,18 @@ module.exports = ({
     originalDocumentId = undefined,
   }) => {
     if (body.type === DOCUMENT_TYPES.CLAIM) {
-      const orgDoc = await Document.findById(originalDocumentId);
-
-      if (!orgDoc) {
-        throw ApiError.badRequest('Original document not found.');
-      }
-
-      if (orgDoc.type !== DOCUMENT_TYPES.ADVANCE) {
-        throw ApiError.badRequest('Only advance document can be claimed.');
-      }
-
-      if (orgDoc.status !== DOCUMENT_STATUSES.APPROVED) {
-        throw ApiError.badRequest('Original document is not yet approved.');
-      }
-
-      const pastClaimDocument = await Document.findOne({
-        originalDocument: originalDocumentId,
-      });
-
-      if (pastClaimDocument) {
-        throw ApiError.badRequest(
-          'Original document already has a claim document.'
-        );
-      }
+      await documentHelper.checkClaimDocument(originalDocumentId);
     }
 
+    // do not let superadmin request
     if (requester.isSuperadmin) {
       throw ApiError.notAuthorized();
     }
 
-    const workflow = await reviewerGroupService.getReviewerGroupById(
-      body.workflowId
-    );
-
-    if (!workflow) {
-      throw ApiError.badRequest('Workflow does not exist');
-    }
-
-    const currentUserHeadOfDepartment =
-      await userService.getHeadOfCurrentDepartment(requester.department);
-
-    if (!currentUserHeadOfDepartment) {
-      throw ApiError.badRequest(
-        'Your department does not have anyone to approve.'
-      );
-    }
-
-    const reviewers = workflow.reviewers.map((r) => ({
-      reviewer: r.reviewer._id,
-      department: r.reviewer.department._id,
-      ...r.reviewer.permissions,
-    }));
-
-    if (!currentUserHeadOfDepartment.equals(requester._id)) {
-      console.log('Hello!');
-      reviewers.unshift({
-        reviewer: currentUserHeadOfDepartment._id,
-        department: currentUserHeadOfDepartment.department._id,
-        ...currentUserHeadOfDepartment.permissions,
-      });
-    }
+    const reviewers = await documentHelper.getReviewersForDocument({
+      workflowId: body.workflowId,
+      requester,
+    });
 
     const attachments = await uploadAttachments(files);
 
@@ -261,10 +136,7 @@ module.exports = ({
       status: DOCUMENT_STATUSES.PENDING,
       reviewers: {
         currentDepartment: reviewers[0].department,
-        list: reviewers.map((r, idx) => ({
-          ...r,
-          index: idx,
-        })),
+        list: reviewers,
       },
       currentReviewer: reviewers[0].reviewer._id,
       isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
@@ -819,15 +691,11 @@ module.exports = ({
   };
 
   const getAllDocuments = async ({ query, user }) => {
-    const { sort, limit, skip, filter } = extractQuery(query, (f) =>
-      _getFilterForGetAllDocs(f, user)
-    );
+    const { sort, limit, skip, filter } =
+      documentHelper.transformGetAllDocumentsFilter(query, user);
 
     const [documents, total] = await Promise.all([
-      Document.find(filter)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
+      Document.find(filter, {}, { sort, limit, skip })
         .populate('requester')
         .populate({
           path: 'lastActivity',

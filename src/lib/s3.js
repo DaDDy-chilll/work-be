@@ -6,7 +6,7 @@ const {
   AWS_SECRET_KEY,
   AWS_S3_BUCKET_NAME,
 } = require('../constants');
-const generateKeyFromFile = require('../helpers/generateKeyFromFilename');
+const generateKeyFromFile = require('../utils/generateKeyFromFilename');
 
 const s3 = new S3({
   region: AWS_REGION,

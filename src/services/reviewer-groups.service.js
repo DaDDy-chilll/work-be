@@ -1,6 +1,6 @@
 const _ = require('lodash');
 
-const ApiError = require('../helpers/apiError');
+const ApiError = require('../utils/apiError');
 
 /**
  * @typedef {Object} Dependencies

@@ -1,5 +1,5 @@
-import ApiError from '../helpers/apiError';
-import extractQuery from '../helpers/extractQuery';
+import ApiError from '../utils/apiError';
+import extractQuery from '../utils/extractQuery';
 import type { Department } from '../models/department.model';
 import type { CreateDepartmentDTO } from '../schema/department.schema';
 

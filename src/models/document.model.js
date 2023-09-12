@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const createCustomIdMiddlware = require('../helpers/model-customId-middleware.helper');
+const createCustomIdMiddlware = require('../utils/model-customId-middleware.helper');
 
 const {
   DOCUMENT_TYPES,

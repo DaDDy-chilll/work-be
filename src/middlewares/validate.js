@@ -1,6 +1,6 @@
 const { ZodSchema, ZodError } = require('zod');
 const { RequestHandler } = require('express');
-const ApiError = require('../helpers/apiError');
+const ApiError = require('../utils/apiError');
 
 /**
  *

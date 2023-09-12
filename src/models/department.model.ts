@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 
-import createCustomIdMiddleware from '../helpers/model-customId-middleware.helper';
+import createCustomIdMiddleware from '../utils/model-customId-middleware.helper';
 
 const departmentSchema = new mongoose.Schema(
   {

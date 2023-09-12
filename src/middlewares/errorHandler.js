@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 const multer = require('multer');
 const { NODE_ENV } = require('../constants');
-const ApiError = require('../helpers/apiError');
-const sendFailedResponse = require('../helpers/sendFailedResponse');
+const ApiError = require('../utils/apiError');
+const sendFailedResponse = require('../utils/sendFailedResponse');
 
 function errorHandler(error, req, res, next) {
   if (NODE_ENV !== 'production') {

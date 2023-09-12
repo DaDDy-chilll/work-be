@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { JWT_TOKEN_SECRET } from '../constants/app';
-import ApiError from '../helpers/apiError';
+import ApiError from '../utils/apiError';
 import type User from '../models/user.model';
 
 interface Dependencies {

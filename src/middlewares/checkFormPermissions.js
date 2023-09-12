@@ -1,5 +1,5 @@
-const ApiError = require('../helpers/apiError');
-const catchAsync = require('../helpers/catchAsync');
+const ApiError = require('../utils/apiError');
+const catchAsync = require('../utils/catchAsync');
 const documentService = require('../services/document.service');
 
 const checkPermissions = (action) => {

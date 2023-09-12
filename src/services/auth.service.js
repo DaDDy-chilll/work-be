@@ -1,4 +1,4 @@
-const ApiError = require('../helpers/apiError');
+const ApiError = require('../utils/apiError');
 const { verifyPassword, signToken } = require('./utils/auth.utils');
 const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 

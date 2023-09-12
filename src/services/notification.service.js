@@ -1,6 +1,6 @@
 const { DOCUMENT_ACTIONS } = require('../constants/document');
-const ApiError = require('../helpers/apiError');
-const extractQuery = require('../helpers/extractQuery');
+const ApiError = require('../utils/apiError');
+const extractQuery = require('../utils/extractQuery');
 
 /**
  * @typedef {Object} Dependencies

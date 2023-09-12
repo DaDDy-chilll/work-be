@@ -29,6 +29,7 @@ const Revision = require('./models/revisions.model');
 const User = require('./models/user.model');
 const Notification = require('./models/notification.model');
 const { Department } = require('./models/department.model');
+const createDocumentHelper = require('./helpers/document.helper');
 
 const container = awilix.createContainer();
 
@@ -81,10 +82,18 @@ function loadModels() {
   container.register(models);
 }
 
+function loadHelpers() {
+  const helpers = {
+    documentHelper: awilix.asFunction(createDocumentHelper),
+  };
+  container.register(helpers);
+}
+
 function loadContainer() {
   loadModels();
   loadServices();
   loadControllers();
+  loadHelpers();
 }
 
 module.exports = {
