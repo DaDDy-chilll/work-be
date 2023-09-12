@@ -28,7 +28,7 @@ const GET_DOCUMENTS = z.object({
         .int('`limit` must be positive integer.')
         .positive('`limit` must be positive integer.')
         .default(10),
-      page: z.coerce.number().positive(),
+      page: z.coerce.number().positive().default(1),
       status: z
         .enum(Object.values(DOCUMENT_STATUSES))
         .or(z.array(z.enum(Object.values(DOCUMENT_STATUSES))))

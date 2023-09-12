@@ -90,7 +90,7 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
   };
 
   const transformGetAllDocumentsFilter = (
-    { sort, limit, skip, ...query },
+    { sort, limit, page, ...query },
     user
   ) => {
     const filter = {};
@@ -161,6 +161,8 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
         filter.requestedByDepartment = query.department;
       }
     }
+
+    const skip = (page - 1) * limit;
 
     return { sort, limit, skip, filter };
   };
