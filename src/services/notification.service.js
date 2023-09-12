@@ -46,7 +46,7 @@ module.exports = ({ Notification }) => {
           .skip(skip)
           .limit(limit)
           .populate('from', 'name'),
-        Notification.count(filter),
+        Notification.count({ ...filter, to: userId }),
       ]);
 
       return { notifications, count };
