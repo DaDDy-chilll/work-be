@@ -16,7 +16,9 @@ function validate(schema) {
         query: req.query,
         params: req.params,
       });
-      req.body = { ...result.body };
+      req.body = result.body;
+      req.params = result.params || {};
+      req.query = result.query || {};
 
       next();
     } catch (error) {

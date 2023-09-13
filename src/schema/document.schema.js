@@ -62,12 +62,22 @@ const GET_DOCUMENTS = z.object({
       }
       return true;
     })
-    .refine(({ startDate, endDate }) => {
-      if (startDate && endDate) {
-        return dayjs(startDate).isSameOrBefore(endDate);
+    .transform((data, ctx) => {
+      const { startDate, endDate } = data;
+      if (dayjs(endDate).isBefore(startDate)) {
+        ctx.addIssue({ message: 'Start date must come before end date' });
       }
-      return true;
-    }, 'Start date must come before end date'),
+
+      if (dayjs(startDate).isSame(endDate)) {
+        return {
+          ...data,
+          startDate: dayjs(startDate).startOf('day').toDate(),
+          endDate: dayjs(startDate).add(1, 'day').startOf('day').toDate(),
+        };
+      }
+
+      return data;
+    }),
 });
 
 const CREATE_DOCUMENT = z.object({
