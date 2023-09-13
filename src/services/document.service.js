@@ -603,7 +603,10 @@ module.exports = ({
       documentHelper.transformGetAllDocumentsFilter(query, user);
 
     const [documents, total] = await Promise.all([
-      Document.find(filter, {}, { sort, limit, skip })
+      Document.find(filter)
+        .sort(sort)
+        .limit(limit)
+        .skip(skip)
         .populate('requester')
         .populate({
           path: 'lastActivity',
