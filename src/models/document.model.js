@@ -7,7 +7,6 @@ const {
   DOCUMENT_STATUSES,
   DOCUMENT_ACTIONS,
 } = require('../constants/document');
-const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
 const Schema = mongoose.Schema;
 

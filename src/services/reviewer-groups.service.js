@@ -11,7 +11,7 @@ const ApiError = require('../utils/apiError');
  * @returns
  */
 module.exports = ({ ReviewerGroup, userService }) => {
-  const validateReviewerGroup = async (reviewers, departmentOrders) => {
+  const validateReviewerGroup = async (reviewers) => {
     let tempReviewers = await Promise.all(
       reviewers.map(async (item) => {
         const reviewer = await userService.getUserById({ id: item.reviewer });

@@ -1,4 +1,3 @@
-const dayjs = require('../lib/dayjs');
 const ApiError = require('../utils/apiError');
 const { DOCUMENT_TYPES, DOCUMENT_STATUSES } = require('../constants/document');
 
@@ -153,7 +152,6 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
           $lte: query.endDate,
         }),
       };
-      console.log(filter.createdAt);
     }
 
     if (user) {

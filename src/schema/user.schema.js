@@ -1,5 +1,4 @@
 const { z } = require('zod');
-const checkParamsId = require('./checkParamsId.schema');
 const { isObjectIdOrHexString } = require('mongoose');
 
 const BASE_USER = z.object({

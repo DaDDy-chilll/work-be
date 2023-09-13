@@ -5,7 +5,6 @@ const {
   DOCUMENT_TYPES,
 } = require('../constants/document');
 const ApiError = require('../utils/apiError');
-const extractQuery = require('../utils/extractQuery');
 
 /**
  * @typedef {Object} Dependencies
