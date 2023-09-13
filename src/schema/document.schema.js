@@ -64,16 +64,18 @@ const GET_DOCUMENTS = z.object({
     })
     .transform((data, ctx) => {
       const { startDate, endDate } = data;
-      if (dayjs(endDate).isBefore(startDate)) {
-        ctx.addIssue({ message: 'Start date must come before end date' });
-      }
+      if (startDate && endDate) {
+        if (dayjs(endDate).isBefore(startDate)) {
+          ctx.addIssue({ message: 'Start date must come before end date' });
+        }
 
-      if (dayjs(startDate).isSame(endDate)) {
-        return {
-          ...data,
-          startDate: dayjs(startDate).startOf('day').toDate(),
-          endDate: dayjs(startDate).add(1, 'day').startOf('day').toDate(),
-        };
+        if (dayjs(startDate).isSame(endDate)) {
+          return {
+            ...data,
+            startDate: dayjs(startDate).startOf('day').toDate(),
+            endDate: dayjs(startDate).add(1, 'day').startOf('day').toDate(),
+          };
+        }
       }
 
       return data;
