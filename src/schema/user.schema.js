@@ -72,12 +72,11 @@ const GET_USERS = z.object({
   query: z
     .object({
       sort: z.string().default('-createdAt'),
-      limit: z.coerce.number().int().positive(),
-      name: z.string(),
-      department: z.string(),
-      page: z.coerce.number().int().positive(),
+      limit: z.coerce.number().int().nonnegative().default(10),
+      name: z.string().optional(),
+      department: z.string().optional(),
+      page: z.coerce.number().int().positive().default(1),
     })
-    .partial()
     .strict(),
 });
 

@@ -26,20 +26,21 @@ const GET_DOCUMENTS = z.object({
       limit: z.coerce
         .number({ invalid_type_error: '`limit` must be number' })
         .int('`limit` must be positive integer.')
-        .positive('`limit` must be positive integer.')
+        .nonnegative('`limit` must be positive integer.')
         .default(10),
       page: z.coerce.number().positive().default(1),
       status: z
         .enum(Object.values(DOCUMENT_STATUSES))
         .or(z.array(z.enum(Object.values(DOCUMENT_STATUSES))))
-        .or(z.string()),
-      amount: z.coerce.number().nonnegative(),
-      amountMin: z.coerce.number().nonnegative(),
-      amountMax: z.coerce.number().nonnegative(),
-      requestedBy: z.string().refine(isObjectIdOrHexString),
-      currentReviewer: z.string().refine(isObjectIdOrHexString),
-      caseStatus: z.enum(['open', 'closed', '']).or(z.string()),
-      type: z.string(),
+        .or(z.string())
+        .optional(),
+      amount: z.coerce.number().nonnegative().optional(),
+      amountMin: z.coerce.number().nonnegative().optional(),
+      amountMax: z.coerce.number().nonnegative().optional(),
+      requestedBy: z.string().refine(isObjectIdOrHexString).optional(),
+      currentReviewer: z.string().refine(isObjectIdOrHexString).optional(),
+      caseStatus: z.enum(['open', 'closed', '']).or(z.string()).optional(),
+      type: z.string().optional(),
       search: z.string().optional(),
       department: z
         .string()
@@ -54,7 +55,6 @@ const GET_DOCUMENTS = z.object({
       startDate: z.coerce.date().optional(),
       endDate: z.coerce.date().optional(),
     })
-    .partial()
     .strict()
     .refine(({ amountMin, amountMax }) => {
       if (amountMin && amountMax) {

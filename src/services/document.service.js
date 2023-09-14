@@ -587,7 +587,7 @@ module.exports = ({
   const getAllDocuments = async ({ query, user }) => {
     const { sort, limit, skip, filter } =
       documentHelper.transformGetAllDocumentsFilter(query, user);
-
+    console.log(limit);
     const [documents, total] = await Promise.all([
       Document.find(filter)
         .sort(sort)

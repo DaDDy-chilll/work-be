@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+export const GET_DEPARTMENTS = z.object({
+  query: z.object({
+    sort: z.string().default('-createdAt'),
+    limit: z.coerce.number().int().nonnegative().default(10),
+    page: z.coerce.number().int().positive(),
+  }),
+});
+
 export const CREATE_DEPARTMENT = z.object({
   body: z.object({
     name: z
