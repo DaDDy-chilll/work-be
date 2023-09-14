@@ -9,6 +9,15 @@ const { DOCUMENT_TYPES, DOCUMENT_STATUSES } = require('../constants/document');
  * }}
  */
 module.exports = ({ Document, userService, reviewerGroupService }) => {
+  const findAndValidateDocument = async (documentId) => {
+    const document = await Document.findById(documentId).populate(
+      'reviewers.list.reviewer'
+    );
+    if (!document) {
+      throw ApiError.badRequest('Document does not exist');
+    }
+    return document;
+  };
   /**
    * @description
    * Method to check if the requested claim document -
@@ -209,5 +218,6 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
     getNextReviewer,
     canDoAction,
     setupNextReviewer,
+    findAndValidateDocument,
   });
 };

@@ -20,7 +20,7 @@ const { createJwtService } = require('./services/jwt.service');
 const {
   createImageManipulationService,
 } = require('./services/image-manipulation.service');
-const createFileService = require('./services/files.service');
+const createFileStorageService = require('./services/file-storage.service');
 const createEmitterService = require('./services/event-emitter.service');
 
 const Document = require('./models/document.model');
@@ -62,7 +62,7 @@ function loadServices() {
     notificationService: awilix.asFunction(createNotificationService),
     departmentService: awilix.asFunction(createDepartmentService),
     jwtService: awilix.asFunction(createJwtService),
-    fileService: awilix.asFunction(createFileService),
+    fileStorageService: awilix.asFunction(createFileStorageService),
     imageManipulationService: awilix.asFunction(createImageManipulationService),
     emitter: awilix.asFunction(createEmitterService, {
       lifetime: awilix.Lifetime.SINGLETON,

@@ -12,6 +12,7 @@ const ApiError = require('../utils/apiError');
  * @property {ReturnType<typeof import('./event-emitter.service')>} emitter
  * @property {import('../models/document.model')} Document
  * @property {ReturnType<import('../helpers/document.helper')>} documentHelper
+ * @property {ReturnType<import('./file-storage.service')>} fileStorageService
  * @param {Dependencies} param0
  * @returns
  */
@@ -19,10 +20,10 @@ module.exports = ({
   historyService,
   revisionService,
   Document,
-  fileService,
   reviewerGroupService,
   documentHelper,
   emitter,
+  fileStorageService,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -32,18 +33,6 @@ module.exports = ({
       document.requestedBy.equals(user._id) ||
       user.role === userRoles.superadmin
     );
-  };
-
-  const uploadAttachments = async (files) => {
-    if (Array.isArray(files)) {
-      const uploadedFiles = await Promise.all(
-        files.map(fileService.uploadFile)
-      );
-
-      return uploadedFiles;
-    }
-
-    return [];
   };
 
   // Public Methods
@@ -67,7 +56,7 @@ module.exports = ({
       requester,
     });
 
-    const attachments = await uploadAttachments(files);
+    const attachments = await fileStorageService.uploadFiles(files);
 
     const document = new Document({
       ...body,
@@ -114,13 +103,7 @@ module.exports = ({
     remark,
     files,
   }) => {
-    const document = await Document.findById(documentId).populate(
-      'reviewers.list.reviewer'
-    );
-
-    if (!document) {
-      throw ApiError.badRequest('Document does not exist.');
-    }
+    const document = await documentHelper.findAndValidateDocument(documentId);
 
     if (document.status !== DOCUMENT_STATUSES.PENDING) {
       throw ApiError.badRequest('Cannot perform this action.');
@@ -166,7 +149,7 @@ module.exports = ({
           'You do not have permissions to edit amount.'
         );
       }
-      const attachments = await uploadAttachments(files);
+      const attachments = await fileStorageService.upload(files);
 
       const newAttachments = [...document.attachments, ...attachments];
       updater.attachments = newAttachments;
@@ -395,7 +378,7 @@ module.exports = ({
       throw ApiError.badRequest('Revision does not exist.');
     }
 
-    const attachments = await uploadAttachments(files);
+    const attachments = await fileStorageService.uploadFiles(files);
 
     await document.updateOne({
       ...body,
@@ -684,7 +667,6 @@ module.exports = ({
     getDocumentsToAcknowledge,
     updateDocument,
     deleteDocument,
-    uploadAttachments,
     commentOnDocument,
     invokeDocumentAction,
     reviseDocument,

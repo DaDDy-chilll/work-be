@@ -39,10 +39,16 @@ module.exports = ({ imageManipulationService }) => {
     },
 
     /**
-     * @param {Express.Multer.File[]} files
-     * @returns {UploadReturn[]}
+     * @param {Express.Multer.File | Express.Multer.File[]} payload
+     * @returns {Promise<UploadReturn[]>}
      */
-    uploadFilesInBatch: async (files) => {
+    uploadFiles: async (payload) => {
+      const files = [];
+      if (Array.isArray(payload)) {
+        files.push(...payload);
+      } else {
+        files.push(payload);
+      }
       const uploadedFiles = await Promise.all(
         files.map(async (f) => {
           const uploadedFile = await uploadFile(f);
