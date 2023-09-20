@@ -153,7 +153,7 @@ module.exports = ({
           'You do not have permissions to edit amount.'
         );
       }
-      const attachments = await fileStorageService.upload(files);
+      const attachments = await fileStorageService.uploadFiles(files);
 
       const newAttachments = [...document.attachments, ...attachments];
       updater.attachments = newAttachments;
@@ -587,7 +587,6 @@ module.exports = ({
   const getAllDocuments = async ({ query, user }) => {
     const { sort, limit, skip, filter } =
       documentHelper.transformGetAllDocumentsFilter(query, user);
-    console.log(limit);
     const [documents, total] = await Promise.all([
       Document.find(filter)
         .sort(sort)
