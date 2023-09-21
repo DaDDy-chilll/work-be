@@ -42,12 +42,17 @@ const LOGIN = z.object({
 const UPDATE_USER = z.object({
   body: BASE_USER.shape.body
     .pick({
+      name: true,
       email: true,
       jobLabel: true,
       department: false,
       permissions: true,
     })
     .deepPartial(),
+
+  params: z.object({
+    id: z.string().refine(isObjectIdOrHexString),
+  }),
 });
 
 const UPDATE_PASSWORD = z.object({

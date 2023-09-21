@@ -38,6 +38,7 @@ module.exports = ({ userService }) => {
   });
 
   const updateUserById = catchAsync(async (req, res, next) => {
+    console.log(req.params.id);
     const updatedUser = await userService.updateUserById({
       id: req.params.id,
       data: req.body,
