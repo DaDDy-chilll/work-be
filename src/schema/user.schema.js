@@ -81,6 +81,7 @@ const GET_USERS = z.object({
       name: z.string().optional(),
       department: z.string().optional(),
       page: z.coerce.number().int().positive().default(1),
+      search: z.string().optional(),
     })
     .strict(),
 });

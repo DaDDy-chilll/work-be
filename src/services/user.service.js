@@ -22,9 +22,23 @@ module.exports = ({ User }) => {
     const { filter, limit, sort, skip } = extractQuery(query, (oldFilter) => {
       const filter = {};
 
-      if (oldFilter.name) {
+      if (oldFilter.search) {
+        filter.$or = [
+          {
+            name: {
+              $regex: oldFilter.search,
+              $options: 'i',
+            },
+          },
+          {
+            email: {
+              $regex: oldFilter.search,
+              $options: 'i',
+            },
+          },
+        ];
         filter.name = {
-          $regex: oldFilter.name,
+          $regex: oldFilter.search,
           $options: 'i',
         };
       }
