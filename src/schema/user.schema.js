@@ -1,5 +1,4 @@
 const { z } = require('zod');
-const checkParamsId = require('./checkParamsId.schema');
 const { isObjectIdOrHexString } = require('mongoose');
 
 const BASE_USER = z.object({
@@ -43,32 +42,47 @@ const LOGIN = z.object({
 const UPDATE_USER = z.object({
   body: BASE_USER.shape.body
     .pick({
+      name: true,
       email: true,
       jobLabel: true,
       department: false,
       permissions: true,
     })
     .deepPartial(),
+
+  params: z.object({
+    id: z.string().refine(isObjectIdOrHexString),
+  }),
 });
 
-const UPDATE_PASSWORD = z
-  .object({
-    body: BASE_USER.shape.body.pick({
-      password: true,
-    }),
-  })
-  .merge(checkParamsId);
+const UPDATE_PASSWORD = z.object({
+  body: z
+    .object({
+      userId: z
+        .string()
+        .refine(isObjectIdOrHexString, 'User ID must be an object id'),
+      password: z
+        .string()
+        .min(8, 'Password must have at least 8 characters.')
+        .max(16, 'Password exceeds a maximum of 16 characters.'),
+      confirmPassword: z.string().min(1, 'Please confirm password'),
+    })
+    .refine(
+      ({ password, confirmPassword }) => password === confirmPassword,
+      'Passwords do not match'
+    ),
+});
 
 const GET_USERS = z.object({
   query: z
     .object({
       sort: z.string().default('-createdAt'),
-      limit: z.coerce.number().int().positive(),
-      name: z.string(),
-      department: z.string(),
-      page: z.coerce.number().int().positive(),
+      limit: z.coerce.number().int().nonnegative().default(10),
+      name: z.string().optional(),
+      department: z.string().refine(isObjectIdOrHexString).optional(),
+      page: z.coerce.number().int().positive().default(1),
+      search: z.string().optional(),
     })
-    .partial()
     .strict(),
 });
 

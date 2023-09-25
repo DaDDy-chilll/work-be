@@ -3,6 +3,7 @@ const xss = require('xss');
 const { DOCUMENT_STATUSES, DOCUMENT_TYPES } = require('../constants/document');
 const { isObjectIdOrHexString } = require('mongoose');
 const checkParamsId = require('./checkParamsId.schema');
+const dayjs = require('../lib/dayjs');
 
 const BASE_DOCUMENT = z.object({
   name: z.string().min(1, 'Name must have at least 2 characters.'),
@@ -25,28 +26,59 @@ const GET_DOCUMENTS = z.object({
       limit: z.coerce
         .number({ invalid_type_error: '`limit` must be number' })
         .int('`limit` must be positive integer.')
-        .positive('`limit` must be positive integer.')
+        .nonnegative('`limit` must be positive integer.')
         .default(10),
-      page: z.coerce.number().positive(),
+      page: z.coerce.number().positive().default(1),
       status: z
         .enum(Object.values(DOCUMENT_STATUSES))
         .or(z.array(z.enum(Object.values(DOCUMENT_STATUSES))))
-        .or(z.string()),
-      amount: z.coerce.number().nonnegative(),
-      amountMin: z.coerce.number().nonnegative(),
-      amountMax: z.coerce.number().nonnegative(),
-      requestedBy: z.string().refine(isObjectIdOrHexString),
-      currentReviewer: z.string().refine(isObjectIdOrHexString),
-      caseStatus: z.enum(['open', 'closed', '']).or(z.string()),
-      type: z.string(),
+        .or(z.string())
+        .optional(),
+      amount: z.coerce.number().nonnegative().optional(),
+      amountMin: z.coerce.number().nonnegative().optional(),
+      amountMax: z.coerce.number().nonnegative().optional(),
+      requestedBy: z.string().refine(isObjectIdOrHexString).optional(),
+      currentReviewer: z.string().refine(isObjectIdOrHexString).optional(),
+      caseStatus: z.enum(['open', 'closed', '']).or(z.string()).optional(),
+      type: z.string().optional(),
+      search: z.string().optional(),
+      department: z
+        .string()
+        .refine(isObjectIdOrHexString)
+        .or(
+          z
+            .string()
+            .array()
+            .refine((v) => v.every(isObjectIdOrHexString))
+        )
+        .optional(),
+      startDate: z.coerce.date().optional(),
+      endDate: z.coerce.date().optional(),
     })
-    .partial()
     .strict()
     .refine(({ amountMin, amountMax }) => {
       if (amountMin && amountMax) {
         return amountMin <= amountMax;
       }
       return true;
+    })
+    .transform((data, ctx) => {
+      const { startDate, endDate } = data;
+      if (startDate && endDate) {
+        if (dayjs(endDate).isBefore(startDate)) {
+          ctx.addIssue({ message: 'Start date must come before end date' });
+        }
+
+        if (dayjs(startDate).isSame(endDate)) {
+          return {
+            ...data,
+            startDate: dayjs(startDate).startOf('day').toDate(),
+            endDate: dayjs(startDate).add(1, 'day').startOf('day').toDate(),
+          };
+        }
+      }
+
+      return data;
     }),
 });
 

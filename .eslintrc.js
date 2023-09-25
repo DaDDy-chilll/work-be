@@ -17,7 +17,7 @@ module.exports = {
   },
   rules: {
     'prettier/prettier': 'warn',
-    'jsdoc/no-undefined-types': 1,
+    'jsdoc/no-undefined-types': 0,
     '@typescript-eslint/no-unused-vars': [
       'warn',
       { argsIgnorePattern: 'req|next|err|error|res|_' },

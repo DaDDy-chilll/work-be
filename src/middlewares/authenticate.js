@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
-const ApiError = require('../helpers/apiError');
-const catchAsync = require('../helpers/catchAsync');
+const ApiError = require('../utils/apiError');
+const catchAsync = require('../utils/catchAsync');
 const { JWT_TOKEN_SECRET } = require('../constants');
 const User = require('../models/user.model');
 

@@ -1,6 +1,7 @@
 const _ = require('lodash');
 
-const ApiError = require('../helpers/apiError');
+const ApiError = require('../utils/apiError');
+const extractQuery = require('../utils/extractQuery');
 
 /**
  * @typedef {Object} Dependencies
@@ -11,7 +12,7 @@ const ApiError = require('../helpers/apiError');
  * @returns
  */
 module.exports = ({ ReviewerGroup, userService }) => {
-  const validateReviewerGroup = async (reviewers, departmentOrders) => {
+  const validateReviewerGroup = async (reviewers) => {
     let tempReviewers = await Promise.all(
       reviewers.map(async (item) => {
         const reviewer = await userService.getUserById({ id: item.reviewer });
@@ -74,11 +75,39 @@ module.exports = ({ ReviewerGroup, userService }) => {
 
     return { status: true };
   };
-  const getReviewersGroup = async () => {
-    const groups = await ReviewerGroup.find()
-      .populate('reviewers.reviewer')
-      .populate('reviewers.department');
-    const total = await ReviewerGroup.count();
+  const getReviewersGroup = async (query) => {
+    const { filter, limit, sort, skip } = extractQuery(query, (oldFilter) => {
+      const filter = {};
+
+      if (oldFilter.search) {
+        filter.$or = [
+          {
+            name: {
+              $regex: oldFilter.search,
+              $options: 'i',
+            },
+          },
+        ];
+        filter.name = {
+          $regex: oldFilter.search,
+          $options: 'i',
+        };
+      }
+
+      return filter;
+    });
+
+    const groups = await ReviewerGroup.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: 'reviewers.reviewer',
+      })
+      .populate({
+        path: 'reviewers.department',
+      });
+    const total = await ReviewerGroup.count(filter);
     return { groups, total };
   };
 

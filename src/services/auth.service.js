@@ -1,6 +1,5 @@
-const ApiError = require('../helpers/apiError');
+const ApiError = require('../utils/apiError');
 const { verifyPassword, signToken } = require('./utils/auth.utils');
-const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
 /**
  * @typedef {Object} Dependencies
@@ -64,14 +63,14 @@ module.exports = ({ User, userService }) => {
     return { user, accessToken: token };
   };
 
-  const updatePassword = async ({ id, newPassword }) => {
-    const user = await User.findById(id).select('+password');
+  const updatePassword = async ({ userId, password }) => {
+    const user = await User.findOne({ _id: userId, isDisabled: false });
 
     if (!user) {
       throw _noUserError;
     }
 
-    user.password = newPassword;
+    user.password = password;
 
     await user.save();
     user.password = undefined;

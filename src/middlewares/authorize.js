@@ -1,5 +1,5 @@
 const { userRoles } = require('../constants');
-const ApiError = require('../helpers/apiError');
+const ApiError = require('../utils/apiError');
 
 const authorize = (roles = Object.values(userRoles)) => {
   return (req, res, next) => {

@@ -1,6 +1,6 @@
 const { userRoles } = require('../constants');
-const ApiError = require('../helpers/apiError');
-const extractQuery = require('../helpers/extractQuery');
+const ApiError = require('../utils/apiError');
+const extractQuery = require('../utils/extractQuery');
 
 /**
  * @typedef {Object} Dependencies
@@ -22,11 +22,21 @@ module.exports = ({ User }) => {
     const { filter, limit, sort, skip } = extractQuery(query, (oldFilter) => {
       const filter = {};
 
-      if (oldFilter.name) {
-        filter.name = {
-          $regex: oldFilter.name,
-          $options: 'i',
-        };
+      if (oldFilter.search) {
+        filter.$or = [
+          {
+            name: {
+              $regex: oldFilter.search,
+              $options: 'i',
+            },
+          },
+          {
+            email: {
+              $regex: oldFilter.search,
+              $options: 'i',
+            },
+          },
+        ];
       }
 
       if (oldFilter.department) {
@@ -35,6 +45,7 @@ module.exports = ({ User }) => {
 
       return filter;
     });
+
     const total = await User.count(filter);
 
     const users = await User.find(filter)

@@ -2,6 +2,18 @@ const { isObjectIdOrHexString } = require('mongoose');
 const { z } = require('zod');
 const checkParamsId = require('./checkParamsId.schema');
 
+const GET_WORKFLOWS = z.object({
+  query: z.object({
+    sort: z.string().default('-createdAt'),
+    limit: z.coerce
+      .number({ invalid_type_error: '`limit` must be number' })
+      .int('`limit` must be positive integer.')
+      .default(10),
+    page: z.coerce.number().positive().default(1),
+    search: z.string().optional(),
+  }),
+});
+
 const BASE_GROUP = z.object({
   body: z.object({
     name: z.string({ required_error: 'Group name is required' }),
@@ -45,4 +57,5 @@ const UPDATE_GROUP = z
 module.exports = {
   CREATE_GROUP,
   UPDATE_GROUP,
+  GET_WORKFLOWS,
 };

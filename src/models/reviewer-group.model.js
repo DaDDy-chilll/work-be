@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const createCustomIdMiddleware = require('../helpers/model-customId-middleware.helper');
+const createCustomIdMiddleware = require('../utils/model-customId-middleware.helper');
 
 const Schema = mongoose.Schema;
 

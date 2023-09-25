@@ -20,7 +20,8 @@ const { createJwtService } = require('./services/jwt.service');
 const {
   createImageManipulationService,
 } = require('./services/image-manipulation.service');
-const createFileService = require('./services/files.service');
+const createFileStorageService = require('./services/file-storage.service');
+const createEmitterService = require('./services/event-emitter.service');
 
 const Document = require('./models/document.model');
 const History = require('./models/history.model');
@@ -29,6 +30,7 @@ const Revision = require('./models/revisions.model');
 const User = require('./models/user.model');
 const Notification = require('./models/notification.model');
 const { Department } = require('./models/department.model');
+const createDocumentHelper = require('./helpers/document.helper');
 
 const container = awilix.createContainer();
 
@@ -60,8 +62,11 @@ function loadServices() {
     notificationService: awilix.asFunction(createNotificationService),
     departmentService: awilix.asFunction(createDepartmentService),
     jwtService: awilix.asFunction(createJwtService),
-    fileService: awilix.asFunction(createFileService),
+    fileStorageService: awilix.asFunction(createFileStorageService),
     imageManipulationService: awilix.asFunction(createImageManipulationService),
+    emitter: awilix.asFunction(createEmitterService, {
+      lifetime: awilix.Lifetime.SINGLETON,
+    }),
   };
 
   container.register(services);
@@ -81,10 +86,18 @@ function loadModels() {
   container.register(models);
 }
 
+function loadHelpers() {
+  const helpers = {
+    documentHelper: awilix.asFunction(createDocumentHelper),
+  };
+  container.register(helpers);
+}
+
 function loadContainer() {
   loadModels();
   loadServices();
   loadControllers();
+  loadHelpers();
 }
 
 module.exports = {

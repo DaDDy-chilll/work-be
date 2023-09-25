@@ -1,6 +1,6 @@
 const { DOCUMENT_TYPES, DOCUMENT_STATUSES } = require('../constants/document');
-const catchAsync = require('../helpers/catchAsync');
-const sendSuccessResponse = require('../helpers/sendSuccessResponse');
+const catchAsync = require('../utils/catchAsync');
+const sendSuccessResponse = require('../utils/sendSuccessResponse');
 
 /**
  * @typedef {Object} Dependencies

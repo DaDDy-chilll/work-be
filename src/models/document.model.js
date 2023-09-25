@@ -1,13 +1,12 @@
 const mongoose = require('mongoose');
 
-const createCustomIdMiddlware = require('../helpers/model-customId-middleware.helper');
+const createCustomIdMiddlware = require('../utils/model-customId-middleware.helper');
 
 const {
   DOCUMENT_TYPES,
   DOCUMENT_STATUSES,
   DOCUMENT_ACTIONS,
 } = require('../constants/document');
-const { AUTHORIZED_DEPARTMENTS } = require('../constants/user');
 
 const Schema = mongoose.Schema;
 

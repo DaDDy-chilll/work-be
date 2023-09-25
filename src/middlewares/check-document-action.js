@@ -1,5 +1,5 @@
-const ApiError = require('../helpers/apiError');
-const catchAsync = require('../helpers/catchAsync');
+const ApiError = require('../utils/apiError');
+const catchAsync = require('../utils/catchAsync');
 const Document = require('../models/document.model');
 
 module.exports = catchAsync(async (req, res, next) => {

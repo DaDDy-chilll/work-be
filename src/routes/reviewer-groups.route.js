@@ -9,6 +9,7 @@ const isSuperadmin = require('../middlewares/is-superadmin');
 const {
   CREATE_GROUP,
   UPDATE_GROUP,
+  GET_WORKFLOWS,
 } = require('../schema/reviewer-group.schema');
 
 router.post(
@@ -22,6 +23,7 @@ router.post(
 router.get(
   '/',
   authenticate,
+  validate(GET_WORKFLOWS),
   container.resolve('reviewerGroupController').getReviewersGroup
 );
 

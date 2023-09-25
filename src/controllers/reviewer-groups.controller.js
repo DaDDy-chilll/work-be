@@ -1,9 +1,11 @@
-const catchAsync = require('../helpers/catchAsync');
-const sendSuccessResponse = require('../helpers/sendSuccessResponse');
+const catchAsync = require('../utils/catchAsync');
+const sendSuccessResponse = require('../utils/sendSuccessResponse');
 
 module.exports = ({ reviewerGroupService }) => {
   const getReviewersGroup = catchAsync(async (req, res, next) => {
-    const { groups, total } = await reviewerGroupService.getReviewersGroup();
+    const { groups, total } = await reviewerGroupService.getReviewersGroup(
+      req.query
+    );
 
     sendSuccessResponse({
       res,

@@ -1,4 +1,5 @@
 const express = require('express');
+const compression = require('compression');
 const morgan = require('morgan');
 const logger = require('./logger');
 const cors = require('cors');
@@ -6,7 +7,7 @@ const { default: helmet } = require('helmet');
 
 const { NODE_ENV } = require('./constants');
 const errorHandler = require('./middlewares/errorHandler');
-const ApiError = require('./helpers/apiError');
+const ApiError = require('./utils/apiError');
 
 const { loadContainer } = require('./container');
 // load container before the routes load
@@ -19,6 +20,7 @@ const app = express();
 
 app.use(cors());
 app.use(helmet());
+app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

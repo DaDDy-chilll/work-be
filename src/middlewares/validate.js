@@ -1,12 +1,11 @@
-const { ZodSchema, ZodError } = require('zod');
-const { RequestHandler } = require('express');
-const ApiError = require('../helpers/apiError');
+const { ZodError } = require('zod');
+const ApiError = require('../utils/apiError');
 
 /**
  *
- * @param {ZodSchema} schema - Must be a zod schema
+ * @param {import('zod').ZodSchema} schema - Must be a zod schema
  * @param {any} data - Data to be validated
- * @returns {RequestHandler}
+ * @returns {import('express').RequestHandler}
  */
 function validate(schema) {
   return (req, res, next) => {
@@ -16,7 +15,9 @@ function validate(schema) {
         query: req.query,
         params: req.params,
       });
-      req.body = { ...result.body };
+      req.body = result.body;
+      req.params = result.params || {};
+      req.query = result.query || {};
 
       next();
     } catch (error) {

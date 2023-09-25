@@ -1,6 +1,6 @@
 const { DOCUMENT_ACTIONS } = require('../constants/document');
-const ApiError = require('../helpers/apiError');
-const extractQuery = require('../helpers/extractQuery');
+const ApiError = require('../utils/apiError');
+const extractQuery = require('../utils/extractQuery');
 
 /**
  * @typedef {Object} Dependencies
@@ -37,6 +37,10 @@ module.exports = ({ Notification }) => {
       });
     },
 
+    sendNotifications: async (notifications) => {
+      return await Notification.insertMany(notifications);
+    },
+
     getNotifications: async (query, userId) => {
       const { sort, filter, skip, limit } = extractQuery(query, (f) => f);
 
@@ -46,7 +50,7 @@ module.exports = ({ Notification }) => {
           .skip(skip)
           .limit(limit)
           .populate('from', 'name'),
-        Notification.count(filter),
+        Notification.count({ ...filter, to: userId }),
       ]);
 
       return { notifications, count };
