@@ -11,6 +11,7 @@ const GET_WORKFLOWS = z.object({
       .positive('`limit` must be positive integer.')
       .default(10),
     page: z.coerce.number().positive().default(1),
+    search: z.string().optional(),
   }),
 });
 

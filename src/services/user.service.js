@@ -37,10 +37,6 @@ module.exports = ({ User }) => {
             },
           },
         ];
-        filter.name = {
-          $regex: oldFilter.search,
-          $options: 'i',
-        };
       }
 
       if (oldFilter.department) {
@@ -49,6 +45,7 @@ module.exports = ({ User }) => {
 
       return filter;
     });
+
     const total = await User.count(filter);
 
     const users = await User.find(filter)
