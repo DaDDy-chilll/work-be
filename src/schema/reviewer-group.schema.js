@@ -8,7 +8,6 @@ const GET_WORKFLOWS = z.object({
     limit: z.coerce
       .number({ invalid_type_error: '`limit` must be number' })
       .int('`limit` must be positive integer.')
-      .positive('`limit` must be positive integer.')
       .default(10),
     page: z.coerce.number().positive().default(1),
     search: z.string().optional(),
