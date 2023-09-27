@@ -3,7 +3,6 @@ const xss = require('xss');
 const { DOCUMENT_STATUSES, DOCUMENT_TYPES } = require('../constants/document');
 const { isObjectIdOrHexString } = require('mongoose');
 const checkParamsId = require('./checkParamsId.schema');
-const dayjs = require('../lib/dayjs');
 
 const BASE_DOCUMENT = z.object({
   name: z.string().min(1, 'Name must have at least 2 characters.'),
@@ -61,24 +60,6 @@ const GET_DOCUMENTS = z.object({
         return amountMin <= amountMax;
       }
       return true;
-    })
-    .transform((data, ctx) => {
-      const { startDate, endDate } = data;
-      if (startDate && endDate) {
-        if (dayjs(endDate).isBefore(startDate)) {
-          ctx.addIssue({ message: 'Start date must come before end date' });
-        }
-
-        if (dayjs(startDate).isSame(endDate)) {
-          return {
-            ...data,
-            startDate: dayjs(startDate).startOf('day').toDate(),
-            endDate: dayjs(startDate).add(1, 'day').startOf('day').toDate(),
-          };
-        }
-      }
-
-      return data;
     }),
 });
 
