@@ -134,7 +134,7 @@ module.exports = ({
 
     const nextReviewerItem = documentHelper.getNextReviewer(document);
     if (willGoToNextReviewer) {
-      if (!nextReviewerItem && action === 'approve') {
+      if (!nextReviewerItem) {
         updater.isCaseClosed = true;
         updater.status = DOCUMENT_STATUSES.APPROVED;
       }
