@@ -58,9 +58,6 @@ const UPDATE_USER = z.object({
 const UPDATE_PASSWORD = z.object({
   body: z
     .object({
-      userId: z
-        .string()
-        .refine(isObjectIdOrHexString, 'User ID must be an object id'),
       password: z
         .string()
         .min(8, 'Password must have at least 8 characters.')
