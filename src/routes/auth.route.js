@@ -27,7 +27,6 @@ router.post(
 router.patch(
   '/password',
   authenticate,
-  isSuperadmin,
   validate(UPDATE_PASSWORD),
   container.resolve('authController').updatePassword
 );
