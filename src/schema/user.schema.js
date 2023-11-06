@@ -58,13 +58,16 @@ const UPDATE_USER = z.object({
 const UPDATE_PASSWORD = z.object({
   body: z
     .object({
-      userId: z
-        .string()
-        .refine(isObjectIdOrHexString, 'User ID must be an object id'),
       password: z
         .string()
-        .min(8, 'Password must have at least 8 characters.')
-        .max(16, 'Password exceeds a maximum of 16 characters.'),
+        .min(8, 'Password must be at least 8 characters.')
+        .regex(/[a-z]/, 'Password must contain at least one lowercase letter.')
+        .regex(/[A-Z]/, 'Password must contain at least one uppercase letter.')
+        .regex(/\d/, 'Password must contain at least one number.')
+        .regex(/[!@#$%^&*(),.?":{}|<>]/, {
+          message: 'Password must contain at least one special character.',
+        })
+        .max(16, 'Password must be at most 16 characters.'),
       confirmPassword: z.string().min(1, 'Please confirm password'),
     })
     .refine(
