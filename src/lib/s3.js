@@ -25,6 +25,7 @@ function uploadFile(file) {
       Key: key,
       Body: file.buffer,
       ACL: 'public-read',
+      ContentType: file.mimetype,
     })
     .promise();
 }
