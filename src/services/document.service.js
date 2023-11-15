@@ -4,6 +4,7 @@ const {
   DOCUMENT_ACTIONS,
   DOCUMENT_TYPES,
 } = require('../constants/document');
+const { getFileStream } = require('../lib/s3');
 const ApiError = require('../utils/apiError');
 
 /**
@@ -549,6 +550,10 @@ module.exports = ({
     return document;
   };
 
+  const getDocumentFile = async ({ key }) => {
+    return await getFileStream(key);
+  };
+
   const getDocumentsToAcknowledge = async ({ userId }) => {
     const revisions = await revisionService.getRevisionsToAcknowledge({
       userId,
@@ -676,5 +681,6 @@ module.exports = ({
     acknowledgeDocument,
     rejectDocument,
     chooseWorkflowForDocument,
+    getDocumentFile,
   };
 };
