@@ -4,6 +4,10 @@ const {
   DOCUMENT_ACTIONS,
   DOCUMENT_TYPES,
 } = require('../constants/document');
+const { REVIEWER_GROUP_TYPES } = require('../constants/reviewer-group');
+const {
+  checkCanForward,
+} = require('../controllers/helpers/reviewer-group.helper');
 const ApiError = require('../utils/apiError');
 
 /**
@@ -49,6 +53,14 @@ module.exports = ({
     // do not let superadmin request
     if (requester.isSuperadmin) {
       throw ApiError.notAuthorized();
+    }
+
+    const workflow = await reviewerGroupService.getReviewerGroupById(
+      body.workflowId
+    );
+
+    if (workflow?.type === REVIEWER_GROUP_TYPES.PRIVATE) {
+      checkCanForward(requester);
     }
 
     const reviewers = await documentHelper.getReviewersForDocument({
