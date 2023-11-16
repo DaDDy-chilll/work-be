@@ -42,5 +42,18 @@ module.exports = ({ authService }) => {
         message: "User's password has been updated.",
       });
     }),
+
+    updateUserPassword: catchAsync(async (req, res, next) => {
+      const updatedUser = await authService.updatePassword({
+        ...req.body,
+        userId: req.params.id,
+      });
+
+      sendSuccessResponse({
+        res,
+        data: updatedUser,
+        message: "User's password has been updated.",
+      });
+    }),
   };
 };
