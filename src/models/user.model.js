@@ -74,6 +74,10 @@ const userSchema = new Schema(
         type: Boolean,
         default: false,
       },
+      canForward: {
+        type: Boolean,
+        default: false,
+      },
     },
   },
   {

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const createCustomIdMiddleware = require('../utils/model-customId-middleware.helper');
+const { REVIEWER_GROUP_TYPES } = require('../constants/reviewer-group');
 
 const Schema = mongoose.Schema;
 
@@ -26,6 +27,11 @@ const reviewerGroupSchema = new Schema(
     ],
     name: String,
     description: String,
+    type: {
+      type: String,
+      enum: [...Object.values(REVIEWER_GROUP_TYPES)],
+      default: REVIEWER_GROUP_TYPES.NORMAL,
+    },
   },
   {
     timestamps: true,
