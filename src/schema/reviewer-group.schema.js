@@ -12,6 +12,11 @@ const GET_WORKFLOWS = z.object({
       .default(10),
     page: z.coerce.number().positive().default(1),
     search: z.string().optional(),
+    type: z
+      .enum([...Object.values(REVIEWER_GROUP_TYPES)], {
+        errorMap: () => ({ message: 'Invalid reviewer group type' }),
+      })
+      .optional(),
   }),
 });
 

@@ -94,6 +94,10 @@ module.exports = ({ ReviewerGroup, userService }) => {
         };
       }
 
+      if (oldFilter.type) {
+        filter.type = oldFilter.type;
+      }
+
       return filter;
     });
 
