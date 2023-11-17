@@ -126,6 +126,7 @@ module.exports = ({
       verify: DOCUMENT_ACTIONS.VERIFIED,
       approve: DOCUMENT_ACTIONS.APPROVED,
       comment: DOCUMENT_ACTIONS.COMMENTED,
+      forward: DOCUMENT_ACTIONS.FORWARDED,
     };
 
     // Check if it's reviewer's turn
@@ -133,6 +134,7 @@ module.exports = ({
       document,
       reviewer
     );
+
     if (!currentReviewerItem) {
       throw ApiError.notAuthorized(`Cannot perform ${action}.`);
     }
@@ -146,7 +148,7 @@ module.exports = ({
 
     const nextReviewerItem = documentHelper.getNextReviewer(document);
     if (willGoToNextReviewer) {
-      if (!nextReviewerItem) {
+      if (!nextReviewerItem && action !== 'forward') {
         updater.isCaseClosed = true;
         updater.status = DOCUMENT_STATUSES.APPROVED;
       }
@@ -171,7 +173,7 @@ module.exports = ({
       updater.attachments = newAttachments;
     }
 
-    const updatedDocument = await Document.findOneAndUpdate(
+    let updatedDocument = await Document.findOneAndUpdate(
       { _id: document._id, 'reviewers.list.index': currentReviewerItem.index },
       {
         ...updater,
@@ -182,6 +184,42 @@ module.exports = ({
       },
       { new: true, runValidators: true }
     );
+
+    if (action === 'forward') {
+      const workflow = await reviewerGroupService.getReviewerGroupById(
+        body.workflowId
+      );
+
+      if (workflow?.type !== REVIEWER_GROUP_TYPES.PRIVATE) {
+        throw ApiError.badRequest('Please choose private workflow.');
+      }
+
+      const reviewersList = workflow?.reviewers.map((item) => ({
+        ...item.reviewer.permissions,
+        reviewer: item.reviewer,
+        index: item.index + document.reviewers.list.length,
+        department: item.department._id,
+        status: 'PENDING',
+      }));
+
+      if (updateDocument) {
+        await Document.findOneAndUpdate(
+          {
+            _id: document._id,
+          },
+          {
+            $set: {
+              reviewers: {
+                currentDepartment: workflow?.reviewers[0].department._id,
+                currentReviewerIndex: workflow.reviewers.length,
+                list: [...document.reviewers.list, ...reviewersList],
+              },
+            },
+          },
+          { new: true, runValidators: true }
+        );
+      }
+    }
 
     if (
       updatedDocument.type === 'CLAIM' &&

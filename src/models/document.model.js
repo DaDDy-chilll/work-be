@@ -126,6 +126,7 @@ const documentSchema = new Schema(
               DOCUMENT_ACTIONS.COMMENTED,
               DOCUMENT_ACTIONS.VERIFIED,
               DOCUMENT_ACTIONS.PREPARED,
+              DOCUMENT_ACTIONS.FORWARDED,
             ],
             default: 'PENDING',
           },

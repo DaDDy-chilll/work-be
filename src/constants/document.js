@@ -15,6 +15,7 @@ module.exports = {
     REQUESTED_REVISION: 'REQUESTED_REVISION', // Higher level department requests for more info
     REVISED: 'REVISED',
     COMMENTED: 'COMMENTED',
+    FORWARDED: 'FORWARDED',
   }),
   DOCUMENT_STATUSES: Object.freeze({
     PENDING: 'PENDING',
