@@ -8,6 +8,7 @@ const { REVIEWER_GROUP_TYPES } = require('../constants/reviewer-group');
 const {
   checkCanForward,
 } = require('../controllers/helpers/reviewer-group.helper');
+const { getFileStream } = require('../lib/s3');
 const ApiError = require('../utils/apiError');
 
 /**
@@ -599,6 +600,10 @@ module.exports = ({
     return document;
   };
 
+  const getDocumentFile = async ({ key }) => {
+    return await getFileStream(key);
+  };
+
   const getDocumentsToAcknowledge = async ({ userId }) => {
     const revisions = await revisionService.getRevisionsToAcknowledge({
       userId,
@@ -726,5 +731,6 @@ module.exports = ({
     acknowledgeDocument,
     rejectDocument,
     chooseWorkflowForDocument,
+    getDocumentFile,
   };
 };

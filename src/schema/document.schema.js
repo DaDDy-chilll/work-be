@@ -63,6 +63,13 @@ const GET_DOCUMENTS = z.object({
     }),
 });
 
+const GET_DOCUMENT_FILE = z.object({
+  params: z.object({
+    key: z.string(),
+    action: z.string(),
+  }),
+});
+
 const CREATE_DOCUMENT = z.object({
   body: BASE_DOCUMENT.omit({ type: true, amount: true }).strict(),
 });
@@ -108,6 +115,7 @@ const DOCUMENT_ACTION = z.object({
 
 module.exports = {
   GET_DOCUMENTS,
+  GET_DOCUMENT_FILE,
   CREATE_DOCUMENT,
   DELETE_DOCUMENT,
   DOCUMENT_ACTION,

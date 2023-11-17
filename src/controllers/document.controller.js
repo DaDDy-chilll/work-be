@@ -173,6 +173,31 @@ module.exports = ({ documentService }) => {
     });
   });
 
+  const getDocumentFile = catchAsync(async (req, res, next) => {
+    const { key, action } = req.params;
+
+    const fileStream = await documentService.getDocumentFile({
+      key,
+    });
+
+    let contentType;
+
+    if (key.endsWith('.pdf')) {
+      contentType = 'application/pdf';
+    } else {
+      const fileExtension = key.split('.')[key.split('.').length - 1];
+      contentType = `image/${fileExtension}`;
+    }
+
+    res.setHeader('Content-Type', contentType);
+
+    if (action === 'download') {
+      res.setHeader('Content-Disposition', `attachment; filename=${key}`);
+    }
+
+    fileStream.pipe(res);
+  });
+
   const getDocumentsToCheck = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
       query: {
@@ -269,5 +294,6 @@ module.exports = ({ documentService }) => {
     invokeDocumentAction,
     rejectDocument,
     chooseWorkflow,
+    getDocumentFile,
   };
 };

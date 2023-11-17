@@ -13,6 +13,7 @@ const {
   DOCUMENT_ACTION,
   UPDATE_DOCUMENT,
   DELETE_DOCUMENT,
+  GET_DOCUMENT_FILE,
 } = require('../schema/document.schema');
 const checkParamsId = require('../schema/checkParamsId.schema');
 
@@ -69,6 +70,13 @@ router.post(
   '/:id/reject',
   authenticate,
   container.resolve('documentController').rejectDocument
+);
+
+router.get(
+  '/file/:key/:action',
+  authenticate,
+  validate(GET_DOCUMENT_FILE),
+  container.resolve('documentController').getDocumentFile
 );
 
 router.get(
