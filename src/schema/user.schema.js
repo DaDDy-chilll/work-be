@@ -77,6 +77,13 @@ const UPDATE_PASSWORD = z.object({
     ),
 });
 
+const UPDATE_USER_PASSWORD = z.object({
+  body: UPDATE_PASSWORD.shape.body,
+  params: z.object({
+    id: z.string().refine(isObjectIdOrHexString),
+  }),
+});
+
 const GET_USERS = z.object({
   query: z
     .object({
@@ -96,4 +103,5 @@ module.exports = {
   UPDATE_USER,
   UPDATE_PASSWORD,
   GET_USERS,
+  UPDATE_USER_PASSWORD,
 };

@@ -6,6 +6,7 @@ const {
   REGISTER_USER,
   LOGIN,
   UPDATE_PASSWORD,
+  UPDATE_USER_PASSWORD,
 } = require('../schema/user.schema');
 const isSuperadmin = require('../middlewares/is-superadmin');
 const { container } = require('../container');
@@ -29,6 +30,14 @@ router.patch(
   authenticate,
   validate(UPDATE_PASSWORD),
   container.resolve('authController').updatePassword
+);
+
+router.patch(
+  '/:id/password',
+  authenticate,
+  isSuperadmin,
+  validate(UPDATE_USER_PASSWORD),
+  container.resolve('authController').updateUserPassword
 );
 
 module.exports = router;
