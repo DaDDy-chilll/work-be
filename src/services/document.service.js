@@ -203,18 +203,20 @@ module.exports = ({
         status: 'PENDING',
       }));
 
-      if (updateDocument) {
-        await Document.findOneAndUpdate(
+      if (updatedDocument) {
+        updatedDocument = await Document.findOneAndUpdate(
           {
-            _id: document._id,
+            _id: updatedDocument._id,
           },
           {
             $set: {
               reviewers: {
                 currentDepartment: workflow?.reviewers[0].department._id,
-                currentReviewerIndex: workflow.reviewers.length,
-                list: [...document.reviewers.list, ...reviewersList],
+                currentReviewerIndex:
+                  updatedDocument.reviewers.currentReviewerIndex + 2,
+                list: [...updatedDocument.reviewers.list, ...reviewersList],
               },
+              currentReviewer: workflow?.reviewers[0].reviewer._id,
             },
           },
           { new: true, runValidators: true }
@@ -642,6 +644,7 @@ module.exports = ({
   const getAllDocuments = async ({ query, user }) => {
     const { sort, limit, skip, filter } =
       documentHelper.transformGetAllDocumentsFilter(query, user);
+
     const [documents, total] = await Promise.all([
       Document.find(filter)
         .sort(sort)
