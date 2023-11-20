@@ -38,7 +38,6 @@ const documentSchema = new Schema(
     ],
     description: {
       type: String,
-      required: true,
     },
     isCaseClosed: {
       type: Boolean,
