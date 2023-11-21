@@ -21,12 +21,14 @@ module.exports = ({ userService }) => {
     });
   });
 
-  const getMe = (req, res, next) => {
+  const getMe = catchAsync(async (req, res, next) => {
+    const user = await userService.getUserById({ id: req.user.id });
+
     sendSuccessResponse({
       res,
-      data: req.user,
+      data: user,
     });
-  };
+  });
 
   const deleteUserById = catchAsync(async (req, res, next) => {
     const deletedUser = await userService.deleteUserById({ id: req.params.id });

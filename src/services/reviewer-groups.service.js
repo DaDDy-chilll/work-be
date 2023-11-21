@@ -2,6 +2,10 @@ const _ = require('lodash');
 
 const ApiError = require('../utils/apiError');
 const extractQuery = require('../utils/extractQuery');
+const { REVIEWER_GROUP_TYPES } = require('../constants/reviewer-group');
+const {
+  checkCanForward,
+} = require('../controllers/helpers/reviewer-group.helper');
 
 /**
  * @typedef {Object} Dependencies
@@ -156,10 +160,32 @@ module.exports = ({ ReviewerGroup, userService }) => {
       });
   };
 
+  const addFavouriteReviewerGroup = async ({ requester, workflowId }) => {
+    const user = await userService.getUserById({ id: requester.id });
+    const workflow = await ReviewerGroup.findById(workflowId);
+
+    if (!user) {
+      throw ApiError.badRequest('User does not exist.');
+    }
+    if (!workflow) {
+      throw ApiError.badRequest('Workflow does not exist');
+    }
+
+    if (workflow?.type === REVIEWER_GROUP_TYPES.PRIVATE) {
+      checkCanForward(requester);
+    }
+
+    return await userService.addFavouriteReviewerGroup({
+      userId: requester.id,
+      workflowId,
+    });
+  };
+
   return {
     getReviewersGroup,
     createReviewerGroup,
     getReviewerGroupById,
     updateReviewerGroup,
+    addFavouriteReviewerGroup,
   };
 };
