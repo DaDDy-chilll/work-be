@@ -54,15 +54,18 @@ module.exports = ({ User }) => {
       .limit(limit)
       .populate({
         path: 'department',
-      });
+      })
+      .populate('favouriteWorkflows');
 
     return { users, total };
   };
 
   const getUserById = async ({ id }) => {
-    const user = await User.findById(id).populate({
-      path: 'department',
-    });
+    const user = await User.findById(id)
+      .populate({
+        path: 'department',
+      })
+      .populate('favouriteWorkflows');
 
     if (!user) {
       throw _noUserError;
@@ -75,7 +78,9 @@ module.exports = ({ User }) => {
     return User.findOne({
       department: departmentId,
       'permissions.canApprove': true,
-    }).populate('department');
+    })
+      .populate('department')
+      .populate('favouriteWorkflows');
   };
 
   const deleteUserById = async ({ id }) => {
@@ -157,6 +162,26 @@ module.exports = ({ User }) => {
     return user;
   };
 
+  const addFavouriteReviewerGroup = async ({ userId, workflowId }) => {
+    const user = await User.findById(userId);
+
+    const isFavourite = user.favouriteWorkflows.includes(workflowId);
+
+    if (isFavourite) {
+      return await User.findByIdAndUpdate(
+        userId,
+        { $pull: { favouriteWorkflows: workflowId } },
+        { new: true }
+      );
+    }
+
+    return await User.findByIdAndUpdate(
+      userId,
+      { $push: { favouriteWorkflows: workflowId } },
+      { new: true }
+    );
+  };
+
   return {
     createUser,
     getAllUsers,
@@ -168,5 +193,6 @@ module.exports = ({ User }) => {
     getValidReviewers,
     getHeadOfCurrentDepartment,
     disableUser,
+    addFavouriteReviewerGroup,
   };
 };

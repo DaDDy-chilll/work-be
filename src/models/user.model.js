@@ -79,6 +79,12 @@ const userSchema = new Schema(
         default: false,
       },
     },
+    favouriteWorkflows: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ReviewerGroup',
+      },
+    ],
   },
   {
     timestamps: true,

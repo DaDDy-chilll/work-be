@@ -49,6 +49,19 @@ module.exports = ({ reviewerGroupService }) => {
     });
   });
 
+  const addFavouriteReviewerGroup = catchAsync(async (req, res, next) => {
+    const updatedGroup = await reviewerGroupService.addFavouriteReviewerGroup({
+      requester: req.user,
+      workflowId: req.params.id,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: updatedGroup,
+      message: 'Updated successfully',
+    });
+  });
+
   const getValidReviewerGroups = catchAsync(async (req, res, next) => {
     const dept = req.params.dept || 'admin';
     const { groups } = await reviewerGroupService.getReviewersGroup();
@@ -73,5 +86,6 @@ module.exports = ({ reviewerGroupService }) => {
     updateReviewerGroup,
     getGroupById,
     getValidReviewerGroups,
+    addFavouriteReviewerGroup,
   };
 };
