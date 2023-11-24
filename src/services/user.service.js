@@ -65,7 +65,12 @@ module.exports = ({ User }) => {
       .populate({
         path: 'department',
       })
-      .populate('favouriteWorkflows');
+      .populate({
+        path: 'favouriteWorkflows',
+        populate: {
+          path: 'reviewers.department',
+        },
+      });
 
     if (!user) {
       throw _noUserError;
