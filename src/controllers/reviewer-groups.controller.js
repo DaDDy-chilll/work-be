@@ -1,8 +1,14 @@
+const { REVIEWER_GROUP_TYPES } = require('../constants/reviewer-group');
 const catchAsync = require('../utils/catchAsync');
 const sendSuccessResponse = require('../utils/sendSuccessResponse');
+const { checkCanForward } = require('./helpers/reviewer-group.helper');
 
 module.exports = ({ reviewerGroupService }) => {
   const getReviewersGroup = catchAsync(async (req, res, next) => {
+    if (req.query.type === REVIEWER_GROUP_TYPES.PRIVATE) {
+      checkCanForward(req.user);
+    }
+
     const { groups, total } = await reviewerGroupService.getReviewersGroup(
       req.query
     );
@@ -43,6 +49,19 @@ module.exports = ({ reviewerGroupService }) => {
     });
   });
 
+  const addFavouriteReviewerGroup = catchAsync(async (req, res, next) => {
+    const updatedGroup = await reviewerGroupService.addFavouriteReviewerGroup({
+      requester: req.user,
+      workflowId: req.params.id,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: updatedGroup,
+      message: 'Updated successfully',
+    });
+  });
+
   const getValidReviewerGroups = catchAsync(async (req, res, next) => {
     const dept = req.params.dept || 'admin';
     const { groups } = await reviewerGroupService.getReviewersGroup();
@@ -67,5 +86,6 @@ module.exports = ({ reviewerGroupService }) => {
     updateReviewerGroup,
     getGroupById,
     getValidReviewerGroups,
+    addFavouriteReviewerGroup,
   };
 };

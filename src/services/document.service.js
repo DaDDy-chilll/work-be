@@ -4,6 +4,10 @@ const {
   DOCUMENT_ACTIONS,
   DOCUMENT_TYPES,
 } = require('../constants/document');
+const { REVIEWER_GROUP_TYPES } = require('../constants/reviewer-group');
+const {
+  checkCanForward,
+} = require('../controllers/helpers/reviewer-group.helper');
 const { getFileStream } = require('../lib/s3');
 const ApiError = require('../utils/apiError');
 
@@ -50,6 +54,14 @@ module.exports = ({
     // do not let superadmin request
     if (requester.isSuperadmin) {
       throw ApiError.notAuthorized();
+    }
+
+    const workflow = await reviewerGroupService.getReviewerGroupById(
+      body.workflowId
+    );
+
+    if (workflow?.type === REVIEWER_GROUP_TYPES.PRIVATE) {
+      checkCanForward(requester);
     }
 
     const reviewers = await documentHelper.getReviewersForDocument({
@@ -115,6 +127,7 @@ module.exports = ({
       verify: DOCUMENT_ACTIONS.VERIFIED,
       approve: DOCUMENT_ACTIONS.APPROVED,
       comment: DOCUMENT_ACTIONS.COMMENTED,
+      forward: DOCUMENT_ACTIONS.FORWARDED,
     };
 
     // Check if it's reviewer's turn
@@ -122,6 +135,7 @@ module.exports = ({
       document,
       reviewer
     );
+
     if (!currentReviewerItem) {
       throw ApiError.notAuthorized(`Cannot perform ${action}.`);
     }
@@ -135,7 +149,7 @@ module.exports = ({
 
     const nextReviewerItem = documentHelper.getNextReviewer(document);
     if (willGoToNextReviewer) {
-      if (!nextReviewerItem) {
+      if (!nextReviewerItem && action !== 'forward') {
         updater.isCaseClosed = true;
         updater.status = DOCUMENT_STATUSES.APPROVED;
       }
@@ -160,7 +174,7 @@ module.exports = ({
       updater.attachments = newAttachments;
     }
 
-    const updatedDocument = await Document.findOneAndUpdate(
+    let updatedDocument = await Document.findOneAndUpdate(
       { _id: document._id, 'reviewers.list.index': currentReviewerItem.index },
       {
         ...updater,
@@ -171,6 +185,43 @@ module.exports = ({
       },
       { new: true, runValidators: true }
     );
+
+    if (action === 'forward') {
+      const workflow = await reviewerGroupService.getReviewerGroupById(
+        body.workflowId
+      );
+
+      if (workflow?.type !== REVIEWER_GROUP_TYPES.PRIVATE) {
+        throw ApiError.badRequest('Please choose private workflow.');
+      }
+
+      if (updatedDocument) {
+        const reviewersList = workflow?.reviewers.map((item) => ({
+          ...item.reviewer.permissions,
+          reviewer: item.reviewer,
+          index: item.index + updatedDocument.reviewers.list.length,
+          department: item.department._id,
+          status: 'PENDING',
+        }));
+        updatedDocument = await Document.findOneAndUpdate(
+          {
+            _id: updatedDocument._id,
+          },
+          {
+            $set: {
+              reviewers: {
+                currentDepartment: workflow?.reviewers[0].department._id,
+                currentReviewerIndex:
+                  updatedDocument.reviewers.currentReviewerIndex + 2,
+                list: [...updatedDocument.reviewers.list, ...reviewersList],
+              },
+              currentReviewer: workflow?.reviewers[0].reviewer._id,
+            },
+          },
+          { new: true, runValidators: true }
+        );
+      }
+    }
 
     if (
       updatedDocument.type === 'CLAIM' &&
@@ -592,6 +643,7 @@ module.exports = ({
   const getAllDocuments = async ({ query, user }) => {
     const { sort, limit, skip, filter } =
       documentHelper.transformGetAllDocumentsFilter(query, user);
+
     const [documents, total] = await Promise.all([
       Document.find(filter)
         .sort(sort)

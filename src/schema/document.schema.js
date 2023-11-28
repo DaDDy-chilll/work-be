@@ -89,7 +89,9 @@ const UPDATE_DOCUMENT = z
 const DOCUMENT_ACTION = z.object({
   body: z
     .object({
-      groupId: z.string().refine(isObjectIdOrHexString, 'Invalid Group ID.'),
+      workflowId: z
+        .string()
+        .refine(isObjectIdOrHexString, 'Invalid Workflow ID.'),
       name: z.string().min(2, 'Name must have at least 2 characters.'),
       amount: z.coerce.number().nonnegative('Invalid amount').optional(),
       type: z
@@ -105,7 +107,7 @@ const DOCUMENT_ACTION = z.object({
     .partial(),
   params: z.object({
     id: z.string().refine(isObjectIdOrHexString, 'Invalid ID.'),
-    action: z.enum(['prepare', 'verify', 'approve', 'comment'], {
+    action: z.enum(['prepare', 'verify', 'approve', 'comment', 'forward'], {
       errorMap: () => ({ message: 'Invalid action.' }),
     }),
   }),

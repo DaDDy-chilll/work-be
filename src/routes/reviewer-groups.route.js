@@ -48,4 +48,11 @@ router.patch(
   container.resolve('reviewerGroupController').updateReviewerGroup
 );
 
+router.patch(
+  '/:id/favourite',
+  authenticate,
+  validate(checkParamsId),
+  container.resolve('reviewerGroupController').addFavouriteReviewerGroup
+);
+
 module.exports = router;

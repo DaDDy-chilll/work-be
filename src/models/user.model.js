@@ -74,7 +74,17 @@ const userSchema = new Schema(
         type: Boolean,
         default: false,
       },
+      canForward: {
+        type: Boolean,
+        default: false,
+      },
     },
+    favouriteWorkflows: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ReviewerGroup',
+      },
+    ],
   },
   {
     timestamps: true,

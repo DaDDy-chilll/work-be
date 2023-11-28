@@ -192,6 +192,7 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
       prepare: 'canPrepare',
       approve: 'canApprove',
       verify: 'canVerify',
+      forward: 'canForward',
     };
     const permission = mappings[action];
     return permissions[permission];

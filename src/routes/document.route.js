@@ -74,7 +74,7 @@ router.post(
 
 router.get(
   '/file/:key/:action',
-  // authenticate,
+  authenticate,
   validate(GET_DOCUMENT_FILE),
   container.resolve('documentController').getDocumentFile
 );
