@@ -195,15 +195,14 @@ module.exports = ({
         throw ApiError.badRequest('Please choose private workflow.');
       }
 
-      const reviewersList = workflow?.reviewers.map((item) => ({
-        ...item.reviewer.permissions,
-        reviewer: item.reviewer,
-        index: item.index + document.reviewers.list.length,
-        department: item.department._id,
-        status: 'PENDING',
-      }));
-
       if (updatedDocument) {
+        const reviewersList = workflow?.reviewers.map((item) => ({
+          ...item.reviewer.permissions,
+          reviewer: item.reviewer,
+          index: item.index + updatedDocument.reviewers.list.length,
+          department: item.department._id,
+          status: 'PENDING',
+        }));
         updatedDocument = await Document.findOneAndUpdate(
           {
             _id: updatedDocument._id,
