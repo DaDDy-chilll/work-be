@@ -117,6 +117,9 @@ module.exports = ({
     files,
   }) => {
     const document = await documentHelper.findAndValidateDocument(documentId);
+    const workflow = await reviewerGroupService.getReviewerGroupById(
+      body.workflowId
+    );
 
     if (document.status !== DOCUMENT_STATUSES.PENDING) {
       throw ApiError.badRequest('Cannot perform this action.');
@@ -149,13 +152,21 @@ module.exports = ({
 
     const nextReviewerItem = documentHelper.getNextReviewer(document);
     if (willGoToNextReviewer) {
-      if (!nextReviewerItem && action !== 'forward') {
+      if (action === 'forward') {
+        if (workflow?.type !== REVIEWER_GROUP_TYPES.PRIVATE) {
+          throw ApiError.badRequest('Please choose private workflow.');
+        }
+        updater = {
+          'reviewers.currentReviewerIndex': document.reviewers.list.length,
+        };
+      } else if (!nextReviewerItem) {
         updater.isCaseClosed = true;
         updater.status = DOCUMENT_STATUSES.APPROVED;
+      } else {
+        const updatedCurrentReviewerObj =
+          documentHelper.setupNextReviewer(nextReviewerItem);
+        updater = { ...updater, ...updatedCurrentReviewerObj };
       }
-      const updatedCurrentReviewerObj =
-        documentHelper.setupNextReviewer(nextReviewerItem);
-      updater = { ...updater, ...updatedCurrentReviewerObj };
     }
 
     if (action === 'prepare') {
@@ -187,14 +198,6 @@ module.exports = ({
     );
 
     if (action === 'forward') {
-      const workflow = await reviewerGroupService.getReviewerGroupById(
-        body.workflowId
-      );
-
-      if (workflow?.type !== REVIEWER_GROUP_TYPES.PRIVATE) {
-        throw ApiError.badRequest('Please choose private workflow.');
-      }
-
       if (updatedDocument) {
         const reviewersList = workflow?.reviewers.map((item) => ({
           ...item.reviewer.permissions,
@@ -212,7 +215,7 @@ module.exports = ({
               reviewers: {
                 currentDepartment: workflow?.reviewers[0].department._id,
                 currentReviewerIndex:
-                  updatedDocument.reviewers.currentReviewerIndex + 2,
+                  updatedDocument.reviewers.currentReviewerIndex,
                 list: [...updatedDocument.reviewers.list, ...reviewersList],
               },
               currentReviewer: workflow?.reviewers[0].reviewer._id,
