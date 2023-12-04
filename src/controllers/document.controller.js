@@ -203,7 +203,6 @@ module.exports = ({ documentService }) => {
       query: {
         ...req.query,
         currentReviewer: req.user.id,
-        isCaseClosed: false,
       },
     });
 
