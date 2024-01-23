@@ -116,9 +116,10 @@ const DOCUMENT_ACTION = z.object({
 const MENTION_DOCUMENT = z.object({
   body: z
     .object({
-      mentionedPeople: z
+      reviewers: z
         .array(z.string().refine(isObjectIdOrHexString, 'Invalid ID.'))
         .min(1),
+      remark: z.string().transform(xss),
     })
     .required(),
   params: z.object({

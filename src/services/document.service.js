@@ -723,15 +723,18 @@ module.exports = ({
     return deletedDocument;
   };
 
-  const mentionDocument = async ({ documentId, data: { mentionedPeople } }) => {
+  const mentionDocument = async ({
+    documentId,
+    data: { reviewers, remark },
+  }) => {
     const document = await documentHelper.findAndValidateDocument(documentId);
 
     if (!document) {
       throw _noDocumentError;
     }
 
-    for (let i = 0; i < mentionedPeople.length; i++) {
-      const mentionedPerson = mentionedPeople[i];
+    for (let i = 0; i < reviewers.length; i++) {
+      const mentionedPerson = reviewers[i];
 
       const user = await User.findById(mentionedPerson);
 
@@ -741,7 +744,7 @@ module.exports = ({
         );
       }
 
-      const hasMentioned = document.mentionedPeople.includes(mentionedPerson);
+      const hasMentioned = document.mention.reviewers.includes(mentionedPerson);
 
       if (hasMentioned) {
         throw ApiError.badRequest(
@@ -753,7 +756,8 @@ module.exports = ({
     return await Document.findByIdAndUpdate(
       documentId,
       {
-        $push: { mentionedPeople },
+        $push: { 'mention.reviewers': reviewers },
+        $set: { 'mention.remark': remark },
       },
       { new: true, runValidators: true }
     );

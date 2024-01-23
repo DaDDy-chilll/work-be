@@ -155,12 +155,17 @@ const documentSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Document',
     },
-    mentionedPeople: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
+    mention: {
+      reviewers: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+        },
+      ],
+      remark: {
+        type: String,
       },
-    ],
+    },
   },
   {
     timestamps: true,
