@@ -16,6 +16,7 @@ const ApiError = require('../utils/apiError');
  * @property {ReturnType<typeof import('./reviewer-groups.service')>} reviewerGroupService
  * @property {ReturnType<typeof import('./event-emitter.service')>} emitter
  * @property {import('../models/document.model')} Document
+ * @property {import('../models/user.model')} User
  * @property {ReturnType<import('../helpers/document.helper')>} documentHelper
  * @property {ReturnType<import('./file-storage.service')>} fileStorageService
  * @param {Dependencies} param0
@@ -29,6 +30,7 @@ module.exports = ({
   documentHelper,
   emitter,
   fileStorageService,
+  User,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -721,6 +723,42 @@ module.exports = ({
     return deletedDocument;
   };
 
+  const mentionDocument = async ({ documentId, data: { mentionedPeople } }) => {
+    const document = await documentHelper.findAndValidateDocument(documentId);
+
+    if (!document) {
+      throw _noDocumentError;
+    }
+
+    for (let i = 0; i < mentionedPeople.length; i++) {
+      const mentionedPerson = mentionedPeople[i];
+
+      const user = await User.findById(mentionedPerson);
+
+      if (!user) {
+        throw ApiError.badRequest(
+          `This user id ( ${mentionedPerson} ) is invalid.`
+        );
+      }
+
+      const hasMentioned = document.mentionedPeople.includes(mentionedPerson);
+
+      if (hasMentioned) {
+        throw ApiError.badRequest(
+          `This user ( ${mentionedPerson} ) has already mentioned.`
+        );
+      }
+    }
+
+    return await Document.findByIdAndUpdate(
+      documentId,
+      {
+        $push: { mentionedPeople },
+      },
+      { new: true, runValidators: true }
+    );
+  };
+
   return {
     createRequisitionDocument,
     requestRevision,
@@ -737,5 +775,6 @@ module.exports = ({
     rejectDocument,
     chooseWorkflowForDocument,
     getDocumentFile,
+    mentionDocument,
   };
 };

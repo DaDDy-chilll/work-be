@@ -113,6 +113,19 @@ const DOCUMENT_ACTION = z.object({
   }),
 });
 
+const MENTION_DOCUMENT = z.object({
+  body: z
+    .object({
+      mentionedPeople: z
+        .array(z.string().refine(isObjectIdOrHexString, 'Invalid ID.'))
+        .min(1),
+    })
+    .required(),
+  params: z.object({
+    id: z.string().refine(isObjectIdOrHexString, 'Invalid ID.'),
+  }),
+});
+
 module.exports = {
   GET_DOCUMENTS,
   GET_DOCUMENT_FILE,
@@ -120,4 +133,5 @@ module.exports = {
   DELETE_DOCUMENT,
   DOCUMENT_ACTION,
   UPDATE_DOCUMENT,
+  MENTION_DOCUMENT,
 };

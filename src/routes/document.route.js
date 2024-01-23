@@ -14,6 +14,7 @@ const {
   UPDATE_DOCUMENT,
   DELETE_DOCUMENT,
   GET_DOCUMENT_FILE,
+  MENTION_DOCUMENT,
 } = require('../schema/document.schema');
 const checkParamsId = require('../schema/checkParamsId.schema');
 
@@ -44,6 +45,13 @@ router.post(
   upload.array('attachments'),
   validate(DOCUMENT_ACTION),
   container.resolve('documentController').invokeDocumentAction
+);
+
+router.post(
+  '/:id/mention',
+  authenticate,
+  validate(MENTION_DOCUMENT),
+  container.resolve('documentController').mentionDocument
 );
 
 router.post(

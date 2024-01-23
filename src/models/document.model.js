@@ -155,6 +155,12 @@ const documentSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Document',
     },
+    mentionedPeople: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     timestamps: true,

@@ -43,6 +43,15 @@ module.exports = ({ documentService }) => {
     sendSuccessResponse({ res, code: 200, data: document });
   });
 
+  const mentionDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.mentionDocument({
+      documentId: req.params.id,
+      data: req.body,
+    });
+
+    sendSuccessResponse({ res, code: 200, data: document });
+  });
+
   const chooseWorkflow = catchAsync(async (req, res, next) => {
     const user = req.user;
     const { workflowId } = req.body;
@@ -294,5 +303,6 @@ module.exports = ({ documentService }) => {
     rejectDocument,
     chooseWorkflow,
     getDocumentFile,
+    mentionDocument,
   };
 };
