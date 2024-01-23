@@ -24,6 +24,7 @@ const BASE_USER = z.object({
         canVerify: z.boolean().optional().default(false),
         canEditAmount: z.boolean().optional().default(false),
         canForward: z.boolean().optional().default(false),
+        canMention: z.boolean().optional().default(false),
       })
       .optional(),
   }),

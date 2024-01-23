@@ -78,6 +78,10 @@ const userSchema = new Schema(
         type: Boolean,
         default: false,
       },
+      canMention: {
+        type: Boolean,
+        default: false,
+      },
     },
     favouriteWorkflows: [
       {
