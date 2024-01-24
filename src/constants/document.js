@@ -16,6 +16,7 @@ module.exports = {
     REVISED: 'REVISED',
     COMMENTED: 'COMMENTED',
     FORWARDED: 'FORWARDED',
+    MENTIONED: 'MENTIONED',
   }),
   DOCUMENT_STATUSES: Object.freeze({
     PENDING: 'PENDING',

@@ -10,6 +10,7 @@ const createDepartmentController = require('./controllers/department.controller'
 
 const createAuthService = require('./services/auth.service');
 const createDocumentService = require('./services/document.service');
+const createMentionService = require('./services/mention.service');
 const createHistoryService = require('./services/history.service');
 const createReviewersService = require('./services/reviewer-groups.service');
 const createRevisionService = require('./services/revision.service');
@@ -30,6 +31,7 @@ const Revision = require('./models/revisions.model');
 const User = require('./models/user.model');
 const Notification = require('./models/notification.model');
 const { Department } = require('./models/department.model');
+const Mention = require('./models/mention.model');
 const createDocumentHelper = require('./helpers/document.helper');
 
 const container = awilix.createContainer();
@@ -55,6 +57,7 @@ function loadServices() {
   const services = {
     authService: awilix.asFunction(createAuthService),
     documentService: awilix.asFunction(createDocumentService),
+    mentionService: awilix.asFunction(createMentionService),
     historyService: awilix.asFunction(createHistoryService),
     reviewerGroupService: awilix.asFunction(createReviewersService),
     revisionService: awilix.asFunction(createRevisionService),
@@ -81,6 +84,7 @@ function loadModels() {
     User: awilix.asValue(User),
     Notification: awilix.asValue(Notification),
     Department: awilix.asValue(Department),
+    Mention: awilix.asValue(Mention),
   };
 
   container.register(models);

@@ -31,6 +31,7 @@ module.exports = ({
   emitter,
   fileStorageService,
   User,
+  mentionService,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -723,15 +724,15 @@ module.exports = ({
     return deletedDocument;
   };
 
-  const mentionDocument = async ({
-    documentId,
-    data: { reviewers, remark },
-  }) => {
+  const mentionDocument = async (data) => {
+    const { reviewers, actor, document: documentId } = data;
     const document = await documentHelper.findAndValidateDocument(documentId);
 
     if (!document) {
       throw _noDocumentError;
     }
+
+    const userIdsToSendNoti = [document.requester];
 
     for (let i = 0; i < reviewers.length; i++) {
       const mentionedPerson = reviewers[i];
@@ -744,23 +745,28 @@ module.exports = ({
         );
       }
 
-      const hasMentioned = document.mention.reviewers.includes(mentionedPerson);
-
-      if (hasMentioned) {
-        throw ApiError.badRequest(
-          `This user ( ${mentionedPerson} ) has already mentioned.`
-        );
-      }
+      userIdsToSendNoti.push(mentionedPerson);
     }
 
-    return await Document.findByIdAndUpdate(
-      documentId,
-      {
-        $push: { 'mention.reviewers': reviewers },
-        $set: { 'mention.remark': remark },
-      },
-      { new: true, runValidators: true }
-    );
+    const mention = await mentionService.createMention(data);
+
+    if (mention) {
+      await emitter.emitAsync('document.mention', {
+        notifications: userIdsToSendNoti.map((id) => ({
+          to: id,
+          from: actor.id,
+          action: DOCUMENT_ACTIONS.MENTIONED,
+          documentId,
+        })),
+
+        history: {
+          actor: actor.id,
+          action: DOCUMENT_ACTIONS.MENTIONED,
+          department: actor.department,
+          document,
+        },
+      });
+    }
   };
 
   return {

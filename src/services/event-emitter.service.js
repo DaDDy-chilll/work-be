@@ -16,6 +16,7 @@ module.exports = ({ notificationService, historyService }) => {
     'document.revise',
     'document.acknowledge',
     'document.reject',
+    'document.mention',
   ];
 
   const handleDocumentNotisAndHistory = async ({ notifications, history }) => {
