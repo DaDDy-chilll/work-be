@@ -222,6 +222,19 @@ module.exports = ({ documentService }) => {
     });
   });
 
+  const getMentionedDocuments = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      query: { ...req.query, onlyMentionedDocuments: true },
+      user: req.user,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
   const getDocumentsToAcknowledge = catchAsync(async (req, res, next) => {
     const documents = await documentService.getDocumentsToAcknowledge({
       userId: req.user.id,
@@ -304,5 +317,6 @@ module.exports = ({ documentService }) => {
     chooseWorkflow,
     getDocumentFile,
     mentionDocument,
+    getMentionedDocuments,
   };
 };

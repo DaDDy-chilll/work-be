@@ -93,6 +93,12 @@ router.get(
 );
 
 router.get(
+  '/mention',
+  authenticate,
+  container.resolve('documentController').getMentionedDocuments
+);
+
+router.get(
   '/to-acknowledge',
   authenticate,
   container.resolve('documentController').getDocumentsToAcknowledge
