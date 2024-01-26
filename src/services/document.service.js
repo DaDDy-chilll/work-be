@@ -1,3 +1,4 @@
+const { getAllDocumentPipeline } = require('../aggregation-pipelines/document');
 const { documentStatus, userRoles, documentSections } = require('../constants');
 const {
   DOCUMENT_STATUSES,
@@ -646,30 +647,12 @@ module.exports = ({
     return doc?.id;
   };
 
-  const getAllDocuments = async ({ query, user }) => {
-    const { sort, limit, skip, filter } =
-      documentHelper.transformGetAllDocumentsFilter(query, user);
+  const getAllDocuments = async (query) => {
+    const { pipelines } = getAllDocumentPipeline(query);
 
-    const [documents, total] = await Promise.all([
-      Document.find(filter)
-        .sort(sort)
-        .limit(limit)
-        .skip(skip)
-        .populate('requester')
-        .populate({
-          path: 'lastActivity',
-          populate: [
-            {
-              path: 'actor',
-              select: 'name',
-            },
-            {
-              path: 'department',
-            },
-          ],
-        }),
-      Document.count(filter),
-    ]);
+    const { data: documents, count: total } = await Document.aggregate(
+      pipelines
+    ).then((items) => items[0]);
 
     return { total, documents };
   };

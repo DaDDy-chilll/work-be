@@ -210,10 +210,8 @@ module.exports = ({ documentService }) => {
 
   const getDocumentsToCheck = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        currentReviewer: req.user.id,
-      },
+      ...req.query,
+      currentReviewer: req.user.id,
     });
 
     sendSuccessResponse({
@@ -225,8 +223,8 @@ module.exports = ({ documentService }) => {
 
   const getMentionedDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      query: { ...req.query, onlyMentionedDocuments: true },
-      user: req.user,
+      ...req.query,
+      mentionedReviewer: req.user.id,
     });
 
     sendSuccessResponse({
@@ -250,7 +248,8 @@ module.exports = ({ documentService }) => {
 
   const getCurrentUserDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      query: { ...req.query, requester: req.user._id },
+      ...req.query,
+      requester: req.user.id,
     });
 
     sendSuccessResponse({
@@ -262,8 +261,8 @@ module.exports = ({ documentService }) => {
 
   const getAllDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      query: req.query,
-      user: req.user,
+      ...req.query,
+      currentUser: req.user,
     });
 
     sendSuccessResponse({
