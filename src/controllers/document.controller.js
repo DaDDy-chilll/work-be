@@ -43,6 +43,16 @@ module.exports = ({ documentService }) => {
     sendSuccessResponse({ res, code: 200, data: document });
   });
 
+  const mentionDocument = catchAsync(async (req, res, next) => {
+    const document = await documentService.mentionDocument({
+      document: req.params.id,
+      actor: req.user,
+      ...req.body,
+    });
+
+    sendSuccessResponse({ res, code: 200, data: document });
+  });
+
   const chooseWorkflow = catchAsync(async (req, res, next) => {
     const user = req.user;
     const { workflowId } = req.body;
@@ -200,10 +210,21 @@ module.exports = ({ documentService }) => {
 
   const getDocumentsToCheck = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      query: {
-        ...req.query,
-        currentReviewer: req.user.id,
-      },
+      ...req.query,
+      currentReviewer: req.user.id,
+    });
+
+    sendSuccessResponse({
+      res,
+      data: documents,
+      total,
+    });
+  });
+
+  const getMentionedDocuments = catchAsync(async (req, res, next) => {
+    const { documents, total } = await documentService.getAllDocuments({
+      ...req.query,
+      mentionedReviewer: req.user.id,
     });
 
     sendSuccessResponse({
@@ -227,7 +248,8 @@ module.exports = ({ documentService }) => {
 
   const getCurrentUserDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      query: { ...req.query, requester: req.user._id },
+      ...req.query,
+      requester: req.user.id,
     });
 
     sendSuccessResponse({
@@ -239,8 +261,8 @@ module.exports = ({ documentService }) => {
 
   const getAllDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
-      query: req.query,
-      user: req.user,
+      ...req.query,
+      currentUser: req.user,
     });
 
     sendSuccessResponse({
@@ -294,5 +316,7 @@ module.exports = ({ documentService }) => {
     rejectDocument,
     chooseWorkflow,
     getDocumentFile,
+    mentionDocument,
+    getMentionedDocuments,
   };
 };
