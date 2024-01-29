@@ -21,7 +21,7 @@ const BASE_DOCUMENT = z.object({
 const GET_DOCUMENTS = z.object({
   query: z
     .object({
-      sort: z.string().default('-createdAt'),
+      sort: z.string().default('createdAt'),
       limit: z.coerce
         .number({ invalid_type_error: '`limit` must be number' })
         .int('`limit` must be positive integer.')

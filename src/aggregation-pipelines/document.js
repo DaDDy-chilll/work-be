@@ -15,6 +15,7 @@ const getAllDocumentPipeline = ({
   currentUser,
   department,
   mentionedReviewer,
+  status,
 }) => {
   const filter = {};
 
@@ -46,9 +47,7 @@ const getAllDocumentPipeline = ({
     const currentUserDepartment = currentUser.department;
 
     if (currentUserDepartment.type !== 'authorized') {
-      filter.requestedByDepartment = new mongoose.Types.ObjectId(
-        currentUserDepartment._id
-      );
+      filter.requestedByDepartment = currentUserDepartment._id;
     } else if (currentUserDepartment.type === 'authorized' && department) {
       filter.requestedByDepartment = new mongoose.Types.ObjectId(department);
     }
@@ -64,7 +63,17 @@ const getAllDocumentPipeline = ({
     filter.isCaseClosed = caseStatus === 'closed';
   }
 
-  const facetPipeline = [{ $skip: (page - 1) * limit }];
+  if (status) {
+    if (Array.isArray(status)) {
+      filter.$or = status.map((value) => ({
+        status: value,
+      }));
+    } else {
+      filter.status = status;
+    }
+  }
+
+  const facetPipeline = [{ $skip: (+page - 1) * +limit }];
 
   const pipelines = [
     {
@@ -99,6 +108,35 @@ const getAllDocumentPipeline = ({
       },
     },
     {
+      $lookup: {
+        from: 'users',
+        localField: 'lastActivity.actor',
+        foreignField: '_id',
+        as: 'lastActivity.actor',
+      },
+    },
+    {
+      $lookup: {
+        from: 'departments',
+        localField: 'lastActivity.department',
+        foreignField: '_id',
+        as: 'lastActivity.department',
+      },
+    },
+    {
+      $addFields: {
+        'lastActivity.actor': { $arrayElemAt: ['$lastActivity.actor', 0] },
+        'lastActivity.department': {
+          $arrayElemAt: ['$lastActivity.department', 0],
+        },
+      },
+    },
+    {
+      $project: {
+        histories: 0,
+      },
+    },
+    {
       $match: filter,
     },
     {
@@ -109,7 +147,7 @@ const getAllDocumentPipeline = ({
   ];
 
   if (limit) {
-    facetPipeline.push({ $limit: limit });
+    facetPipeline.push({ $limit: +limit });
   }
 
   pipelines.push(
@@ -134,6 +172,8 @@ const getAllDocumentPipeline = ({
       },
     ]
   );
+
+  console.log({ facetPipeline, filter, d: pipelines[9] });
 
   return { filter, pipelines };
 };
