@@ -14,5 +14,21 @@ module.exports = ({ Mention }) => {
     return mention;
   };
 
-  return { createMention };
+  const getMentions = async ({ documentId }) => {
+    return await Mention.find({ document: documentId })
+      .populate({
+        path: 'actor',
+        populate: {
+          path: 'department',
+        },
+      })
+      .populate({
+        path: 'reviewers',
+        populate: {
+          path: 'department',
+        },
+      });
+  };
+
+  return { createMention, getMentions };
 };

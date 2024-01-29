@@ -741,13 +741,6 @@ module.exports = ({
           action: DOCUMENT_ACTIONS.MENTIONED,
           documentId,
         })),
-
-        history: {
-          actor: actor.id,
-          action: DOCUMENT_ACTIONS.MENTIONED,
-          department: actor.department,
-          document,
-        },
       });
     }
   };
