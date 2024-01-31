@@ -164,7 +164,11 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
     }
 
     if (user) {
-      if (user.department.type !== 'authorized') {
+      if (query.onlyMentionedDocuments) {
+        Object.assign(filter, {
+          'mention.reviewers': { $in: [user.id] },
+        });
+      } else if (user.department.type !== 'authorized') {
         filter.requestedByDepartment = user.department._id;
       } else if (user.department.type === 'authorized' && query.department) {
         filter.requestedByDepartment = query.department;

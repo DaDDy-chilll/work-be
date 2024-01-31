@@ -21,7 +21,7 @@ const BASE_DOCUMENT = z.object({
 const GET_DOCUMENTS = z.object({
   query: z
     .object({
-      sort: z.string().default('-createdAt'),
+      sort: z.string().default('createdAt'),
       limit: z.coerce
         .number({ invalid_type_error: '`limit` must be number' })
         .int('`limit` must be positive integer.')
@@ -113,6 +113,20 @@ const DOCUMENT_ACTION = z.object({
   }),
 });
 
+const MENTION_DOCUMENT = z.object({
+  body: z
+    .object({
+      reviewers: z
+        .array(z.string().refine(isObjectIdOrHexString, 'Invalid ID.'))
+        .min(1),
+      remark: z.string().transform(xss),
+    })
+    .required(),
+  params: z.object({
+    id: z.string().refine(isObjectIdOrHexString, 'Invalid ID.'),
+  }),
+});
+
 module.exports = {
   GET_DOCUMENTS,
   GET_DOCUMENT_FILE,
@@ -120,4 +134,5 @@ module.exports = {
   DELETE_DOCUMENT,
   DOCUMENT_ACTION,
   UPDATE_DOCUMENT,
+  MENTION_DOCUMENT,
 };

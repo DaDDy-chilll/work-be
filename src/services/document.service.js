@@ -1,3 +1,4 @@
+const { getAllDocumentPipeline } = require('../aggregation-pipelines/document');
 const { documentStatus, userRoles, documentSections } = require('../constants');
 const {
   DOCUMENT_STATUSES,
@@ -16,6 +17,7 @@ const ApiError = require('../utils/apiError');
  * @property {ReturnType<typeof import('./reviewer-groups.service')>} reviewerGroupService
  * @property {ReturnType<typeof import('./event-emitter.service')>} emitter
  * @property {import('../models/document.model')} Document
+ * @property {import('../models/user.model')} User
  * @property {ReturnType<import('../helpers/document.helper')>} documentHelper
  * @property {ReturnType<import('./file-storage.service')>} fileStorageService
  * @param {Dependencies} param0
@@ -29,6 +31,8 @@ module.exports = ({
   documentHelper,
   emitter,
   fileStorageService,
+  User,
+  mentionService,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -643,30 +647,12 @@ module.exports = ({
     return doc?.id;
   };
 
-  const getAllDocuments = async ({ query, user }) => {
-    const { sort, limit, skip, filter } =
-      documentHelper.transformGetAllDocumentsFilter(query, user);
+  const getAllDocuments = async (query) => {
+    const { pipelines } = getAllDocumentPipeline(query);
 
-    const [documents, total] = await Promise.all([
-      Document.find(filter)
-        .sort(sort)
-        .limit(limit)
-        .skip(skip)
-        .populate('requester')
-        .populate({
-          path: 'lastActivity',
-          populate: [
-            {
-              path: 'actor',
-              select: 'name',
-            },
-            {
-              path: 'department',
-            },
-          ],
-        }),
-      Document.count(filter),
-    ]);
+    const { data: documents, count: total } = await Document.aggregate(
+      pipelines
+    ).then((items) => items[0]);
 
     return { total, documents };
   };
@@ -721,6 +707,44 @@ module.exports = ({
     return deletedDocument;
   };
 
+  const mentionDocument = async (data) => {
+    const { reviewers, actor, document: documentId } = data;
+    const document = await documentHelper.findAndValidateDocument(documentId);
+
+    if (!document) {
+      throw _noDocumentError;
+    }
+
+    const userIdsToSendNoti = [document.requester];
+
+    for (let i = 0; i < reviewers.length; i++) {
+      const mentionedPerson = reviewers[i];
+
+      const user = await User.findById(mentionedPerson);
+
+      if (!user) {
+        throw ApiError.badRequest(
+          `This user id ( ${mentionedPerson} ) is invalid.`
+        );
+      }
+
+      userIdsToSendNoti.push(mentionedPerson);
+    }
+
+    const mention = await mentionService.createMention(data);
+
+    if (mention) {
+      await emitter.emitAsync('document.mention', {
+        notifications: userIdsToSendNoti.map((id) => ({
+          to: id,
+          from: actor.id,
+          action: DOCUMENT_ACTIONS.MENTIONED,
+          documentId,
+        })),
+      });
+    }
+  };
+
   return {
     createRequisitionDocument,
     requestRevision,
@@ -737,5 +761,6 @@ module.exports = ({
     rejectDocument,
     chooseWorkflowForDocument,
     getDocumentFile,
+    mentionDocument,
   };
 };
