@@ -1,19 +1,17 @@
-import sharp from 'sharp';
+const sharp = require('sharp');
 
 const ONE_MB = 1_000_000;
 const FIVE_HUNDRED_KB = 500_000;
 const TWO_MB = 2_000_000;
 
-export const createImageManipulationService = () => {
-  const compressImage = (
-    file: Express.Multer.File
-  ): Promise<Express.Multer.File> => {
+const createImageManipulationService = () => {
+  const compressImage = (file) => {
     return new Promise((resolve, reject) => {
       if (!file.mimetype.startsWith('image')) {
         reject('File must be image to compress.');
       }
 
-      let quality: number;
+      let quality;
 
       if (file.size < FIVE_HUNDRED_KB) {
         quality = 100;
@@ -47,9 +45,7 @@ export const createImageManipulationService = () => {
 
   return {
     compressImage,
-  } as const;
+  };
 };
 
-export type TImageManipulationService = ReturnType<
-  typeof createImageManipulationService
->;
+module.exports = { createImageManipulationService };

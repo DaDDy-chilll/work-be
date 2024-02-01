@@ -1,15 +1,9 @@
-import ApiError from '../utils/apiError';
-import extractQuery from '../utils/extractQuery';
-import type { Department } from '../models/department.model';
-import type { CreateDepartmentDTO } from '../schema/department.schema';
+const ApiError = require('../utils/apiError');
+const extractQuery = require('../utils/extractQuery');
 
-interface Dependencies {
-  Department: typeof Department;
-}
-
-export const createDepartmentService = ({ Department }: Dependencies) => {
+const createDepartmentService = ({ Department }) => {
   return Object.freeze({
-    createDepartment: async (body: CreateDepartmentDTO) => {
+    createDepartment: async (body) => {
       const existingDepartment = await Department.findOne({ name: body.name });
 
       if (existingDepartment) {
@@ -23,10 +17,10 @@ export const createDepartmentService = ({ Department }: Dependencies) => {
       return department;
     },
 
-    getDepartments: async (query: Record<string, string | number>) => {
+    getDepartments: async (query) => {
       const { sort, limit, skip, filter } = extractQuery(
         query,
-        (filter: Record<string, string | number>) => filter
+        (filter) => filter
       );
 
       const [departments, total] = await Promise.all([
@@ -43,4 +37,4 @@ export const createDepartmentService = ({ Department }: Dependencies) => {
   });
 };
 
-export type TDepartmentService = ReturnType<typeof createDepartmentService>;
+module.exports = { createDepartmentService };
