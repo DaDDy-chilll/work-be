@@ -1,7 +1,9 @@
+const Logger = require('../logger');
 const ApiError = require('../utils/apiError');
 const extractQuery = require('../utils/extractQuery');
 
 const createDepartmentService = ({ Department }) => {
+  const logger = new Logger('department-service');
   return Object.freeze({
     createDepartment: async (body) => {
       const existingDepartment = await Department.findOne({ name: body.name });
@@ -13,6 +15,7 @@ const createDepartmentService = ({ Department }) => {
       }
 
       const department = await Department.create(body);
+      logger.info(`Department created with name: ${department.name}`);
 
       return department;
     },
