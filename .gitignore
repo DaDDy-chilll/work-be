@@ -7,3 +7,5 @@ notes.txt
 dist
 
 build
+
+.env.test
