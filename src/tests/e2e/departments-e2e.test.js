@@ -40,8 +40,19 @@ describe('Departments API', () => {
     }
   });
 
+  describe('GET /departments', () => {
+    it('successfully returns a status code of 200', async () => {
+      const result = await api
+        .get('/api/documents')
+        .set('Authorization', `Bearer ${superadminAccessToken}`);
+
+      expect(result.statusCode).toBe(200);
+      expect(result.body.payload).toBeInstanceOf(Array);
+    });
+  });
+
   describe('POST /departments', () => {
-    it('Creates a department', async () => {
+    it('creates a department', async () => {
       const result = await api
         .post('/api/departments')
         .set('Authorization', `Bearer ${superadminAccessToken}`)
@@ -51,6 +62,19 @@ describe('Departments API', () => {
         });
       expect(result.status).toBe(200);
       expect(result.body.payload.name).toEqual('Testing');
+    });
+
+    it('rejects duplicated name', async () => {
+      const result = await api
+        .post('/api/departments')
+        .set('Authorization', `Bearer ${superadminAccessToken}`)
+        .send({
+          name: 'Testing',
+          type: 'normal',
+        });
+
+      expect(result.status).toBe(400);
+      expect(result.body.message).toEqual('Testing alreadly exists.');
     });
   });
 });
