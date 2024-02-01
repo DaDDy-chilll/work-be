@@ -15,6 +15,7 @@ loadContainer();
 
 const router = require('./routes');
 const { getFileStream } = require('./lib/s3');
+const httpLoggerMiddleware = require('./middlewares/http-logger.middleware');
 
 const app = express();
 
@@ -24,28 +25,7 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  morgan(
-    function (tokens, req, res) {
-      const object = {
-        method: tokens.method(req, res),
-        body: req.body,
-        base_url: req.baseUrl,
-        params: req.params,
-        query: req.query,
-        res_status: tokens.status(req, res),
-        ip: req.ip,
-        response_time: `${tokens['response-time'](req, res)}ms`,
-        user_agent: req.get('user-agent'),
-        user_id: req.user?.id,
-        hostname: req.hostname,
-      };
-
-      return JSON.stringify(object);
-    },
-    { stream: logger.stream }
-  )
-);
+app.use(httpLoggerMiddleware);
 
 app.get(['/', '/api'], (req, res) => {
   res.send(`Parami Hostipal Budget Requisition API - ${NODE_ENV}`);

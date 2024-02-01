@@ -19,6 +19,7 @@
   "dependencies": {
     "@appsignal/nodejs": "^3.0.14",
     "@axiomhq/axiom-node": "^0.12.0",
+    "@axiomhq/winston": "^1.0.0-rc.1",
     "@casl/ability": "^6.3.3",
     "awilix": "^8.0.1",
     "aws-sdk": "^2.1338.0",
