@@ -4,15 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx --watch ./src/server.js",
-    "dev-test": "nodemon ./src/server.js",
-    "start": "node ./dist/server.js",
+    "dev": "nodemon ./src/server.js",
+    "start": "node ./src/server.js",
     "lint:check": "npx eslint ./src",
     "lint:fix": "npx eslint --fix ./src",
-    "postinstall": "tsc",
     "deploy:dev": "git push heroku-development development:main",
     "deploy:prod": "git push heroku-prod main:main",
-    "build": "tsc",
     "preview": "NODE_ENV=staging npm build && npm start",
     "test:e2e": "jest ./src/tests"
   },
