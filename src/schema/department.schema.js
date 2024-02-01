@@ -8,7 +8,7 @@ const GET_DEPARTMENTS = z.object({
   }),
 });
 
-export const CREATE_DEPARTMENT = z.object({
+const CREATE_DEPARTMENT = z.object({
   body: z.object({
     name: z
       .string({
