@@ -8,7 +8,7 @@ module.exports = function createCustomIdMiddleware({
 
     const [lastDoc] = await this.$model(modelName)
       .find()
-      .sort({ $natural: 'desc' })
+      .sort({ _id: -1 })
       .limit(1);
 
     if (!lastDoc) {
