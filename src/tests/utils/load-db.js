@@ -13,10 +13,12 @@ module.exports = async function loadDb() {
       useUnifiedTopology: true,
       useNewUrlParser: true,
     });
+    return mongod;
   } catch (error) {
     console.log(error);
 
     await mongoose.disconnect();
     await mongod.stop();
+    throw error;
   }
 };

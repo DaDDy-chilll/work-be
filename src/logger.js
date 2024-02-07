@@ -1,21 +1,15 @@
 const winston = require('winston');
 const { combine, timestamp, json, errors, prettyPrint } = winston.format;
 const { NODE_ENV, AXIOM_TOKEN, AXIOM_ORG_ID } = require('./constants/app');
-const { WinstonTransport: AxiomTransport } = require('@axiomhq/axiom-node');
+const { WinstonTransport: AxiomTransport } = require('@axiomhq/winston');
 
-const logger = winston.createLogger({
+const winstonLogger = winston.createLogger({
   format: combine(json(), timestamp(), errors({ stack: true }), prettyPrint()),
   transports: [new winston.transports.Console({ level: 'debug' })],
 });
 
-logger.stream = {
-  write: function (message, _encoding) {
-    logger.info(JSON.parse(message));
-  },
-};
-
 if (NODE_ENV === 'production') {
-  logger.add(
+  winstonLogger.add(
     new AxiomTransport({
       dataset: 'parami-logs',
       token: AXIOM_TOKEN,
@@ -25,4 +19,32 @@ if (NODE_ENV === 'production') {
   );
 }
 
-module.exports = logger;
+class Logger {
+  context;
+  logger = winstonLogger;
+  constructor(context = 'APP') {
+    this.context = context;
+  }
+
+  info(message, context = this.context) {
+    this.logger.info(message, { context });
+  }
+
+  error(message, error = null, context = this.context) {
+    this.logger.error(message, { error, context });
+  }
+
+  warn(message, context = this.context) {
+    this.logger.warn(message, { context });
+  }
+
+  debug(message, context = this.context) {
+    this.logger.debug(message, { context });
+  }
+
+  verbose(message, context = this.context) {
+    this.logger.verbose(message, { context });
+  }
+}
+
+module.exports = Logger;

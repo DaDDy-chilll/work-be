@@ -1,6 +1,5 @@
-import * as mongoose from 'mongoose';
-
-import createCustomIdMiddleware from '../utils/model-customId-middleware.helper';
+const mongoose = require('mongoose');
+const createCustomIdMiddleware = require('../utils/model-customId-middleware.helper');
 
 const departmentSchema = new mongoose.Schema(
   {
@@ -35,7 +34,9 @@ departmentSchema.pre(
     modelName: 'Department',
     prefix: 'DP',
     fieldName: 'departmentId',
-  }) as unknown as mongoose.PreMiddlewareFunction
+  })
 );
 
-export const Department = mongoose.model('Department', departmentSchema);
+const Department = mongoose.model('Department', departmentSchema);
+
+module.exports = Department;

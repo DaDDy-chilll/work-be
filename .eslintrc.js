@@ -4,6 +4,7 @@ module.exports = {
     commonjs: true,
     es2021: true,
     node: true,
+    'jest/globals': true,
   },
   extends: [
     'eslint:recommended',
@@ -11,7 +12,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
   ],
-  plugins: ['jsdoc', 'prettier'],
+  plugins: ['jsdoc', 'prettier', 'jest'],
   parserOptions: {
     ecmaVersion: 'latest',
   },

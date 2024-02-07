@@ -1,6 +1,6 @@
-import { z } from 'zod';
+const { z } = require('zod');
 
-export const GET_DEPARTMENTS = z.object({
+const GET_DEPARTMENTS = z.object({
   query: z.object({
     sort: z.string().default('-createdAt'),
     limit: z.coerce.number().int().nonnegative().default(10),
@@ -8,7 +8,7 @@ export const GET_DEPARTMENTS = z.object({
   }),
 });
 
-export const CREATE_DEPARTMENT = z.object({
+const CREATE_DEPARTMENT = z.object({
   body: z.object({
     name: z
       .string({
@@ -24,8 +24,8 @@ export const CREATE_DEPARTMENT = z.object({
   }),
 });
 
-export type CreateDepartmentDTO = z.infer<typeof CREATE_DEPARTMENT.shape.body>;
-
-export const UPDATE_DEPARTMENT = CREATE_DEPARTMENT;
-
-export type UpdateDepartmentDTO = z.infer<typeof UPDATE_DEPARTMENT.shape.body>;
+module.exports = {
+  GET_DEPARTMENTS,
+  CREATE_DEPARTMENT,
+  UPDATE_DEPARTMENT: CREATE_DEPARTMENT,
+};
