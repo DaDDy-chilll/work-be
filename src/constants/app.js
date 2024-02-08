@@ -10,4 +10,5 @@ module.exports = {
   AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
   AXIOM_TOKEN: process.env.AXIOM_TOKEN,
   AXIOM_ORG_ID: process.env.AXIOM_ORG_ID,
+  AXIOM_DATA_SET_NAME: process.env.AXIOM_DATA_SET_NAME,
 };

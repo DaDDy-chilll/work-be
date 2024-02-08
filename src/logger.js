@@ -1,6 +1,11 @@
 const winston = require('winston');
 const { combine, timestamp, json, errors, prettyPrint } = winston.format;
-const { NODE_ENV, AXIOM_TOKEN, AXIOM_ORG_ID } = require('./constants/app');
+const {
+  NODE_ENV,
+  AXIOM_TOKEN,
+  AXIOM_ORG_ID,
+  AXIOM_DATA_SET_NAME,
+} = require('./constants/app');
 const { WinstonTransport: AxiomTransport } = require('@axiomhq/winston');
 
 const winstonLogger = winston.createLogger({
@@ -11,7 +16,7 @@ const winstonLogger = winston.createLogger({
 if (NODE_ENV === 'production') {
   winstonLogger.add(
     new AxiomTransport({
-      dataset: 'parami-logs',
+      dataset: AXIOM_DATA_SET_NAME,
       token: AXIOM_TOKEN,
       orgId: AXIOM_ORG_ID,
       level: 'info',
