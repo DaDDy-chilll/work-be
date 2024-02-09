@@ -34,6 +34,7 @@ const Notification = require('./models/notification.model');
 const Department = require('./models/department.model');
 const Mention = require('./models/mention.model');
 const createDocumentHelper = require('./helpers/document.helper');
+const createUserHelper = require('./helpers/user.helper');
 
 const container = awilix.createContainer();
 
@@ -95,6 +96,7 @@ function loadModels() {
 function loadHelpers() {
   const helpers = {
     documentHelper: awilix.asFunction(createDocumentHelper),
+    userHelper: awilix.asFunction(createUserHelper),
   };
   container.register(helpers);
 }

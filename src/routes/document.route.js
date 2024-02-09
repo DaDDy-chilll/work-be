@@ -15,6 +15,7 @@ const {
   DELETE_DOCUMENT,
   GET_DOCUMENT_FILE,
   MENTION_DOCUMENT,
+  INVOKE_RETURN_ACTION,
 } = require('../schema/document.schema');
 const checkParamsId = require('../schema/checkParamsId.schema');
 
@@ -37,6 +38,13 @@ router.post(
   '/:id/choose-workflow',
   authenticate,
   container.resolve('documentController').chooseWorkflow
+);
+
+router.post(
+  '/:id/actions/return',
+  authenticate,
+  validate(INVOKE_RETURN_ACTION),
+  container.resolve('documentController').invokeReturnAction
 );
 
 router.post(
