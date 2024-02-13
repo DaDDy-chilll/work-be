@@ -271,7 +271,7 @@ module.exports = ({
 
   const invokeReturnAction = async ({
     documentId,
-    data: { userId },
+    data: { userId, remark },
     actor,
   }) => {
     const document = await documentHelper.findAndValidateDocument(documentId);
@@ -352,6 +352,32 @@ module.exports = ({
       },
       { new: true, runValidators: true }
     );
+
+    if (updatedDocument) {
+      const userIdsToSendNoti = [updatedDocument.requester];
+
+      for (let i = 0; i < requestedReviewers.length; i++) {
+        const stage = requestedReviewers[i];
+        userIdsToSendNoti.push(stage.reviewer.id);
+      }
+
+      await emitter.emitAsync('document.action', {
+        notifications: userIdsToSendNoti.map((id) => ({
+          to: id,
+          from: actor.id,
+          action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
+          documentId: updatedDocument.id,
+        })),
+
+        history: {
+          actor: actor.id,
+          action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
+          department: actor.department,
+          document: updatedDocument.id,
+          content: remark,
+        },
+      });
+    }
 
     return updatedDocument;
   };
