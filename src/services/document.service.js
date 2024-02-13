@@ -33,6 +33,7 @@ module.exports = ({
   fileStorageService,
   User,
   mentionService,
+  userHelper,
 }) => {
   const _noDocumentError = ApiError.badRequest('Document does not exist.');
 
@@ -264,6 +265,119 @@ module.exports = ({
         content: remark,
       },
     });
+
+    return updatedDocument;
+  };
+
+  const invokeReturnAction = async ({
+    documentId,
+    data: { userId, remark },
+    actor,
+  }) => {
+    const document = await documentHelper.findAndValidateDocument(documentId);
+    await userHelper.findAndValidateUser(userId);
+
+    const originalReviewers = document.reviewers.list;
+
+    const { canNormalReturn, canAdvanceReturn } = actor.permissions;
+
+    const canRequestRevision =
+      (canNormalReturn || canAdvanceReturn) &&
+      originalReviewers.filter(
+        (item) => item.reviewer._id.toString() === actor._id.toString()
+      ).length;
+
+    if (!canRequestRevision) {
+      throw ApiError.badRequest('Cannot perform this action');
+    }
+
+    // contain
+    const originalReviewerIds = originalReviewers.map((item) =>
+      item.reviewer._id.toString()
+    );
+    if (!originalReviewerIds.includes(userId)) {
+      throw ApiError.badRequest(
+        'This reviewer is not included in chosen workflow'
+      );
+    }
+
+    // serial
+    const currentStage = originalReviewers.filter(
+      (item) => item.reviewer._id.toString() === actor._id.toString()
+    )[0];
+
+    const requestedStage = originalReviewers.filter(
+      (item) => item.reviewer._id.toString() === userId
+    )[0];
+
+    const indexDifference = currentStage.index - requestedStage.index;
+
+    if (indexDifference < 0) {
+      throw ApiError.badRequest('Cannot request revision to future reviewers.');
+    }
+
+    if (indexDifference === 0) {
+      throw ApiError.badRequest('Cannot request revision to your own self.');
+    }
+
+    if (!canAdvanceReturn && indexDifference !== 1) {
+      throw ApiError.badRequest(
+        'Current reviewer needs to have (Advance Return) permission.'
+      );
+    }
+
+    let requestedReviewers = originalReviewers.filter(
+      (item) =>
+        item.index >= requestedStage.index && item.index < currentStage.index
+    );
+
+    requestedReviewers.map((item) => {
+      Object.assign(item, { status: DOCUMENT_STATUSES.PENDING });
+      return item;
+    });
+
+    const updatedDocument = await Document.findOneAndUpdate(
+      {
+        _id: documentId,
+      },
+      {
+        $set: {
+          reviewers: {
+            currentDepartment: requestedStage.department,
+            currentReviewerIndex: requestedStage.index,
+            list: document.reviewers.list,
+          },
+          currentReviewer: requestedStage.reviewer._id,
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (updatedDocument) {
+      const userIdsToSendNoti = [updatedDocument.requester];
+
+      for (let i = 0; i < requestedReviewers.length; i++) {
+        const stage = requestedReviewers[i];
+        userIdsToSendNoti.push(stage.reviewer.id);
+      }
+
+      await emitter.emitAsync('document.action', {
+        notifications: userIdsToSendNoti.map((id) => ({
+          to: id,
+          from: actor.id,
+          action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
+          documentId: updatedDocument.id,
+        })),
+
+        history: {
+          actor: actor.id,
+          action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
+          department: actor.department,
+          document: updatedDocument.id,
+          content: remark,
+        },
+      });
+    }
 
     return updatedDocument;
   };
@@ -762,5 +876,6 @@ module.exports = ({
     chooseWorkflowForDocument,
     getDocumentFile,
     mentionDocument,
+    invokeReturnAction,
   };
 };

@@ -82,6 +82,14 @@ const userSchema = new Schema(
         type: Boolean,
         default: false,
       },
+      canNormalReturn: {
+        type: Boolean,
+        default: false,
+      },
+      canAdvanceReturn: {
+        type: Boolean,
+        default: false,
+      },
     },
     favouriteWorkflows: [
       {

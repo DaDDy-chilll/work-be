@@ -86,6 +86,18 @@ const UPDATE_DOCUMENT = z
   })
   .merge(checkParamsId);
 
+const INVOKE_RETURN_ACTION = z.object({
+  body: z
+    .object({
+      userId: z.string().refine(isObjectIdOrHexString, 'Invalid User ID.'),
+      remark: z.string().transform(xss),
+    })
+    .partial(),
+  params: z.object({
+    id: z.string().refine(isObjectIdOrHexString, 'Invalid ID.'),
+  }),
+});
+
 const DOCUMENT_ACTION = z.object({
   body: z
     .object({
@@ -135,4 +147,5 @@ module.exports = {
   DOCUMENT_ACTION,
   UPDATE_DOCUMENT,
   MENTION_DOCUMENT,
+  INVOKE_RETURN_ACTION,
 };

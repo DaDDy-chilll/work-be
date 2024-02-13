@@ -27,6 +27,16 @@ module.exports = ({ documentService }) => {
     });
   });
 
+  const invokeReturnAction = catchAsync(async (req, res, next) => {
+    const document = await documentService.invokeReturnAction({
+      documentId: req.params.id,
+      data: req.body,
+      actor: req.user,
+    });
+
+    sendSuccessResponse({ res, code: 200, data: document });
+  });
+
   const invokeDocumentAction = catchAsync(async (req, res, next) => {
     const { action, id } = req.params;
     const { remark, ...body } = req.body;
@@ -318,5 +328,6 @@ module.exports = ({ documentService }) => {
     getDocumentFile,
     mentionDocument,
     getMentionedDocuments,
+    invokeReturnAction,
   };
 };
