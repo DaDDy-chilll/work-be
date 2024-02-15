@@ -33,7 +33,7 @@ const getAllDocumentPipeline = ({
 
   if (search) {
     const regex = new RegExp(search, 'i');
-    filter.$or = [{ name: regex }];
+    filter.$or = [{ name: regex }, { documentId: regex }];
   }
 
   if (startDate || endDate) {
@@ -172,8 +172,6 @@ const getAllDocumentPipeline = ({
       },
     ]
   );
-
-  console.log({ facetPipeline, filter, d: pipelines[9] });
 
   return { filter, pipelines };
 };
