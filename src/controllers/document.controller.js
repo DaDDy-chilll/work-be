@@ -32,6 +32,7 @@ module.exports = ({ documentService }) => {
       documentId: req.params.id,
       data: req.body,
       actor: req.user,
+      files: req.files,
     });
 
     sendSuccessResponse({ res, code: 200, data: document });
@@ -142,6 +143,7 @@ module.exports = ({ documentService }) => {
       documentId: id,
       userId: userId,
       remark: req.body.remark,
+      files: req.files,
     });
 
     sendSuccessResponse({

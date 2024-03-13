@@ -43,6 +43,7 @@ router.post(
 router.post(
   '/:id/actions/return',
   authenticate,
+  upload.array('attachments'),
   validate(INVOKE_RETURN_ACTION),
   container.resolve('documentController').invokeReturnAction
 );
@@ -85,6 +86,7 @@ router.post(
 router.post(
   '/:id/reject',
   authenticate,
+  upload.array('attachments'),
   container.resolve('documentController').rejectDocument
 );
 
