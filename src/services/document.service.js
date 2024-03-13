@@ -174,6 +174,8 @@ module.exports = ({
       }
     }
 
+    const attachments = await fileStorageService.uploadFiles(files);
+
     if (action === 'prepare') {
       if (
         body.amount &&
@@ -184,7 +186,6 @@ module.exports = ({
           'You do not have permissions to edit amount.'
         );
       }
-      const attachments = await fileStorageService.uploadFiles(files);
 
       const newAttachments = [...document.attachments, ...attachments];
       updater.attachments = newAttachments;
@@ -263,6 +264,7 @@ module.exports = ({
         department: reviewer.department,
         document: updatedDocument.id,
         content: remark,
+        attachments: action === 'prepare' ? [] : attachments,
       },
     });
 
@@ -273,6 +275,7 @@ module.exports = ({
     documentId,
     data: { userId, remark },
     actor,
+    files,
   }) => {
     const document = await documentHelper.findAndValidateDocument(documentId);
     await userHelper.findAndValidateUser(userId);
@@ -336,6 +339,8 @@ module.exports = ({
       return item;
     });
 
+    const attachments = await fileStorageService.uploadFiles(files);
+
     const updatedDocument = await Document.findOneAndUpdate(
       {
         _id: documentId,
@@ -375,6 +380,7 @@ module.exports = ({
           department: actor.department,
           document: updatedDocument.id,
           content: remark,
+          attachments,
         },
       });
     }
@@ -640,7 +646,7 @@ module.exports = ({
     return document;
   };
 
-  const rejectDocument = async ({ documentId, userId, remark }) => {
+  const rejectDocument = async ({ documentId, userId, remark, files }) => {
     const document = await Document.findById(documentId);
 
     if (!document) {
@@ -656,6 +662,8 @@ module.exports = ({
     }
 
     const currReviewerIdx = document.reviewers.currentReviewerIndex;
+
+    const attachments = await fileStorageService.uploadFiles(files);
 
     const updatedDocument = await Document.findOneAndUpdate(
       { _id: documentId, 'reviewers.list.index': currReviewerIdx },
@@ -693,6 +701,7 @@ module.exports = ({
         department: document.reviewers.currentDepartment,
         document: document.id,
         content: remark,
+        attachments,
       },
     });
     return updatedDocument;

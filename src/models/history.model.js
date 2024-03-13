@@ -32,6 +32,14 @@ const historySchema = new Schema(
       ref: 'Document',
       required: true,
     },
+    attachments: [
+      {
+        url: String,
+        key: String,
+        filename: String,
+        mimetype: String,
+      },
+    ],
   },
   {
     timestamps: true,
