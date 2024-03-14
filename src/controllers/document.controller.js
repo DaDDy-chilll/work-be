@@ -55,10 +55,15 @@ module.exports = ({ documentService }) => {
   });
 
   const mentionDocument = catchAsync(async (req, res, next) => {
-    const document = await documentService.mentionDocument({
+    const data = {
       document: req.params.id,
       actor: req.user,
       ...req.body,
+    };
+
+    const document = await documentService.mentionDocument({
+      data,
+      files: req.files,
     });
 
     sendSuccessResponse({ res, code: 200, data: document });

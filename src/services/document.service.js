@@ -830,7 +830,7 @@ module.exports = ({
     return deletedDocument;
   };
 
-  const mentionDocument = async (data) => {
+  const mentionDocument = async ({ data, files }) => {
     const { reviewers, actor, document: documentId } = data;
     const document = await documentHelper.findAndValidateDocument(documentId);
 
@@ -854,7 +854,12 @@ module.exports = ({
       userIdsToSendNoti.push(mentionedPerson);
     }
 
-    const mention = await mentionService.createMention(data);
+    const attachments = await fileStorageService.uploadFiles(files);
+
+    const mention = await mentionService.createMention({
+      ...data,
+      attachments,
+    });
 
     if (mention) {
       await emitter.emitAsync('document.mention', {
