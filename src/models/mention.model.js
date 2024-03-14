@@ -22,6 +22,14 @@ const mentionSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+    attachments: [
+      {
+        url: String,
+        key: String,
+        filename: String,
+        mimetype: String,
+      },
+    ],
   },
   {
     timestamps: true,
