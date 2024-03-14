@@ -59,6 +59,7 @@ router.post(
 router.post(
   '/:id/mention',
   authenticate,
+  upload.array('attachments'),
   validate(MENTION_DOCUMENT),
   container.resolve('documentController').mentionDocument
 );
