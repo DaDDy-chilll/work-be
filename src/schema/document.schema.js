@@ -71,7 +71,7 @@ const GET_DOCUMENT_FILE = z.object({
 });
 
 const CREATE_DOCUMENT = z.object({
-  body: BASE_DOCUMENT.omit({ type: true, amount: true }).strict(),
+  body: BASE_DOCUMENT.omit({ type: true }).strict(),
 });
 
 const DELETE_DOCUMENT = checkParamsId;
