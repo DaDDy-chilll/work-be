@@ -1,7 +1,8 @@
+const ApiError = require('../utils/apiError');
 const catchAsync = require('../utils/catchAsync');
 const sendSuccessResponse = require('../utils/sendSuccessResponse');
 
-module.exports = ({ userService }) => {
+module.exports = ({ userService, documentService, reviewerGroupService }) => {
   const getAllUsers = catchAsync(async (req, res, next) => {
     const { users, total } = await userService.getAllUsers(req.query);
 
@@ -79,6 +80,15 @@ module.exports = ({ userService }) => {
   });
 
   const disableUser = catchAsync(async (req, res, next) => {
+    const { documents } = await documentService.getAllDocuments({
+      pendingReviewer: req.params.id,
+    });
+
+    if (documents.length) {
+      throw ApiError.badRequest('This user cannot be deleted');
+    }
+
+    await reviewerGroupService.disableReviewerGroupsByUserId(req.params.id);
     await userService.disableUser(req.params.id);
 
     sendSuccessResponse({

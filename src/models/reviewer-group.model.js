@@ -32,6 +32,10 @@ const reviewerGroupSchema = new Schema(
       enum: [...Object.values(REVIEWER_GROUP_TYPES)],
       default: REVIEWER_GROUP_TYPES.NORMAL,
     },
+    isDisabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

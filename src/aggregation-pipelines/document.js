@@ -1,5 +1,6 @@
 const moment = require('moment');
-const mongoose = require('mongoose');
+const { DOCUMENT_STATUSES } = require('../constants/document');
+const { ObjectId } = require('mongoose').Types;
 
 const getAllDocumentPipeline = ({
   page = 1,
@@ -16,19 +17,20 @@ const getAllDocumentPipeline = ({
   department,
   mentionedReviewer,
   status,
+  pendingReviewer,
 }) => {
   const filter = {};
 
   if (documentId) {
-    filter._id = new mongoose.Types.ObjectId(documentId);
+    filter._id = new ObjectId(documentId);
   }
 
   if (requester) {
-    filter['requester._id'] = new mongoose.Types.ObjectId(requester);
+    filter['requester._id'] = new ObjectId(requester);
   }
 
   if (currentReviewer) {
-    filter.currentReviewer = new mongoose.Types.ObjectId(currentReviewer);
+    filter.currentReviewer = new ObjectId(currentReviewer);
   }
 
   if (search) {
@@ -43,19 +45,19 @@ const getAllDocumentPipeline = ({
     };
   }
 
-  if (currentUser) {
+  if (currentUser && !currentUser?.isSuperadmin) {
     const currentUserDepartment = currentUser.department;
 
     if (currentUserDepartment.type !== 'authorized') {
       filter.requestedByDepartment = currentUserDepartment._id;
     } else if (currentUserDepartment.type === 'authorized' && department) {
-      filter.requestedByDepartment = new mongoose.Types.ObjectId(department);
+      filter.requestedByDepartment = new ObjectId(department);
     }
   }
 
   if (mentionedReviewer) {
     filter['mentions.reviewers'] = {
-      $in: [new mongoose.Types.ObjectId(mentionedReviewer)],
+      $in: [new ObjectId(mentionedReviewer)],
     };
   }
 
@@ -71,6 +73,11 @@ const getAllDocumentPipeline = ({
     } else {
       filter.status = status;
     }
+  }
+
+  if (pendingReviewer) {
+    filter['reviewers.list.reviewer'] = new ObjectId(pendingReviewer);
+    filter['reviewers.list.status'] = DOCUMENT_STATUSES.PENDING;
   }
 
   const facetPipeline = [{ $skip: (+page - 1) * +limit }];

@@ -181,11 +181,22 @@ module.exports = ({ ReviewerGroup, userService }) => {
     });
   };
 
+  const disableReviewerGroupsByUserId = async (userId) => {
+    await ReviewerGroup.updateMany(
+      {
+        'reviewers.reviewer': userId,
+      },
+      { isDisabled: true },
+      { new: true, runValidators: true }
+    );
+  };
+
   return {
     getReviewersGroup,
     createReviewerGroup,
     getReviewerGroupById,
     updateReviewerGroup,
     addFavouriteReviewerGroup,
+    disableReviewerGroupsByUserId,
   };
 };
