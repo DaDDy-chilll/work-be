@@ -139,12 +139,18 @@ module.exports = ({ ReviewerGroup, userService }) => {
       throw ApiError.badRequest('Group does not exist.');
     }
 
-    group.reviewers = data.reviewers;
-    group.groupName = data.groupName || '';
+    const validation = await validateReviewerGroup(
+      data.reviewers,
+      data.departmentOrders
+    );
 
-    await group.save();
+    if (!validation.status) {
+      throw ApiError.badRequest(validation.message);
+    }
 
-    return group;
+    await ReviewerGroup.findByIdAndDelete(id);
+
+    return await ReviewerGroup.create(data);
   };
 
   const getReviewerGroupById = async (id) => {
