@@ -61,7 +61,21 @@ const CREATE_GROUP = z.object({
 
 const UPDATE_GROUP = z
   .object({
-    body: BASE_GROUP.shape.body.strict().partial(),
+    body: BASE_GROUP.shape.body
+      .merge(
+        z.object({
+          departmentOrders: z.array(
+            z.object({
+              department: z
+                .string()
+                .refine(isObjectIdOrHexString, 'Invalid ID'),
+              index: z.number().nonnegative(),
+            })
+          ),
+        })
+      )
+      .strict()
+      .partial(),
   })
   .merge(checkParamsId);
 

@@ -53,6 +53,7 @@ const GET_DOCUMENTS = z.object({
         .optional(),
       startDate: z.coerce.date().optional(),
       endDate: z.coerce.date().optional(),
+      pendingReviewer: z.string().refine(isObjectIdOrHexString).optional(),
     })
     .strict()
     .refine(({ amountMin, amountMax }) => {
