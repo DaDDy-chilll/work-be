@@ -17,6 +17,11 @@ const GET_WORKFLOWS = z.object({
         errorMap: () => ({ message: 'Invalid reviewer group type' }),
       })
       .optional(),
+    isDisabled: z
+      .enum(['true', 'false'], {
+        errorMap: () => ({ message: 'Invalid reviewer group status' }),
+      })
+      .optional(),
   }),
 });
 
