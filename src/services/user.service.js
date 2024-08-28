@@ -43,6 +43,8 @@ module.exports = ({ User }) => {
         filter.department = oldFilter.department;
       }
 
+      filter.isDisabled = !!oldFilter?.isDisabled;
+
       return filter;
     });
 
