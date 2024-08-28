@@ -102,6 +102,10 @@ module.exports = ({ ReviewerGroup, userService }) => {
         filter.type = oldFilter.type;
       }
 
+      if (oldFilter.isDisabled) {
+        filter.isDisabled = JSON.parse(oldFilter.isDisabled);
+      }
+
       return filter;
     });
 
