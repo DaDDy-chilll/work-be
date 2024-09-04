@@ -10,9 +10,10 @@ on:
     - '*'
     
 jobs:
-  build:
-    name: build
+  deploy:
+    name: Deployment
     runs-on: ubuntu-latest
+    environment: dmh_development
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -35,35 +36,30 @@ jobs:
           BRANCH_NAME: ${{ github.ref_name }} # Branch name
           
         run: |
-          IMAGE_TAG="parami-api-$BRANCH_NAME" 
+          IMAGE_TAG="dmh-api-$BRANCH_NAME" 
           docker build -t $ECR/$REPO:$IMAGE_TAG .
           docker push $ECR/$REPO:$IMAGE_TAG
 
-  deploy:
-    name: deploy
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Deploy to Development
         if:  github.ref == 'refs/heads/development' 
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.Hospital_DEV_EC2_IP }}
-          username: ${{ secrets.Hospital_DEV_EC2_USER }}
-          key: ${{ secrets.Hospital_DEV_SSH_PRIVATE_KEY }}
+          host: ${{ secrets.DMH_EC2_IP }}
+          username: ${{ secrets.DMH_EC2_USER }}
+          key: ${{ secrets.DMH_SSH_PRIVATE_KEY }}
           command_timeout: 30m
           script: |
             cd /home/ubuntu/devops/
-            bash parami-dev-deploy.sh
+            bash dmh-dev-deploy.sh
 
       - name: Deploy to Production
         if:  github.ref == 'refs/heads/production' 
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.Hospital_PROD_EC2_IP }}
-          username: ${{ secrets.Hospital_PROD_EC2_USER }}
-          key: ${{ secrets.Hospital_PROD_SSH_PRIVATE_KEY }}
+          host: ${{ secrets.DMH_PROD_EC2_IP }}
+          username: ${{ secrets.DMH_EC2_USER }}
+          key: ${{ secrets.DMH_SSH_PRIVATE_KEY }}
           command_timeout: 30m
           script: |
             cd /home/ubuntu/devops/
-            bash parami-production-deploy.sh
+            bash dmh-production-deploy.sh
