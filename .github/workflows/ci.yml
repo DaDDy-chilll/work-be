@@ -56,7 +56,7 @@ jobs:
         if:  github.ref == 'refs/heads/production' 
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.DMH_PROD_EC2_IP }}
+          host: ${{ secrets.DMH_EC2_IP }}
           username: ${{ secrets.DMH_EC2_USER }}
           key: ${{ secrets.DMH_SSH_PRIVATE_KEY }}
           command_timeout: 30m
