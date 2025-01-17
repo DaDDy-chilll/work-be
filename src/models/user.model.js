@@ -54,6 +54,10 @@ const userSchema = new Schema(
       default: false,
     },
     permissions: {
+      canAuthorize: {
+        type: Boolean,
+        default: false,
+      },
       canApprove: {
         type: Boolean,
         default: false,

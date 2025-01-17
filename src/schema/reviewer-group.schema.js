@@ -1,7 +1,10 @@
 const { isObjectIdOrHexString } = require('mongoose');
 const { z } = require('zod');
 const checkParamsId = require('./checkParamsId.schema');
-const { REVIEWER_GROUP_TYPES } = require('../constants/reviewer-group');
+const {
+  REVIEWER_GROUP_TYPES,
+  WORKFLOW_TYPES,
+} = require('../constants/reviewer-group');
 
 const GET_WORKFLOWS = z.object({
   query: z.object({
@@ -12,6 +15,11 @@ const GET_WORKFLOWS = z.object({
       .default(10),
     page: z.coerce.number().positive().default(1),
     search: z.string().optional(),
+    workflowType: z
+      .enum([...Object.values(WORKFLOW_TYPES)], {
+        errorMap: () => ({ message: 'Invalid workflow type' }),
+      })
+      .optional(),
     type: z
       .enum([...Object.values(REVIEWER_GROUP_TYPES)], {
         errorMap: () => ({ message: 'Invalid reviewer group type' }),
@@ -46,6 +54,12 @@ const BASE_GROUP = z.object({
         errorMap: () => ({ message: 'Invalid reviewer group type' }),
       })
       .default(REVIEWER_GROUP_TYPES.NORMAL),
+    workflowType: z
+      .enum([...Object.values(WORKFLOW_TYPES)], {
+        errorMap: () => ({ message: 'Invalid workflow type' }),
+      })
+      .default(WORKFLOW_TYPES.DEFAULT),
+    workflowOrderId: z.string().refine(isObjectIdOrHexString).optional(),
   }),
 });
 

@@ -19,6 +19,7 @@ const BASE_USER = z.object({
     permissions: z
       .object({
         canApprove: z.boolean().optional().default(false),
+        canAuthorize: z.boolean().optional().default(false),
         canEdit: z.boolean().optional().default(false),
         canPrepare: z.boolean().optional().default(false),
         canVerify: z.boolean().optional().default(false),

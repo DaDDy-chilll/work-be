@@ -19,6 +19,7 @@ module.exports = ({ authService }) => {
       if (user) {
         return next(ApiError.badRequest('Email already exists.'));
       }
+  
 
       const newUser = await authService.register(req.body);
 

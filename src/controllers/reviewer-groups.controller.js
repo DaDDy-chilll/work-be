@@ -12,7 +12,6 @@ module.exports = ({ reviewerGroupService }) => {
     const { groups, total } = await reviewerGroupService.getReviewersGroup(
       req.query
     );
-
     sendSuccessResponse({
       res,
       data: groups,

@@ -31,9 +31,7 @@ module.exports = ({ User, userService }) => {
         );
       }
     }
-
     const user = await userService.createUser(data);
-
     return user;
   };
 

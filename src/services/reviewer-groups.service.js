@@ -6,7 +6,6 @@ const { REVIEWER_GROUP_TYPES } = require('../constants/reviewer-group');
 const {
   checkCanForward,
 } = require('../controllers/helpers/reviewer-group.helper');
-
 /**
  * @typedef {Object} Dependencies
  * @property {ReturnType<import('./user.service')>} userService
@@ -98,6 +97,10 @@ module.exports = ({ ReviewerGroup, userService }) => {
         };
       }
 
+      if (oldFilter.workflowType) {
+        filter.workflowType = oldFilter.workflowType;
+      }
+
       if (oldFilter.type) {
         filter.type = oldFilter.type;
       }
@@ -128,7 +131,6 @@ module.exports = ({ ReviewerGroup, userService }) => {
       data.reviewers,
       data.departmentOrders
     );
-
     if (!validation.status) {
       throw ApiError.badRequest(validation.message);
     }
