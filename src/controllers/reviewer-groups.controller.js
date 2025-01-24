@@ -8,7 +8,6 @@ module.exports = ({ reviewerGroupService }) => {
     if (req.query.type === REVIEWER_GROUP_TYPES.PRIVATE) {
       checkCanForward(req.user);
     }
-
     const { groups, total } = await reviewerGroupService.getReviewersGroup(
       req.query
     );

@@ -109,6 +109,10 @@ module.exports = ({ ReviewerGroup, userService }) => {
         filter.isDisabled = JSON.parse(oldFilter.isDisabled);
       }
 
+      if (oldFilter.workflowType) {
+        filter.workflowType = oldFilter.workflowType;
+      }
+
       return filter;
     });
 

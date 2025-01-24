@@ -30,6 +30,7 @@ const GET_WORKFLOWS = z.object({
         errorMap: () => ({ message: 'Invalid reviewer group status' }),
       })
       .optional(),
+    workflowType: z.enum(['PURCHASE_REQUEST', 'PURCHASE_ORDER']).optional(),
   }),
 });
 

@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(httpLoggerMiddleware);
 
 app.get(['/', '/api'], (req, res) => {
-  res.send(`Parami Hostipal Budget Requisition API - ${NODE_ENV}`);
+  res.send(`DMH Hostipal Budget Requisition API - ${NODE_ENV}`);
 });
 
 app.use('/api', router);
