@@ -14,7 +14,7 @@ module.exports = ({ notificationService }) => {
       const user = req.user;
       const { notifications, count } =
         await notificationService.getNotifications(req.query, user._id);
-
+      console.log('notifications', notifications);
       sendSuccessResponse({
         res,
         data: notifications,

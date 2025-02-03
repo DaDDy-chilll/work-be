@@ -16,6 +16,9 @@ const BASE_DOCUMENT = z.object({
   description: z.string().transform(xss).optional(),
   originalDocumentId: z.string().refine(isObjectIdOrHexString).optional(),
   workflowId: z.string().refine(isObjectIdOrHexString),
+  createdBy: z.string().optional(),
+  orderId: z.string().refine(isObjectIdOrHexString).optional(),
+  workflowType: z.string().optional(),
 });
 
 const GET_DOCUMENTS = z.object({
@@ -39,7 +42,7 @@ const GET_DOCUMENTS = z.object({
       requestedBy: z.string().refine(isObjectIdOrHexString).optional(),
       currentReviewer: z.string().refine(isObjectIdOrHexString).optional(),
       caseStatus: z.enum(['open', 'closed', '']).or(z.string()).optional(),
-      type: z.string().optional(),
+      workflowType: z.string().optional(),
       search: z.string().optional(),
       department: z
         .string()
@@ -83,6 +86,7 @@ const UPDATE_DOCUMENT = z
       name: z.string().min(2, 'Name must have at least 2 characters.'),
       amount: z.coerce.number().nonnegative('Invalid amount'),
       description: z.string().transform(xss).optional(),
+      workflowType: z.string().optional(),
     }),
   })
   .merge(checkParamsId);
@@ -92,6 +96,7 @@ const INVOKE_RETURN_ACTION = z.object({
     .object({
       userId: z.string().refine(isObjectIdOrHexString, 'Invalid User ID.'),
       remark: z.string().transform(xss),
+      workflowType: z.string().optional(),
     })
     .partial(),
   params: z.object({
@@ -116,13 +121,17 @@ const DOCUMENT_ACTION = z.object({
         .optional(),
       description: z.string().transform(xss).optional(),
       remark: z.string().transform(xss),
+      workflowType: z.string().optional(),
     })
     .partial(),
   params: z.object({
     id: z.string().refine(isObjectIdOrHexString, 'Invalid ID.'),
-    action: z.enum(['prepare', 'verify', 'approve', 'comment', 'forward'], {
-      errorMap: () => ({ message: 'Invalid action.' }),
-    }),
+    action: z.enum(
+      ['prepare', 'verify', 'approve', 'authorize', 'comment', 'forward'],
+      {
+        errorMap: () => ({ message: 'Invalid action.' }),
+      }
+    ),
   }),
 });
 
@@ -133,6 +142,7 @@ const MENTION_DOCUMENT = z.object({
         .array(z.string().refine(isObjectIdOrHexString, 'Invalid ID.'))
         .min(1),
       remark: z.string().transform(xss),
+      workflowType: z.string().optional(),
     })
     .required(),
   params: z.object({

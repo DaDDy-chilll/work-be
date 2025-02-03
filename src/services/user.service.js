@@ -112,7 +112,6 @@ module.exports = ({ User }) => {
     if (isEmptyData) {
       throw ApiError.badRequest('No data provided.');
     }
-
     const user = await User.findById(id);
 
     if (!user) {

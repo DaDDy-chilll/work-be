@@ -2,7 +2,10 @@ const _ = require('lodash');
 
 const ApiError = require('../utils/apiError');
 const extractQuery = require('../utils/extractQuery');
-const { REVIEWER_GROUP_TYPES } = require('../constants/reviewer-group');
+const {
+  REVIEWER_GROUP_TYPES,
+  WORKFLOW_TYPES,
+} = require('../constants/reviewer-group');
 const {
   checkCanForward,
 } = require('../controllers/helpers/reviewer-group.helper');
@@ -144,7 +147,6 @@ module.exports = ({ ReviewerGroup, userService }) => {
 
   const updateReviewerGroup = async ({ data, id }) => {
     const group = await ReviewerGroup.findById(id);
-
     if (!group) {
       throw ApiError.badRequest('Group does not exist.');
     }
@@ -158,22 +160,39 @@ module.exports = ({ ReviewerGroup, userService }) => {
       throw ApiError.badRequest(validation.message);
     }
 
-    await ReviewerGroup.findByIdAndDelete(id);
+    // await ReviewerGroup.findByIdAndDelete(id);
 
-    return await ReviewerGroup.create(data);
+    // return await ReviewerGroup.create(data);
+
+    return await ReviewerGroup.findByIdAndUpdate(id, data, { new: true });
   };
 
-  const getReviewerGroupById = async (id) => {
-    return await ReviewerGroup.findById(id)
-      .populate({
-        path: 'reviewers.reviewer',
-        populate: {
-          path: 'department',
-        },
-      })
-      .populate({
-        path: 'reviewers.department',
-      });
+  const getReviewerGroupById = async (
+    id,
+    workflowType = WORKFLOW_TYPES.PURCHASE_REQUEST
+  ) => {
+    if (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER)
+      return await ReviewerGroup.findOne({ _id: id, workflowType })
+        .populate({
+          path: 'reviewers.reviewer',
+          populate: {
+            path: 'department',
+          },
+        })
+        .populate({
+          path: 'reviewers.department',
+        });
+    else
+      return await ReviewerGroup.findById(id)
+        .populate({
+          path: 'reviewers.reviewer',
+          populate: {
+            path: 'department',
+          },
+        })
+        .populate({
+          path: 'reviewers.department',
+        });
   };
 
   const addFavouriteReviewerGroup = async ({ requester, workflowId }) => {

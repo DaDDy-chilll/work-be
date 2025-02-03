@@ -1,5 +1,6 @@
 const ApiError = require('../utils/apiError');
 const { DOCUMENT_TYPES, DOCUMENT_STATUSES } = require('../constants/document');
+const { WORKFLOW_TYPES } = require('../constants/reviewer-group');
 
 /**
  * @param{{
@@ -8,11 +9,19 @@ const { DOCUMENT_TYPES, DOCUMENT_STATUSES } = require('../constants/document');
  *  reviewerGroupService: ReturnType<import('../services/reviewer-groups.service')>;
  * }}
  */
-module.exports = ({ Document, userService, reviewerGroupService }) => {
-  const findAndValidateDocument = async (documentId) => {
-    const document = await Document.findById(documentId).populate(
-      'reviewers.list.reviewer'
-    );
+module.exports = ({
+  Document,
+  DocumentOrder,
+  userService,
+  reviewerGroupService,
+}) => {
+  const findAndValidateDocument = async (documentId, workflowType) => {
+    const document = await (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
+      ? DocumentOrder
+      : Document
+    )
+      .findById(documentId)
+      .populate('reviewers.list.reviewer');
     if (!document) {
       throw ApiError.badRequest('Document does not exist');
     }
@@ -62,9 +71,14 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
    *
    * @param {{workflowId: string, requester: object}}
    */
-  const getReviewersForDocument = async ({ workflowId, requester }) => {
+  const getReviewersForDocument = async ({
+    workflowId,
+    requester,
+    workflowType,
+  }) => {
     const workflow = await reviewerGroupService.getReviewerGroupById(
-      workflowId
+      workflowId,
+      workflowType
     );
 
     if (!workflow) {
@@ -79,13 +93,11 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
         'Your department does not have anyone to approve.'
       );
     }
-
     const reviewers = workflow.reviewers.map((r) => ({
       reviewer: r.reviewer._id,
       department: r.reviewer.department._id,
       ...r.reviewer.permissions,
     }));
-
     // if requester is not head of dept, add head to reviewers
     if (!currentUserHeadOfDepartment.equals(requester._id)) {
       reviewers.unshift({
@@ -195,6 +207,7 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
     const mappings = {
       prepare: 'canPrepare',
       approve: 'canApprove',
+      authorize: 'canAuthorize',
       verify: 'canVerify',
       forward: 'canForward',
     };
@@ -216,6 +229,12 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
     return updater;
   };
 
+  const getRestOfNextReviewers = (document) => {
+    return document.reviewers.list.filter(
+      (r) => r.index > document.reviewers.currentReviewerIndex
+    );
+  };
+
   return Object.freeze({
     checkClaimDocument,
     getReviewersForDocument,
@@ -225,5 +244,6 @@ module.exports = ({ Document, userService, reviewerGroupService }) => {
     canDoAction,
     setupNextReviewer,
     findAndValidateDocument,
+    getRestOfNextReviewers,
   });
 };

@@ -54,6 +54,62 @@ const reviewerGroupSchema = new Schema(
   }
 );
 
+// reviewerGroupSchema.pre('validate', async function (next) {
+//   try {
+//     // Generate custom ID first
+//     if (!this.groupId) {
+//       const customIdMiddleware = createCustomIdMiddleware({
+//         modelName: 'ReviewerGroup',
+//         fieldName: 'groupId',
+//         prefix: 'RG',
+//       });
+//       await customIdMiddleware(this);
+//     }
+
+//     // Then check workflow validation
+//     if (this.workflowType === WORKFLOW_TYPES.PURCHASE_REQUEST) {
+//       if (!this.workflowOrderId) {
+//         return next(
+//           new Error(
+//             'workflowOrderId is required when workflowType is PURCHASE_REQUEST.'
+//           )
+//         );
+//       }
+//       const isValidOrder = await mongoose
+//         .model('ReviewerGroup')
+//         .exists({ _id: this.workflowOrderId });
+//       if (!isValidOrder) {
+//         return next(new Error('Invalid workflowOrderId provided.'));
+//       }
+//     } else {
+//       this.workflowOrderId = null;
+//     }
+
+//     next();
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+
+reviewerGroupSchema.pre('validate', async function (next) {
+  if (!this.isNew) return next();
+  if (this.workflowType === WORKFLOW_TYPES.PURCHASE_REQUEST) {
+    if (!this.workflowOrderId)
+      return next(
+        new Error(
+          'workflowOrderId is required when workflowType is PURCHASE_REQUEST.'
+        )
+      );
+    const isValidOrder = await mongoose
+      .model('ReviewerGroup')
+      .exists({ _id: this.workflowOrderId });
+    if (!isValidOrder)
+      return next(new Error('Invalid workflowOrderId provided.'));
+  } else this.workflowOrderId = null;
+
+  next();
+});
+
 reviewerGroupSchema.pre(
   'validate',
   createCustomIdMiddleware({

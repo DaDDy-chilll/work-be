@@ -12,10 +12,23 @@ const Schema = mongoose.Schema;
 
 const documentSchema = new Schema(
   {
+    isOrderDocument: {
+      type: Boolean,
+      default: true,
+    },
+    documentRequestId: {
+      id: {
+        type: String,
+        required: true,
+      },
+      documentId: {
+        type: String,
+        required: true,
+      },
+    },
     documentId: {
       type: String,
       required: true,
-      unique: true,
     },
     name: {
       type: String,
@@ -158,10 +171,14 @@ const documentSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Document',
     },
+    lastStep: {
+      type: Object,
+      default: null,
+      required: false,
+    },
     orderWorkflow: {
       type: Schema.Types.ObjectId,
       ref: 'ReviewerGroup',
-      default: null,
     },
   },
   {
@@ -179,7 +196,7 @@ documentSchema.pre(
   'validate',
   createCustomIdMiddlware({
     modelName: 'Document',
-    prefix: 'PR',
+    prefix: 'PO',
     fieldName: 'documentId',
   })
 );
@@ -194,6 +211,6 @@ documentSchema.virtual('lastActivity', {
   },
 });
 
-const Document = mongoose.model('Document', documentSchema);
+const OrderDocument = mongoose.model('OrderDocument', documentSchema);
 
-module.exports = Document;
+module.exports = OrderDocument;

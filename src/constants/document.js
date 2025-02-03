@@ -7,6 +7,7 @@ module.exports = {
   DOCUMENT_ACTIONS: Object.freeze({
     VERIFIED: 'VERIFIED',
     APPROVED: 'APPROVED',
+    AUTHORIZE: 'AUTHORIZE',
     REJECTED: 'REJECTED',
     ACKNOWLEDGED: 'ACKNOWLEDGED',
     PREPARED: 'PREPARED',
@@ -17,10 +18,12 @@ module.exports = {
     COMMENTED: 'COMMENTED',
     FORWARDED: 'FORWARDED',
     MENTIONED: 'MENTIONED',
+    NEXT_STEP: 'NEXT_STEP',
   }),
   DOCUMENT_STATUSES: Object.freeze({
     PENDING: 'PENDING',
     APPROVED: 'APPROVED',
+    AUTHORIZE: 'AUTHORIZE',
     REJECTED: 'REJECTED',
     VERIFIED: 'VERIFIED',
     REQUESTED_REVISION: 'REQUESTED_REVISION',
@@ -33,6 +36,7 @@ module.exports = {
     pending: 'pending',
     verified: 'verify',
     approved: 'approve',
+    authorize: 'authorize',
     acknowledged: 'acknowledge',
     commented: 'comment',
     verify: 'verified',
@@ -42,6 +46,7 @@ module.exports = {
   }),
   REMARK_ACTIONS: Object.freeze({
     approved: 'approved',
+    authorize: 'authorize',
     verified: 'verified',
     rejected: 'rejected',
     acknowledged: 'acknowledged',

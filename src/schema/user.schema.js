@@ -50,7 +50,7 @@ const UPDATE_USER = z.object({
       name: true,
       email: true,
       jobLabel: true,
-      department: false,
+      department: true,
       permissions: true,
     })
     .deepPartial(),

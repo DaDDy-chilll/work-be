@@ -40,7 +40,8 @@ module.exports = ({ documentService }) => {
 
   const invokeDocumentAction = catchAsync(async (req, res, next) => {
     const { action, id } = req.params;
-    const { remark, ...body } = req.body;
+    const { remark, workflowType, ...body } = req.body;
+    console.log('workflowType', req.body);
 
     const document = await documentService.invokeDocumentAction({
       action,
@@ -49,6 +50,7 @@ module.exports = ({ documentService }) => {
       remark,
       reviewer: req.user,
       files: req.files,
+      workflowType,
     });
 
     sendSuccessResponse({ res, code: 200, data: document });
@@ -149,6 +151,7 @@ module.exports = ({ documentService }) => {
       userId: userId,
       remark: req.body.remark,
       files: req.files,
+      workflowType: req.body.workflowType,
     });
 
     sendSuccessResponse({
@@ -292,6 +295,7 @@ module.exports = ({ documentService }) => {
   const getDocumentById = catchAsync(async (req, res, next) => {
     const document = await documentService.getDocumentById({
       id: req.params.id,
+      workflowType: req.query.workflowType,
     });
 
     let claimDocId;

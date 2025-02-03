@@ -45,14 +45,19 @@ const getAllDocumentPipeline = ({
     };
   }
 
-  if (currentUser && !currentUser?.isSuperadmin) {
-    const currentUserDepartment = currentUser.department;
+  // if (currentUser && !currentUser?.isSuperadmin) {
+  //   const currentUserDepartment = currentUser.department;
+  //   const currentUserId = currentUser._id;
 
-    if (currentUserDepartment.type !== 'authorized') {
-      filter.requestedByDepartment = currentUserDepartment._id;
-    } else if (currentUserDepartment.type === 'authorized' && department) {
-      filter.requestedByDepartment = new ObjectId(department);
-    }
+  //   // if (currentUserDepartment.type !== 'authorized') {
+  //   //   filter.requestedByDepartment = currentUserDepartment._id;
+  //   // } else if (currentUserDepartment.type === 'authorized' && department) {
+  //   //   filter.requestedByDepartment = new ObjectId(department);
+  //   // }
+  
+  // }
+  if (currentUser && !currentUser?.isSuperadmin) {
+    filter['reviewers.list.reviewer'] = new ObjectId(currentUser._id);
   }
 
   if (mentionedReviewer) {

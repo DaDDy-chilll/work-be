@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { DOCUMENT_ACTIONS } = require('../constants/document');
+const { WORKFLOW_TYPES } = require('../constants/reviewer-group');
 
 const Schema = mongoose.Schema;
 
@@ -30,6 +31,11 @@ const notificationSchema = new Schema(
     isOpen: {
       type: Boolean,
       default: false,
+    },
+    workflowType: {
+      type: String,
+      enum: Object.values(WORKFLOW_TYPES),
+      required: false,
     },
   },
   {

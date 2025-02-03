@@ -5,6 +5,9 @@ const checkParamsId = z.object({
   params: z.object({
     id: z.string().refine(isObjectIdOrHexString, 'Invalid Entity ID.'),
   }),
+  query: z.object({
+    workflowType: z.string().optional(),
+  }),
 });
 
 module.exports = checkParamsId;

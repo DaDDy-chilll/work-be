@@ -5,7 +5,10 @@ const {
   DOCUMENT_ACTIONS,
   DOCUMENT_TYPES,
 } = require('../constants/document');
-const { REVIEWER_GROUP_TYPES } = require('../constants/reviewer-group');
+const {
+  REVIEWER_GROUP_TYPES,
+  WORKFLOW_TYPES,
+} = require('../constants/reviewer-group');
 const {
   checkCanForward,
 } = require('../controllers/helpers/reviewer-group.helper');
@@ -27,6 +30,7 @@ module.exports = ({
   historyService,
   revisionService,
   Document,
+  DocumentOrder,
   reviewerGroupService,
   documentHelper,
   emitter,
@@ -76,20 +80,65 @@ module.exports = ({
 
     const attachments = await fileStorageService.uploadFiles(files);
 
-    const document = new Document({
-      ...body,
-      attachments,
-      requester: requester.id,
-      requestedByDepartment: requester.department,
-      status: DOCUMENT_STATUSES.PENDING,
-      reviewers: {
-        currentDepartment: reviewers[0].department,
-        list: reviewers,
-      },
-      currentReviewer: reviewers[0].reviewer._id,
-      isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
-      ...(originalDocumentId && { originalDocument: originalDocumentId }),
-    });
+    let document;
+    if (body.createdBy === WORKFLOW_TYPES.PURCHASE_ORDER) {
+      console.log('boddy------', {
+        ...body,
+        reviewers: reviewers,
+      });
+      document = await DocumentOrder.findByIdAndUpdate(
+        { _id: body.orderId },
+        {
+          ...body,
+          attachments,
+          requester: requester.id,
+          requestedByDepartment: requester.department,
+          status: DOCUMENT_STATUSES.PENDING,
+          reviewers: {
+            currentDepartment: reviewers[0].department,
+            list: reviewers,
+          },
+          currentReviewer: reviewers[0].reviewer._id,
+          isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
+          ...(originalDocumentId && { originalDocument: originalDocumentId }),
+          orderWorkflow: workflow.workflowOrderId,
+          lastStep: null,
+        },
+        { new: true }
+      );
+
+      // document = new DocumentOrder({
+      //   ...body,
+      //   attachments,
+      //   requester: requester.id,
+      //   requestedByDepartment: requester.department,
+      //   status: DOCUMENT_STATUSES.PENDING,
+      //   reviewers: {
+      //     currentDepartment: reviewers[0].department,
+      //     list: reviewers,
+      //   },
+      //   currentReviewer: reviewers[0].reviewer._id,
+      //   isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
+      //   ...(originalDocumentId && { originalDocument: originalDocumentId }),
+      //   orderWorkflow: workflow.workflowOrderId,
+      // });
+    } else {
+      document = new Document({
+        ...body,
+        attachments,
+        requester: requester.id,
+        requestedByDepartment: requester.department,
+        status: DOCUMENT_STATUSES.PENDING,
+        reviewers: {
+          currentDepartment: reviewers[0].department,
+          list: reviewers,
+        },
+        currentReviewer: reviewers[0].reviewer._id,
+        isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
+        ...(originalDocumentId && { originalDocument: originalDocumentId }),
+        orderWorkflow: workflow.workflowOrderId,
+      });
+    }
 
     await document.save();
 
@@ -100,6 +149,7 @@ module.exports = ({
           from: document.requester,
           action: DOCUMENT_ACTIONS.SUBMITTED,
           documentId: document.id,
+          workflowType: body.createdBy,
         },
       ],
       history: {
@@ -120,8 +170,12 @@ module.exports = ({
     documentId,
     remark,
     files,
+    workflowType,
   }) => {
-    const document = await documentHelper.findAndValidateDocument(documentId);
+    const document = await documentHelper.findAndValidateDocument(
+      documentId,
+      workflowType
+    );
     const workflow = await reviewerGroupService.getReviewerGroupById(
       body.workflowId
     );
@@ -133,10 +187,13 @@ module.exports = ({
     const mapping = {
       prepare: DOCUMENT_ACTIONS.PREPARED,
       verify: DOCUMENT_ACTIONS.VERIFIED,
+      authorize: DOCUMENT_ACTIONS.AUTHORIZE,
       approve: DOCUMENT_ACTIONS.APPROVED,
       comment: DOCUMENT_ACTIONS.COMMENTED,
       forward: DOCUMENT_ACTIONS.FORWARDED,
     };
+
+    let restOfReviewers;
 
     // Check if it's reviewer's turn
     const currentReviewerItem = documentHelper.getCurrentReviewer(
@@ -191,7 +248,10 @@ module.exports = ({
       updater.attachments = newAttachments;
     }
 
-    let updatedDocument = await Document.findOneAndUpdate(
+    let updatedDocument = await (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
+      ? DocumentOrder
+      : Document
+    ).findOneAndUpdate(
       { _id: document._id, 'reviewers.list.index': currentReviewerItem.index },
       {
         ...updater,
@@ -212,7 +272,10 @@ module.exports = ({
           department: item.department._id,
           status: 'PENDING',
         }));
-        updatedDocument = await Document.findOneAndUpdate(
+        updatedDocument = await (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
+          ? DocumentOrder
+          : Document
+        ).findOneAndUpdate(
           {
             _id: updatedDocument._id,
           },
@@ -236,9 +299,10 @@ module.exports = ({
       updatedDocument.type === 'CLAIM' &&
       updatedDocument.status === DOCUMENT_STATUSES.APPROVED
     ) {
-      const orgDocument = await Document.findById(
-        updatedDocument.originalDocument
-      );
+      const orgDocument = await (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
+        ? DocumentOrder
+        : Document
+      ).findById(updatedDocument.originalDocument);
 
       orgDocument.isCaseClosed = true;
 
@@ -250,12 +314,86 @@ module.exports = ({
       userIdsToSendNoti.push(nextReviewerItem.reviewer.id);
     }
 
+    if (action === 'authorize') {
+      restOfReviewers = documentHelper.getRestOfNextReviewers(document);
+
+      updatedDocument = await (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
+        ? DocumentOrder
+        : Document
+      ).findOneAndUpdate(
+        {
+          _id: document._id,
+          'reviewers.list.index': { $gt: currentReviewerItem.index },
+        },
+        {
+          $set: {
+            'reviewers.list.$[elem].status': DOCUMENT_STATUSES.ACKNOWLEDGED,
+            isCaseClosed: true,
+            status: DOCUMENT_STATUSES.AUTHORIZE,
+          },
+        },
+        {
+          new: true,
+          runValidators: true,
+          arrayFilters: [{ 'elem.index': { $gt: currentReviewerItem.index } }],
+        }
+      );
+      userIdsToSendNoti.push(
+        ...restOfReviewers.map((item) => item.reviewer.id)
+      );
+    }
+
+    if (updatedDocument.isCaseClosed && !updatedDocument?.isOrderDocument) {
+      let reviewers;
+      try {
+        reviewers = await documentHelper.getReviewersForDocument({
+          workflowId: updatedDocument.orderWorkflow,
+          workflowType: WORKFLOW_TYPES.PURCHASE_ORDER,
+          requester: {
+            _id: updatedDocument.requester,
+            department: updatedDocument.requestedByDepartment,
+          },
+        });
+        const newRequester = reviewers.map((item) => item.index === 0 && item);
+
+        const orderDocument = new DocumentOrder({
+          name: updatedDocument.name,
+          type: updatedDocument.type,
+          amount: updatedDocument.amount,
+          attachments: updatedDocument.attachments,
+          description: updatedDocument.description,
+          documentRequestId: {
+            id: updatedDocument.id,
+            documentId: updatedDocument.documentId,
+          },
+          requester: newRequester[0].reviewer,
+          requestedByDepartment: newRequester[0].department,
+          status: DOCUMENT_STATUSES.PENDING,
+          reviewers: {
+            currentDepartment: reviewers[0].department,
+            list: reviewers,
+          },
+          currentReviewer: reviewers[0].reviewer._id,
+          isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
+          originalDocument: updatedDocument.id,
+          orderWorkflow: updatedDocument.orderWorkflow,
+          lastStep: {
+            action: false,
+          },
+        });
+        await orderDocument.save();
+      } catch (error) {
+        console.log('-------error-----', error);
+      }
+    }
+
     await emitter.emitAsync('document.action', {
-      notifications: userIdsToSendNoti.map((id) => ({
+      notifications: [...new Set(userIdsToSendNoti)].map((id) => ({
         to: id,
         from: reviewer.id,
         action: mapping[action],
         documentId: updatedDocument.id,
+        workflowType: workflowType,
       })),
 
       history: {
@@ -267,17 +405,36 @@ module.exports = ({
         attachments: action === 'prepare' ? [] : attachments,
       },
     });
-
+    const historyPromises = Promise.all(
+      restOfReviewers
+        ?.sort((a, b) => a.index - b.index)
+        ?.map((item) => {
+          if (action === 'authorize') {
+            return historyService.createHistory({
+              actor: item.reviewer.id,
+              action: DOCUMENT_ACTIONS.ACKNOWLEDGED,
+              department: reviewer.department,
+              document: document.id,
+            });
+          }
+          return null;
+        })
+        .filter(Boolean) || []
+    );
+    await historyPromises;
     return updatedDocument;
   };
 
   const invokeReturnAction = async ({
     documentId,
-    data: { userId, remark },
+    data: { userId, remark, workflowType },
     actor,
     files,
   }) => {
-    const document = await documentHelper.findAndValidateDocument(documentId);
+    const document = await documentHelper.findAndValidateDocument(
+      documentId,
+      workflowType
+    );
     await userHelper.findAndValidateUser(userId);
 
     const originalReviewers = document.reviewers.list;
@@ -341,7 +498,11 @@ module.exports = ({
 
     const attachments = await fileStorageService.uploadFiles(files);
 
-    const updatedDocument = await Document.findOneAndUpdate(
+    const updatedDocument = await (workflowType ===
+    WORKFLOW_TYPES.PURCHASE_ORDER
+      ? DocumentOrder
+      : Document
+    ).findOneAndUpdate(
       {
         _id: documentId,
       },
@@ -372,6 +533,7 @@ module.exports = ({
           from: actor.id,
           action: DOCUMENT_ACTIONS.REQUESTED_REVISION,
           documentId: updatedDocument.id,
+          workflowType: workflowType,
         })),
 
         history: {
@@ -646,8 +808,19 @@ module.exports = ({
     return document;
   };
 
-  const rejectDocument = async ({ documentId, userId, remark, files }) => {
-    const document = await Document.findById(documentId);
+  const rejectDocument = async ({
+    documentId,
+    userId,
+    remark,
+    files,
+    workflowType,
+  }) => {
+    console.log('workflowType', workflowType);
+    console.log('documentId', documentId);
+    const document = await (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
+      ? DocumentOrder
+      : Document
+    ).findById(documentId);
 
     if (!document) {
       throw ApiError.badRequest('Document does not exist.');
@@ -665,7 +838,11 @@ module.exports = ({
 
     const attachments = await fileStorageService.uploadFiles(files);
 
-    const updatedDocument = await Document.findOneAndUpdate(
+    const updatedDocument = await (workflowType ===
+    WORKFLOW_TYPES.PURCHASE_ORDER
+      ? DocumentOrder
+      : Document
+    ).findOneAndUpdate(
       { _id: documentId, 'reviewers.list.index': currReviewerIdx },
       {
         isCaseClosed: true,
@@ -693,6 +870,7 @@ module.exports = ({
           from: userId,
           action: DOCUMENT_ACTIONS.REJECTED,
           documentId: document.id,
+          workflowType: workflowType,
         },
       ],
       history: {
@@ -707,8 +885,11 @@ module.exports = ({
     return updatedDocument;
   };
 
-  const commentOnDocument = async ({ id, remark, user }) => {
-    const document = await Document.findById(id);
+  const commentOnDocument = async ({ id, remark, user, workflowType }) => {
+    const document = await (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
+      ? DocumentOrder
+      : Document
+    ).findById(id);
 
     if (document.status !== DOCUMENT_STATUSES.PENDING) {
       throw ApiError.badRequest('Document has already been approved.');
@@ -749,8 +930,12 @@ module.exports = ({
     }).populate('lastActivity');
   };
 
-  const getDocumentById = async ({ id }) => {
-    const document = await Document.findById(id)
+  const getDocumentById = async ({ id, workflowType }) => {
+    const document = await (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
+      ? DocumentOrder
+      : Document
+    )
+      .findById(id)
       .populate('requester')
       .populate({
         path: 'reviewers.list.reviewer',
@@ -771,11 +956,31 @@ module.exports = ({
   };
 
   const getAllDocuments = async (query) => {
-    const { pipelines } = getAllDocumentPipeline(query);
+    const { pipelines, filter } = getAllDocumentPipeline(query);
+    if (!query?.workflowType) {
+      const [documentResults, orderResults] = await Promise.all([
+        Document.aggregate([{ $match: filter }, ...pipelines]).then(
+          (items) => items[0] || { data: [], count: 0 }
+        ),
+        DocumentOrder.aggregate([{ $match: filter }, ...pipelines]).then(
+          (items) => items[0] || { data: [], count: 0 }
+        ),
+      ]);
+      return {
+        total: documentResults.count + orderResults.count,
+        documents: [...documentResults.data, ...orderResults.data],
+      };
+    }
 
-    const { data: documents, count: total } = await Document.aggregate(
+    // Get documents from specific collection based on workflowType
+    const Model =
+      query.workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
+        ? DocumentOrder
+        : Document;
+
+    const { data: documents, count: total } = await Model.aggregate(
       pipelines
-    ).then((items) => items[0]);
+    ).then((items) => items[0] || { data: [], count: 0 });
 
     return { total, documents };
   };
@@ -830,9 +1035,12 @@ module.exports = ({
     return deletedDocument;
   };
 
-  const mentionDocument = async ({ data, files }) => {
+  const mentionDocument = async ({ data, files, workflowType }) => {
     const { reviewers, actor, document: documentId } = data;
-    const document = await documentHelper.findAndValidateDocument(documentId);
+    const document = await documentHelper.findAndValidateDocument(
+      documentId,
+      workflowType
+    );
 
     if (!document) {
       throw _noDocumentError;
@@ -859,6 +1067,7 @@ module.exports = ({
     const mention = await mentionService.createMention({
       ...data,
       attachments,
+      workflowType: workflowType,
     });
 
     if (mention) {

@@ -26,6 +26,7 @@ const createFileStorageService = require('./services/file-storage.service');
 const createEmitterService = require('./services/event-emitter.service');
 
 const Document = require('./models/document.model');
+const DocumentOrder = require('./models/document.order.model');
 const History = require('./models/history.model');
 const ReviewerGroup = require('./models/reviewer-group.model');
 const Revision = require('./models/revisions.model');
@@ -74,7 +75,6 @@ function loadServices() {
       lifetime: awilix.Lifetime.SINGLETON,
     }),
   };
-
   container.register(services);
 }
 
@@ -82,6 +82,7 @@ function loadModels() {
   const models = {
     Document: awilix.asValue(Document),
     History: awilix.asValue(History),
+    DocumentOrder: awilix.asValue(DocumentOrder),
     ReviewerGroup: awilix.asValue(ReviewerGroup),
     Revision: awilix.asValue(Revision),
     User: awilix.asValue(User),
