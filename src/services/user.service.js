@@ -58,6 +58,7 @@ module.exports = ({ User }) => {
         path: 'department',
       })
       .populate('favouriteWorkflows');
+    console.log(users);
 
     return { users, total };
   };
@@ -108,14 +109,27 @@ module.exports = ({ User }) => {
 
   const updateUserById = async ({ id, data }) => {
     const isEmptyData = Object.keys(data).length === 0;
-
     if (isEmptyData) {
       throw ApiError.badRequest('No data provided.');
     }
+
     const user = await User.findById(id);
 
     if (!user) {
       throw _noUserError;
+    }
+
+    if (data.permissions?.canApprove) {
+      const userWithApprovePermission = await User.findOne({
+        'permissions.canApprove': true,
+        department: data.department,
+      });
+
+      if (userWithApprovePermission) {
+        throw ApiError.badRequest(
+          "There's already one person with approve permission."
+        );
+      }
     }
 
     const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });

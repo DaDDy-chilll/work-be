@@ -5,12 +5,9 @@ const documentService = require('../services/document.service');
 const checkPermissions = (action) => {
   return catchAsync(async (req, res, next) => {
     const user = req.user;
-    console.log(req.user);
-    console.log(req.params.id);
     const document = await documentService.getDocumentById({
       id: req.params.id,
     });
-    console.log(document);
     if (!user.permissions[document.state.section][action]) {
       return next(
         ApiError.notAuthorized(

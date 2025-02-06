@@ -136,15 +136,14 @@ const DOCUMENT_ACTION = z.object({
 });
 
 const MENTION_DOCUMENT = z.object({
-  body: z
-    .object({
-      reviewers: z
-        .array(z.string().refine(isObjectIdOrHexString, 'Invalid ID.'))
-        .min(1),
-      remark: z.string().transform(xss),
-      workflowType: z.string().optional(),
-    })
-    .required(),
+  body: z.object({
+    reviewers: z
+      .array(z.string().refine(isObjectIdOrHexString, 'Invalid ID.'))
+      .min(1),
+    remark: z.string().transform(xss),
+    workflowType: z.string().optional(),
+  }),
+
   params: z.object({
     id: z.string().refine(isObjectIdOrHexString, 'Invalid ID.'),
   }),

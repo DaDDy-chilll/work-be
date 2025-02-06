@@ -1,4 +1,10 @@
-const { DOCUMENT_TYPES, DOCUMENT_STATUSES } = require('../constants/document');
+const {
+  DOCUMENT_TYPES,
+  DOCUMENT_STATUSES,
+} = require('../constants/document');
+const { WORKFLOW_TYPES } = require('../constants/reviewer-group');
+  
+
 const catchAsync = require('../utils/catchAsync');
 const sendSuccessResponse = require('../utils/sendSuccessResponse');
 
@@ -41,7 +47,6 @@ module.exports = ({ documentService }) => {
   const invokeDocumentAction = catchAsync(async (req, res, next) => {
     const { action, id } = req.params;
     const { remark, workflowType, ...body } = req.body;
-    console.log('workflowType', req.body);
 
     const document = await documentService.invokeDocumentAction({
       action,
@@ -66,6 +71,9 @@ module.exports = ({ documentService }) => {
     const document = await documentService.mentionDocument({
       data,
       files: req.files,
+      workflowType: data.workflowType
+        ? data.workflowType
+        : WORKFLOW_TYPES.PURCHASE_REQUEST,
     });
 
     sendSuccessResponse({ res, code: 200, data: document });
@@ -181,6 +189,7 @@ module.exports = ({ documentService }) => {
       id: req.params.id,
       attachments,
       user: req.user,
+      workflowType: req.body.workflowType,
     });
 
     sendSuccessResponse({
@@ -245,6 +254,7 @@ module.exports = ({ documentService }) => {
     const { documents, total } = await documentService.getAllDocuments({
       ...req.query,
       mentionedReviewer: req.user.id,
+      workflowType: req.query.workflowType || WORKFLOW_TYPES.PURCHASE_REQUEST,
     });
 
     sendSuccessResponse({

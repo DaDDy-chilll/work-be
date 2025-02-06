@@ -82,10 +82,6 @@ module.exports = ({
 
     let document;
     if (body.createdBy === WORKFLOW_TYPES.PURCHASE_ORDER) {
-      console.log('boddy------', {
-        ...body,
-        reviewers: reviewers,
-      });
       document = await DocumentOrder.findByIdAndUpdate(
         { _id: body.orderId },
         {
@@ -345,46 +341,42 @@ module.exports = ({
 
     if (updatedDocument.isCaseClosed && !updatedDocument?.isOrderDocument) {
       let reviewers;
-      try {
-        reviewers = await documentHelper.getReviewersForDocument({
-          workflowId: updatedDocument.orderWorkflow,
-          workflowType: WORKFLOW_TYPES.PURCHASE_ORDER,
-          requester: {
-            _id: updatedDocument.requester,
-            department: updatedDocument.requestedByDepartment,
-          },
-        });
-        const newRequester = reviewers.map((item) => item.index === 0 && item);
+      reviewers = await documentHelper.getReviewersForDocument({
+        workflowId: updatedDocument.orderWorkflow,
+        workflowType: WORKFLOW_TYPES.PURCHASE_ORDER,
+        requester: {
+          _id: updatedDocument.requester,
+          department: updatedDocument.requestedByDepartment,
+        },
+      });
+      const newRequester = reviewers.map((item) => item.index === 0 && item);
 
-        const orderDocument = new DocumentOrder({
-          name: updatedDocument.name,
-          type: updatedDocument.type,
-          amount: updatedDocument.amount,
-          attachments: updatedDocument.attachments,
-          description: updatedDocument.description,
-          documentRequestId: {
-            id: updatedDocument.id,
-            documentId: updatedDocument.documentId,
-          },
-          requester: newRequester[0].reviewer,
-          requestedByDepartment: newRequester[0].department,
-          status: DOCUMENT_STATUSES.PENDING,
-          reviewers: {
-            currentDepartment: reviewers[0].department,
-            list: reviewers,
-          },
-          currentReviewer: reviewers[0].reviewer._id,
-          isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
-          originalDocument: updatedDocument.id,
-          orderWorkflow: updatedDocument.orderWorkflow,
-          lastStep: {
-            action: false,
-          },
-        });
-        await orderDocument.save();
-      } catch (error) {
-        console.log('-------error-----', error);
-      }
+      const orderDocument = new DocumentOrder({
+        name: updatedDocument.name,
+        type: updatedDocument.type,
+        amount: updatedDocument.amount,
+        attachments: updatedDocument.attachments,
+        description: updatedDocument.description,
+        documentRequestId: {
+          id: updatedDocument.id,
+          documentId: updatedDocument.documentId,
+        },
+        requester: newRequester[0].reviewer,
+        requestedByDepartment: newRequester[0].department,
+        status: DOCUMENT_STATUSES.PENDING,
+        reviewers: {
+          currentDepartment: reviewers[0].department,
+          list: reviewers,
+        },
+        currentReviewer: reviewers[0].reviewer._id,
+        isClaimDocument: body.type === DOCUMENT_TYPES.CLAIM,
+        originalDocument: updatedDocument.id,
+        orderWorkflow: updatedDocument.orderWorkflow,
+        lastStep: {
+          action: false,
+        },
+      });
+      await orderDocument.save();
     }
 
     await emitter.emitAsync('document.action', {
@@ -815,8 +807,6 @@ module.exports = ({
     files,
     workflowType,
   }) => {
-    console.log('workflowType', workflowType);
-    console.log('documentId', documentId);
     const document = await (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
       ? DocumentOrder
       : Document
@@ -990,8 +980,12 @@ module.exports = ({
     attachments,
     data = {},
     isRevisedDoc = false,
+    workflowType,
   }) => {
-    const document = await Document.findById(id);
+    const document = await (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER
+      ? DocumentOrder
+      : Document
+    ).findById(id);
 
     if (!document) {
       throw _noDocumentError;
@@ -1077,6 +1071,7 @@ module.exports = ({
           from: actor.id,
           action: DOCUMENT_ACTIONS.MENTIONED,
           documentId,
+          workflowType: workflowType,
         })),
       });
     }

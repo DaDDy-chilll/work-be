@@ -30,15 +30,20 @@ module.exports = ({ ReviewerGroup, userService }) => {
     );
 
     const sortedReviewersByIdx = _.sortBy(tempReviewers, 'index');
-
+    const reviewersByDepartment = _.groupBy(sortedReviewersByIdx, 'department');
     let departments = [];
+    let approvers = [];
 
     for (let i = 0; i < sortedReviewersByIdx.length - 1; i++) {
       const curr = sortedReviewersByIdx[i];
       const next = sortedReviewersByIdx[i + 1];
+      // console.log('curr', curr);
+      // console.log('next', next);
 
       departments.push(curr.department);
-
+      if (curr.reviewer.permissions.canApprove) {
+        approvers.push(curr);
+      }
       // index should start from zero
       // and be incrementally order
       // Checks by comparing with iterator
@@ -53,7 +58,14 @@ module.exports = ({ ReviewerGroup, userService }) => {
         break;
       }
 
-      if (curr.department !== next.department) {
+      let approveReviewer = approvers.some(
+        (approver) =>
+          approver.department === curr.department &&
+          approver.reviewer.permissions.canApprove !==
+            curr.reviewer.permissions.canApprove
+      );
+
+      if (curr.department !== next.department && approvers.length > 0) {
         if (!curr.reviewer.permissions.canApprove) {
           return {
             status: false,
@@ -61,13 +73,14 @@ module.exports = ({ ReviewerGroup, userService }) => {
           };
         }
       } else {
-        if (curr.reviewer.permissions.canApprove) {
+        if (curr.reviewer.permissions.canApprove && approveReviewer) {
           return {
             status: false,
-            message: `Only last person in ${curr.department} can have approve privilege.`,
+            message: `Only last person in ${curr.reviewer.department.name} can have approve privilege.`,
           };
         }
       }
+      approvers = [];
     }
 
     departments = [...new Set([...departments])];
@@ -78,28 +91,35 @@ module.exports = ({ ReviewerGroup, userService }) => {
     //     message: 'Missing department(s)',
     //   };
     // }
-
     return { status: true };
   };
   const getReviewersGroup = async (query) => {
     const { filter, limit, sort, skip } = extractQuery(query, (oldFilter) => {
       const filter = {};
-
       if (oldFilter.search) {
-        filter.$or = [
-          {
-            name: {
-              $regex: oldFilter.search,
-              $options: 'i',
-            },
-          },
-        ];
-        filter.name = {
-          $regex: oldFilter.search,
-          $options: 'i',
-        };
-      }
+        const searchTerm = oldFilter.search.trim();
+        const isGroupIdSearch = /^rg-/i.test(searchTerm);
 
+        if (isGroupIdSearch) {
+          filter.$or = [
+            {
+              groupId: {
+                $regex: searchTerm,
+                $options: 'i',
+              },
+            },
+          ];
+        } else {
+          filter.$or = [
+            {
+              name: {
+                $regex: searchTerm,
+                $options: 'i',
+              },
+            },
+          ];
+        }
+      }
       if (oldFilter.workflowType) {
         filter.workflowType = oldFilter.workflowType;
       }
@@ -138,6 +158,7 @@ module.exports = ({ ReviewerGroup, userService }) => {
       data.reviewers,
       data.departmentOrders
     );
+
     if (!validation.status) {
       throw ApiError.badRequest(validation.message);
     }
@@ -172,7 +193,7 @@ module.exports = ({ ReviewerGroup, userService }) => {
     workflowType = WORKFLOW_TYPES.PURCHASE_REQUEST
   ) => {
     if (workflowType === WORKFLOW_TYPES.PURCHASE_ORDER)
-      return await ReviewerGroup.findOne({ _id: id, workflowType })
+      return await ReviewerGroup.findById(id)
         .populate({
           path: 'reviewers.reviewer',
           populate: {
@@ -181,6 +202,12 @@ module.exports = ({ ReviewerGroup, userService }) => {
         })
         .populate({
           path: 'reviewers.department',
+        })
+        .populate({
+          path: 'workflowOrderId',
+          populate: {
+            path: 'reviewers.reviewer reviewers.department',
+          },
         });
     else
       return await ReviewerGroup.findById(id)

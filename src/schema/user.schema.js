@@ -28,6 +28,8 @@ const BASE_USER = z.object({
         canMention: z.boolean().optional().default(false),
         canNormalReturn: z.boolean().optional().default(false),
         canAdvanceReturn: z.boolean().optional().default(false),
+        canReject: z.boolean().optional().default(false),
+        canComment: z.boolean().optional().default(false),
       })
       .optional(),
   }),

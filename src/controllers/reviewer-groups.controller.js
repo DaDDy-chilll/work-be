@@ -28,7 +28,8 @@ module.exports = ({ reviewerGroupService }) => {
 
   const getGroupById = catchAsync(async (req, res, next) => {
     const group = await reviewerGroupService.getReviewerGroupById(
-      req.params.id
+      req.params.id,
+      req.query.workflowType
     );
 
     sendSuccessResponse({ res, data: group });
