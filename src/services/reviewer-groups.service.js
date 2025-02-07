@@ -37,9 +37,7 @@ module.exports = ({ ReviewerGroup, userService }) => {
     for (let i = 0; i < sortedReviewersByIdx.length - 1; i++) {
       const curr = sortedReviewersByIdx[i];
       const next = sortedReviewersByIdx[i + 1];
-      // console.log('curr', curr);
-      // console.log('next', next);
-
+   
       departments.push(curr.department);
       if (curr.reviewer.permissions.canApprove) {
         approvers.push(curr);

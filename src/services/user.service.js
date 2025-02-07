@@ -58,7 +58,6 @@ module.exports = ({ User }) => {
         path: 'department',
       })
       .populate('favouriteWorkflows');
-    console.log(users);
 
     return { users, total };
   };
@@ -124,8 +123,7 @@ module.exports = ({ User }) => {
         'permissions.canApprove': true,
         department: data.department,
       });
-
-      if (userWithApprovePermission) {
+      if (userWithApprovePermission && id !== userWithApprovePermission.id) {
         throw ApiError.badRequest(
           "There's already one person with approve permission."
         );
