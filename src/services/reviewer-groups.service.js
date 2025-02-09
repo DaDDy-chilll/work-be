@@ -152,6 +152,7 @@ module.exports = ({ ReviewerGroup, userService }) => {
   };
 
   const createReviewerGroup = async (data) => {
+    console.log('data------',data)
     const validation = await validateReviewerGroup(
       data.reviewers,
       data.departmentOrders

@@ -9,6 +9,7 @@ const ApiError = require('../utils/apiError');
  */
 function validate(schema) {
   return (req, res, next) => {
+    console.log('query', req.query);
     try {
       const result = schema.parse({
         body: req.body,

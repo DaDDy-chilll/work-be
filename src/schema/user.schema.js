@@ -96,7 +96,14 @@ const GET_USERS = z.object({
       sort: z.string().default('-createdAt'),
       limit: z.coerce.number().int().nonnegative().default(10),
       name: z.string().optional(),
-      department: z.string().refine(isObjectIdOrHexString).optional(),
+      department: z
+        .union([
+          z.string().refine(isObjectIdOrHexString, 'Invalid department ID'),
+          z.array(
+            z.string().refine(isObjectIdOrHexString, 'Invalid department ID')
+          ),
+        ])
+        .optional(),
       page: z.coerce.number().int().positive().default(1),
       search: z.string().optional(),
     })

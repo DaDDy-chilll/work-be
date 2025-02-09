@@ -40,13 +40,17 @@ module.exports = ({ User }) => {
       }
 
       if (oldFilter.department) {
-        filter.department = oldFilter.department;
+        filter.department = Array.isArray(oldFilter.department)
+          ? { $in: oldFilter.department }
+          : oldFilter.department;
       }
 
       filter.isDisabled = !!oldFilter?.isDisabled;
 
       return filter;
     });
+
+    console.log('filter', filter);
 
     const total = await User.count(filter);
 
