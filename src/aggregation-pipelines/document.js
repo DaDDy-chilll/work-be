@@ -57,7 +57,11 @@ const getAllDocumentPipeline = ({
   
   // }
   if (currentUser && !currentUser?.isSuperadmin) {
-    filter['reviewers.list.reviewer'] = new ObjectId(currentUser._id);
+    filter.$or = [
+      { 'reviewers.list.reviewer': new ObjectId(currentUser._id) },
+      { requestedByDepartment: currentUser.department._id },
+      { 'requester._id': new ObjectId(currentUser._id) }
+    ];
   }
 
   if (mentionedReviewer) {

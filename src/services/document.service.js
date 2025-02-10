@@ -947,6 +947,7 @@ module.exports = ({
 
   const getAllDocuments = async (query) => {
     const { pipelines, filter } = getAllDocumentPipeline(query);
+
     if (!query?.workflowType) {
       const [documentResults, orderResults] = await Promise.all([
         Document.aggregate([{ $match: filter }, ...pipelines]).then(

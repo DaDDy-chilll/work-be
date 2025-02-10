@@ -5,6 +5,8 @@ const GET_DEPARTMENTS = z.object({
     sort: z.string().default('-createdAt'),
     limit: z.coerce.number().int().nonnegative().default(10),
     page: z.coerce.number().int().positive(),
+    search: z.string().optional(),
+    type: z.string().optional(),
   }),
 });
 

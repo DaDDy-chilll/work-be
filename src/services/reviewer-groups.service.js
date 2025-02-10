@@ -137,6 +137,7 @@ module.exports = ({ ReviewerGroup, userService }) => {
       return filter;
     });
 
+
     const groups = await ReviewerGroup.find(filter)
       .sort(sort)
       .skip(skip)
@@ -152,7 +153,6 @@ module.exports = ({ ReviewerGroup, userService }) => {
   };
 
   const createReviewerGroup = async (data) => {
-    console.log('data------',data)
     const validation = await validateReviewerGroup(
       data.reviewers,
       data.departmentOrders

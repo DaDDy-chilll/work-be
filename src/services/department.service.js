@@ -21,10 +21,17 @@ const createDepartmentService = ({ Department }) => {
     },
 
     getDepartments: async (query) => {
-      const { sort, limit, skip, filter } = extractQuery(
-        query,
-        (filter) => filter
-      );
+      const { sort, limit, skip, filter } = extractQuery(query, (oldFilter) => {
+        const filter = {};
+        if (oldFilter.search) {
+          filter.$or = [{ name: { $regex: oldFilter.search, $options: 'i' } }];
+        }
+        if (oldFilter.type) {
+          filter.type = oldFilter.type.toLowerCase();
+        }
+        return filter;
+      });
+
 
       const [departments, total] = await Promise.all([
         Department.find(filter).sort(sort).skip(skip).limit(limit),

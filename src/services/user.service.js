@@ -50,7 +50,6 @@ module.exports = ({ User }) => {
       return filter;
     });
 
-    console.log('filter', filter);
 
     const total = await User.count(filter);
 
