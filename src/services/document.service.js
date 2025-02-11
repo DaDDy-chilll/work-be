@@ -949,6 +949,9 @@ module.exports = ({
     const { pipelines, filter } = getAllDocumentPipeline(query);
 
     if (!query?.workflowType) {
+      console.log('query', query);
+      console.log('filter----', filter);
+
       const [documentResults, orderResults] = await Promise.all([
         Document.aggregate([{ $match: filter }, ...pipelines]).then(
           (items) => items[0] || { data: [], count: 0 }
@@ -957,12 +960,15 @@ module.exports = ({
           (items) => items[0] || { data: [], count: 0 }
         ),
       ]);
+
+      console.log('documentResults----', documentResults);
+      console.log('orderResults----', orderResults);
       return {
         total: documentResults.count + orderResults.count,
         documents: [...documentResults.data, ...orderResults.data],
       };
     }
-
+    console.log('query second------', query);
     // Get documents from specific collection based on workflowType
     const Model =
       query.workflowType === WORKFLOW_TYPES.PURCHASE_ORDER

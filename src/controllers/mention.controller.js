@@ -5,7 +5,7 @@ module.exports = ({ mentionService }) => {
   return Object.freeze({
     getMentions: catchAsync(async (req, res, next) => {
       const { documentId } = req.query;
-
+      console.log("documentId----", documentId);
       const mentions = await mentionService.getMentions({ documentId });
 
       sendSuccessResponse({

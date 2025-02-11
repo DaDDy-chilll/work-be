@@ -253,9 +253,7 @@ module.exports = ({ documentService }) => {
   const getMentionedDocuments = catchAsync(async (req, res, next) => {
     const { documents, total } = await documentService.getAllDocuments({
       ...req.query,
-      mentionedReviewer: req.user.id,
-      workflowType: req.query.workflowType || WORKFLOW_TYPES.PURCHASE_REQUEST,
-    });
+      mentionedReviewer: req.user.id    });
 
     sendSuccessResponse({
       res,

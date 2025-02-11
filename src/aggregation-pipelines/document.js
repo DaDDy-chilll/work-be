@@ -94,18 +94,18 @@ const getAllDocumentPipeline = ({
   const pipelines = [
     {
       $lookup: {
-        from: 'users',
-        localField: 'requester',
-        foreignField: '_id',
-        as: 'requester',
-      },
-    },
-    {
-      $lookup: {
         from: 'mentions',
         localField: '_id',
         foreignField: 'document',
         as: 'mentions',
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'requester',
+        foreignField: '_id',
+        as: 'requester',
       },
     },
     {

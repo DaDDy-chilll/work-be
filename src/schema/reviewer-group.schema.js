@@ -59,7 +59,11 @@ const BASE_GROUP = z.object({
         errorMap: () => ({ message: 'Invalid workflow type' }),
       })
       .default(WORKFLOW_TYPES.DEFAULT),
-    workflowOrderId: z.string().refine(isObjectIdOrHexString).optional(),
+    workflowOrderId: z
+      .string()
+      .refine(isObjectIdOrHexString)
+      .optional()
+      .nullable(),
   }),
 });
 
